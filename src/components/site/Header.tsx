@@ -45,7 +45,7 @@ export function Header() {
     >
       <div className="container-narrow flex h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <Logo className="h-11 w-auto" />
+          <Logo className="h-14 w-auto md:h-16" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
