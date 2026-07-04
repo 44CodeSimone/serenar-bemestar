@@ -70,15 +70,13 @@ export function Header() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {isAdmin && (
-            <Link
-              to="/_authenticated/admin" as="/admin" {...({} as never)}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              {...({ to: "/admin" } as any)}
+            <a
+              href="/admin"
               className="inline-flex h-10 items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 text-xs uppercase tracking-wider text-sage-deep transition-colors hover:bg-gold/20"
               aria-label="Painel administrativo"
             >
               <Shield className="h-3.5 w-3.5" /> Admin
-            </Link>
+            </a>
           )}
           <Link
             to={user ? "/perfil" : "/auth"}
