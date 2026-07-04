@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Serenar — Massoterapia & Bem-Estar em Urubici" },
+      { title: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
       {
         name: "description",
         content:
@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Serenar — Mariah Luz" },
       { name: "theme-color", content: "#F5E3D8" },
-      { property: "og:title", content: "Serenar — Massoterapia & Bem-Estar" },
+      { property: "og:title", content: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
       {
         property: "og:description",
         content:
@@ -95,6 +95,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
+      { name: "description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
+      { property: "og:description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
+      { name: "twitter:description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yHzyaPQ07sbGc5SzgYFWhTB3yvP2/social-images/social-1783179174591-Serenar.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yHzyaPQ07sbGc5SzgYFWhTB3yvP2/social-images/social-1783179174591-Serenar.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
