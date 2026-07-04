@@ -8,7 +8,7 @@ import { SITE } from "@/lib/site-config";
 export const Route = createFileRoute("/sobre")({
   head: () => ({
     meta: [
-      { title: "Sobre a Serenar — Mariah Luz | Massoterapia em Chapecó" },
+      { title: "Sobre a Serenar — Mariah Luz | Massoterapia em Urubici" },
       {
         name: "description",
         content:

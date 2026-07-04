@@ -78,11 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Serenar — Massoterapia & Bem-Estar em Chapecó" },
+      { title: "Serenar — Massoterapia & Bem-Estar em Urubici" },
       {
         name: "description",
         content:
-          "Espaço boutique de massoterapia em Chapecó/SC. Massagens terapêuticas, drenagem linfática, pedras quentes e rituais de autocuidado com Mariah Luz.",
+          "Espaço boutique de massoterapia em Urubici/SC. Massagens terapêuticas, drenagem linfática, pedras quentes e rituais de autocuidado com Mariah Luz.",
       },
       { name: "author", content: "Serenar — Mariah Luz" },
       { name: "theme-color", content: "#F5E3D8" },
@@ -90,7 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Um espaço para você desacelerar. Massoterapia e rituais de bem-estar com atendimento personalizado em Chapecó/SC.",
+          "Um espaço para você desacelerar. Massoterapia e rituais de bem-estar com atendimento personalizado em Urubici/SC.",
       },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
