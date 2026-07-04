@@ -2,9 +2,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { MessageCircle, Send, X, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { serenaChat } from "@/lib/serena.functions";
-import { SITE, waMessage } from "@/lib/site-config";
+import { waMessage } from "@/lib/site-config";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = { role: "user" | "assistant"; content: string; handoff?: boolean };
 
 const OPENER: Msg = {
   role: "assistant",
@@ -20,6 +20,10 @@ const CHIPS = [
   "Ver valores",
   "Falar no WhatsApp",
 ] as const;
+
+const HANDOFF_URL = waMessage(
+  "Olá Mariah! Conversei com a Serená no site e gostaria de receber uma orientação.",
+);
 
 export function SerenaChat() {
   const [open, setOpen] = useState(false);
@@ -42,16 +46,12 @@ export function SerenaChat() {
   async function sendText(text: string) {
     const clean = text.trim();
     if (!clean || loading) return;
-    if (/whats/i.test(clean) && messages.length <= 1) {
-      window.open(waMessage("Olá Mariah! Vim pela Serená e gostaria de falar por aqui."), "_blank");
-      return;
-    }
     const next: Msg[] = [...messages, { role: "user", content: clean }];
     setMessages(next);
     setInput("");
     setLoading(true);
     try {
-      const { reply } = await chatFn({ data: { messages: next } });
+      const { reply, handoff } = await chatFn({ data: { messages: next } });
       setMessages([
         ...next,
         {
@@ -59,6 +59,7 @@ export function SerenaChat() {
           content:
             reply ||
             "Desculpe, não consegui responder agora. Se preferir, chame a Mariah no WhatsApp — ela te atende com todo o cuidado.",
+          handoff: handoff || !reply,
         },
       ]);
     } catch {
@@ -68,6 +69,7 @@ export function SerenaChat() {
           role: "assistant",
           content:
             "Tive um pequeno contratempo por aqui. Se quiser, siga a conversa pelo WhatsApp — a Mariah continua contigo com carinho.",
+          handoff: true,
         },
       ]);
     } finally {
@@ -132,6 +134,17 @@ export function SerenaChat() {
                 }
               >
                 {m.content}
+                {m.role === "assistant" && m.handoff && (
+                  <a
+                    href={HANDOFF_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage-deep px-4 py-2.5 text-sm text-primary-foreground shadow-soft transition-transform hover:scale-105"
+                  >
+                    <span>💬</span>
+                    <span>Conversar com a Mariah no WhatsApp</span>
+                  </a>
+                )}
               </div>
             ))}
             {loading && (
@@ -180,7 +193,7 @@ export function SerenaChat() {
               rel="noreferrer"
               className="mt-2 block text-center text-[11px] tracking-wider text-muted-foreground transition-colors hover:text-sage-deep"
             >
-              Prefere falar com uma pessoa? Continue no WhatsApp {SITE.whatsapp.display}
+              Prefere falar com uma pessoa? Continue no WhatsApp
             </a>
           </div>
         </div>
