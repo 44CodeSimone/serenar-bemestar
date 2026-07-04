@@ -82,7 +82,7 @@ export default function AdminSettings() {
     setSaving(true);
     setSavedMsg(null);
     for (const s of SECTIONS) {
-      await supabase.from("site_settings").upsert({ key: s.key, value: rows[s.key].value, is_public: true });
+      await supabase.from("site_settings").upsert({ key: s.key, value: rows[s.key].value as never, is_public: true });
     }
     setSaving(false);
     setSavedMsg("Configurações salvas.");

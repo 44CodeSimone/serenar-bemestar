@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminServicosRouteImport } from './routes/_authenticated/admin/servicos'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
 import { Route as AuthenticatedAdminFaqRouteImport } from './routes/_authenticated/admin/faq'
+import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
 import { Route as AuthenticatedAdminAgendamentosRouteImport } from './routes/_authenticated/admin/agendamentos'
 
 const TermosRoute = TermosRouteImport.update({
@@ -119,6 +120,12 @@ const AuthenticatedAdminFaqRoute = AuthenticatedAdminFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminConfiguracoesRoute =
+  AuthenticatedAdminConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAgendamentosRoute =
   AuthenticatedAdminAgendamentosRouteImport.update({
     id: '/agendamentos',
@@ -141,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -182,6 +191,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/_authenticated/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/perfil'
     | '/admin/agendamentos'
+    | '/admin/configuracoes'
     | '/admin/faq'
     | '/admin/leads'
     | '/admin/servicos'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/perfil'
     | '/admin/agendamentos'
+    | '/admin/configuracoes'
     | '/admin/faq'
     | '/admin/leads'
     | '/admin/servicos'
@@ -244,6 +256,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/perfil'
     | '/_authenticated/admin/agendamentos'
+    | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/faq'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/servicos'
@@ -393,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/configuracoes': {
+      id: '/_authenticated/admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/agendamentos': {
       id: '/_authenticated/admin/agendamentos'
       path: '/agendamentos'
@@ -405,6 +425,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAgendamentosRoute: typeof AuthenticatedAdminAgendamentosRoute
+  AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
   AuthenticatedAdminFaqRoute: typeof AuthenticatedAdminFaqRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminServicosRoute: typeof AuthenticatedAdminServicosRoute
@@ -414,6 +435,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminAgendamentosRoute: AuthenticatedAdminAgendamentosRoute,
+    AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
     AuthenticatedAdminFaqRoute: AuthenticatedAdminFaqRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
     AuthenticatedAdminServicosRoute: AuthenticatedAdminServicosRoute,
