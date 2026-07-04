@@ -202,44 +202,76 @@
   }
 
   .btn-serena {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.85rem 1.75rem;
+    padding: 0.9rem 1.85rem;
     border-radius: 999px;
     font-size: 0.9rem;
     font-weight: 500;
     letter-spacing: 0.02em;
-    transition: all 0.3s ease;
-    background: var(--sage-deep);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s ease,
+                background 0.35s ease;
+    background: linear-gradient(135deg, var(--sage-deep), oklch(from var(--sage-deep) calc(l + 0.06) c h));
     color: var(--primary-foreground);
     box-shadow: var(--shadow-soft);
+    will-change: transform;
+  }
+  .btn-serena svg {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .btn-serena:hover {
-    background: var(--sage);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-elegant);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elegant),
+                0 0 0 6px oklch(from var(--gold) l c h / 0.08);
   }
+  .btn-serena:hover svg { transform: translateX(2px); }
+  .btn-serena:active { transform: translateY(0); transition-duration: 0.1s; }
 
   .btn-serena-outline {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.85rem 1.75rem;
+    padding: 0.9rem 1.85rem;
     border-radius: 999px;
     font-size: 0.9rem;
     font-weight: 500;
     letter-spacing: 0.02em;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     background: transparent;
     color: var(--sage-deep);
-    border: 1px solid oklch(from var(--sage-deep) l c h / 0.35);
+    border: 1px solid oklch(from var(--sage-deep) l c h / 0.3);
   }
   .btn-serena-outline:hover {
     background: oklch(from var(--sage-deep) l c h / 0.06);
     border-color: var(--sage-deep);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-serena-outline:active { transform: translateY(0); }
+
+  .chip-serena {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    background: var(--cream);
+    color: var(--sage-deep);
+    border: 1px solid oklch(from var(--sage-deep) l c h / 0.12);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .chip-serena:hover {
+    background: var(--blush);
+    border-color: oklch(from var(--gold) l c h / 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px oklch(from var(--sage-deep) l c h / 0.08);
   }
 
   .card-serena {
@@ -292,6 +324,14 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+@keyframes serena-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes serena-soft-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(from var(--gold) l c h / 0.35), var(--shadow-elegant); }
+  50%      { box-shadow: 0 0 0 14px oklch(from var(--gold) l c h / 0), var(--shadow-elegant); }
+}
 
 @utility animate-fade-up {
   animation: serena-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -301,4 +341,10 @@
 }
 @utility animate-float-slow {
   animation: serena-float 4s ease-in-out infinite;
+}
+@utility animate-breathe {
+  animation: serena-breathe 3.2s ease-in-out infinite;
+}
+@utility animate-soft-pulse {
+  animation: serena-soft-pulse 2.6s ease-in-out infinite;
 }

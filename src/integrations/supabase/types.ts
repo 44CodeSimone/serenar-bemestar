@@ -41,12 +41,46 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_knowledge: {
+        Row: {
+          active: boolean
+          category: string | null
+          content: string
+          created_at: string
+          display_order: number
+          id: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          content: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           created_at: string
           email: string | null
           full_name: string
           id: string
+          internal_notes: string | null
           notes: string | null
           phone: string
           preferred_date: string | null
@@ -62,6 +96,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          internal_notes?: string | null
           notes?: string | null
           phone: string
           preferred_date?: string | null
@@ -77,6 +112,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          internal_notes?: string | null
           notes?: string | null
           phone?: string
           preferred_date?: string | null
@@ -86,6 +122,144 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: string | null
+          cover_image_url: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          published_at: string | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          tags: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          tags?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          tags?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      faq_items: {
+        Row: {
+          active: boolean
+          answer: string
+          category: string | null
+          created_at: string
+          display_order: number
+          id: string
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          answer: string
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          answer?: string
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string | null
+          id: string
+          interest: string | null
+          metadata: Json | null
+          name: string
+          notes: string | null
+          phone: string | null
+          service: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consent?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest?: string | null
+          metadata?: Json | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          service?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          interest?: string | null
+          metadata?: Json | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          service?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -122,6 +296,132 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          active: boolean
+          aftercare: string | null
+          benefits: Json | null
+          contraindications: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          duration: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          name: string
+          preparation: string | null
+          price_cents: number | null
+          price_label: string | null
+          short_description: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          aftercare?: string | null
+          benefits?: Json | null
+          contraindications?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          preparation?: string | null
+          price_cents?: number | null
+          price_label?: string | null
+          short_description?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          aftercare?: string | null
+          benefits?: Json | null
+          contraindications?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          preparation?: string | null
+          price_cents?: number | null
+          price_label?: string | null
+          short_description?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          is_public: boolean
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          is_public?: boolean
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          is_public?: boolean
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          active: boolean
+          authorized: boolean
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          rating: number | null
+          service: string | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          authorized?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          rating?: number | null
+          service?: string | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          authorized?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          rating?: number | null
+          service?: string | null
+          text?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -191,6 +491,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client"
