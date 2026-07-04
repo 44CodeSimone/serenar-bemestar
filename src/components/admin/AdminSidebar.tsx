@@ -10,14 +10,14 @@ import {
 } from "lucide-react";
 import { LeafMark } from "@/components/site/Logo";
 
-const ITEMS = [
+const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarCheck },
   { to: "/admin/leads", label: "Leads", icon: Users },
   { to: "/admin/servicos", label: "Serviços", icon: Sparkles },
   { to: "/admin/faq", label: "FAQ", icon: MessageSquareHeart },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings },
-] as const;
+];
 
 export function AdminSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
