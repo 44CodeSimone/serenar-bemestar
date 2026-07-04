@@ -38,7 +38,8 @@ export function AdminSidebar() {
           return (
             <Link
               key={item.to}
-              to={item.to}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={item.to as any}
               className={
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors " +
                 (active
