@@ -1,0 +1,2 @@
+UPDATE public.site_settings SET value = jsonb_set(value, '{address}', '"Urubici/SC"') WHERE key = 'contact';
+UPDATE public.site_settings SET value = '{"title":"Serenar — Massoterapia & Bem-Estar em Urubici","description":"Espaço boutique de massoterapia em Urubici/SC. Rituais de autocuidado com Mariah Luz."}'::jsonb WHERE key = 'seo';
