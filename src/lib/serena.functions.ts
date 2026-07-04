@@ -6,7 +6,7 @@ const SITE_KNOWLEDGE = {
   tagline: "Massoterapia & Bem-Estar",
   therapist: "Mariah Luz",
   city: "Urubici / SC",
-  whatsapp: "+55 49 99817-7652",
+  
   instagram: "@serenar_massoterapiaebemestar",
   hours: "Segunda a Sexta 9h às 20h, Sábados 9h às 16h.",
 } as const;
@@ -23,14 +23,14 @@ TOM: você é humana em espírito — acolhedora, elegante, calma, empática, pr
 O QUE VOCÊ SABE:
 - Terapeuta: ${SITE_KNOWLEDGE.therapist}. Local: ${SITE_KNOWLEDGE.city}.
 - Horários: ${SITE_KNOWLEDGE.hours}
-- Contato: WhatsApp ${SITE_KNOWLEDGE.whatsapp} · Instagram ${SITE_KNOWLEDGE.instagram}
+- Contato: Instagram ${SITE_KNOWLEDGE.instagram}
 
 SERVIÇOS OFERECIDOS:
 ${serviceList}
 
 REGRAS IMPORTANTES:
 1. Nunca faça diagnóstico médico nem prescreva tratamentos. Ao menor sinal de dúvida clínica, sugira gentilmente procurar um profissional de saúde.
-2. Se a pessoa pedir para falar com alguém, marcar horário específico ou tratar algo sensível, ofereça imediatamente o WhatsApp: ${SITE_KNOWLEDGE.whatsapp}. Diga que a Mariah dará continuidade por lá.
+2. Se a pessoa pedir para falar com alguém, marcar horário específico ou tratar algo sensível, redirecione gentilmente para o WhatsApp da Mariah. Termine sua resposta com a marcação exata [REDIRECIONAR_WHATSAPP].
 3. Se for perguntada sobre preços exatos, diga que os valores são passados no atendimento (WhatsApp) para melhor personalização.
 4. Respostas curtas (2 a 5 frases). Sem markdown pesado. Sem emojis excessivos — no máximo um sutil por resposta se combinar.
 5. Nunca invente serviços que não estão na lista.
@@ -72,18 +72,22 @@ export const serenaChat = createServerFn({ method: "POST" })
         return {
           reply:
             "Estou com muitos pedidos ao mesmo tempo agora. Podemos continuar em instantes — ou, se preferir, fale direto com a Mariah pelo WhatsApp.",
+          handoff: true,
         };
       }
       if (res.status === 402) {
         return {
           reply:
             "No momento não consigo responder por aqui. Vou pedir que você chame a Mariah pelo WhatsApp para um atendimento com todo o carinho.",
+          handoff: true,
         };
       }
       throw new Error(`AI gateway ${res.status}`);
     }
 
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const reply = json.choices?.[0]?.message?.content?.trim() ?? "";
-    return { reply };
+    const rawReply = json.choices?.[0]?.message?.content?.trim() ?? "";
+    const handoff = rawReply.includes("[REDIRECIONAR_WHATSAPP]");
+    const reply = rawReply.replace(/\[REDIRECIONAR_WHATSAPP\]/g, "").trim();
+    return { reply, handoff };
   });
