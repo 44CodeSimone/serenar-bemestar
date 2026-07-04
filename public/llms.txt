@@ -1,0 +1,14 @@
+# Serenar — Massoterapia & Bem-Estar
+
+> Espaço boutique de massoterapia em Chapecó/SC. Massagens terapêuticas, drenagem linfática, pedras quentes e rituais de autocuidado com Mariah Luz.
+
+## Páginas
+- [Início](/): Boas-vindas ao espaço Serenar.
+- [Sobre](/sobre): História do espaço e da terapeuta Mariah Luz.
+- [Serviços](/servicos): Todos os rituais de bem-estar disponíveis.
+- [Agendamento](/agendamento): Formulário para reservar uma sessão.
+- [Contato](/contato): WhatsApp, Instagram, endereço, horários.
+- [Blog](/blog): Artigos sobre autocuidado (em breve).
+- [FAQ](/faq): Perguntas frequentes.
+- [Privacidade](/politica-privacidade): Política de privacidade (LGPD).
+- [Termos](/termos): Termos de uso.
