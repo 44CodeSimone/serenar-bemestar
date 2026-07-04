@@ -4,7 +4,7 @@ export const SITE = {
   name: "Serenar",
   tagline: "Massoterapia & Bem-Estar",
   description:
-    "Serenar é um espaço boutique de massoterapia e bem-estar em Chapecó/SC. Massagens terapêuticas, drenagem linfática, pedras quentes e cuidados que devolvem sua serenidade.",
+    "Serenar é um espaço boutique de massoterapia e bem-estar em Urubici/SC. Massagens terapêuticas, drenagem linfática, pedras quentes e cuidados que devolvem sua serenidade.",
   therapist: "Mariah Luz",
   whatsapp: {
     raw: "+5549998177652",
@@ -16,8 +16,8 @@ export const SITE = {
     url: "https://instagram.com/serenar_massoterapiaebemestar",
   },
   email: "contato@serenar.com.br",
-  city: "Chapecó / SC",
-  address: "Chapecó, Santa Catarina",
+  city: "Urubici / SC",
+  address: "Urubici, Santa Catarina",
   hours: [
     { day: "Segunda a Sexta", time: "09h — 20h" },
     { day: "Sábado", time: "09h — 16h" },

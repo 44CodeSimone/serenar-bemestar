@@ -5,10 +5,10 @@ import { SITE } from "@/lib/site-config";
 export const Route = createFileRoute("/contato")({
   head: () => ({
     meta: [
-      { title: "Contato — Serenar Massoterapia | Chapecó/SC" },
+      { title: "Contato — Serenar Massoterapia | Urubici/SC" },
       {
         name: "description",
-        content: "Fale com o Serenar por WhatsApp, Instagram ou email. Estamos em Chapecó/SC, prontas para te receber.",
+        content: "Fale com o Serenar por WhatsApp, Instagram ou email. Estamos em Urubici/SC, prontas para te receber.",
       },
     ],
   }),
@@ -73,8 +73,8 @@ function Contato() {
             </p>
             <div className="mt-6 aspect-video overflow-hidden rounded-2xl border border-border bg-cream/60 shadow-soft">
               <iframe
-                title="Mapa Chapecó"
-                src="https://www.google.com/maps?q=Chapec%C3%B3+SC&output=embed"
+                title="Mapa Urubici"
+                src="https://www.google.com/maps?q=Urubici+SC&output=embed"
                 className="h-full w-full"
                 loading="lazy"
               />
@@ -90,5 +90,5 @@ const CONTACTS = [
   { icon: Phone, label: "WhatsApp", value: SITE.whatsapp.display, href: SITE.whatsapp.link, external: true },
   { icon: Instagram, label: "Instagram", value: SITE.instagram.handle, href: SITE.instagram.url, external: true },
   { icon: Mail, label: "Email", value: SITE.email, href: `mailto:${SITE.email}`, external: false },
-  { icon: MapPin, label: "Localização", value: SITE.city, href: "https://maps.google.com/?q=Chapeco+SC", external: true },
+  { icon: MapPin, label: "Localização", value: SITE.city, href: "https://maps.google.com/?q=Urubici+SC", external: true },
 ];

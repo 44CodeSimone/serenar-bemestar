@@ -2,6 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
+export const FAQS = [
+  { q: "Preciso agendar com antecedência?", a: "Sim. Trabalhamos com horários exclusivos para garantir um atendimento sem pressa. Recomendamos reservar com pelo menos 3 dias de antecedência." },
+  { q: "Qual a duração de cada sessão?", a: "Depende do serviço: sessões variam de 45 a 90 minutos. Você encontra a duração exata na página de cada ritual." },
+  { q: "Como funciona o pagamento?", a: "Aceitamos Pix, transferência e cartões. O valor é combinado por WhatsApp no momento da confirmação, para personalizar cada atendimento." },
+  { q: "Posso remarcar minha sessão?", a: "Claro. Pedimos apenas que avise com no mínimo 24 horas de antecedência para reorganizarmos a agenda." },
+  { q: "Existe contraindicação para massagens?", a: "Sim. Casos como trombose, febre, infecções ativas e algumas fases da gestação exigem avaliação. Comente sua condição no agendamento — a Mariah orientará com cuidado." },
+  { q: "Como é o ambiente do espaço?", a: "Silencioso, com aromas suaves e luz âmbar. Tudo pensado para você chegar e desacelerar imediatamente." },
+  { q: "Vocês oferecem pacotes?", a: "Sim, temos pacotes de sessões e cartões-presente. Fale conosco no WhatsApp para conhecer as opções atuais." },
+  { q: "Posso levar acompanhante?", a: "Preferimos que a sessão seja um tempo só seu, mas caso precise, avise antes para adequarmos o ambiente." },
+];
+
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
@@ -29,16 +40,6 @@ export const Route = createFileRoute("/faq")({
   component: FaqPage,
 });
 
-const FAQS = [
-  { q: "Preciso agendar com antecedência?", a: "Sim. Trabalhamos com horários exclusivos para garantir um atendimento sem pressa. Recomendamos reservar com pelo menos 3 dias de antecedência." },
-  { q: "Qual a duração de cada sessão?", a: "Depende do serviço: sessões variam de 45 a 90 minutos. Você encontra a duração exata na página de cada ritual." },
-  { q: "Como funciona o pagamento?", a: "Aceitamos Pix, transferência e cartões. O valor é combinado por WhatsApp no momento da confirmação, para personalizar cada atendimento." },
-  { q: "Posso remarcar minha sessão?", a: "Claro. Pedimos apenas que avise com no mínimo 24 horas de antecedência para reorganizarmos a agenda." },
-  { q: "Existe contraindicação para massagens?", a: "Sim. Casos como trombose, febre, infecções ativas e algumas fases da gestação exigem avaliação. Comente sua condição no agendamento — a Mariah orientará com cuidado." },
-  { q: "Como é o ambiente do espaço?", a: "Silencioso, com aromas suaves e luz âmbar. Tudo pensado para você chegar e desacelerar imediatamente." },
-  { q: "Vocês oferecem pacotes?", a: "Sim, temos pacotes de sessões e cartões-presente. Fale conosco no WhatsApp para conhecer as opções atuais." },
-  { q: "Posso levar acompanhante?", a: "Preferimos que a sessão seja um tempo só seu, mas caso precise, avise antes para adequarmos o ambiente." },
-];
 
 function FaqPage() {
   const [open, setOpen] = useState<number | null>(0);

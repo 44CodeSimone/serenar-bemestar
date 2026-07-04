@@ -5,7 +5,7 @@ const SITE_KNOWLEDGE = {
   name: "Serenar",
   tagline: "Massoterapia & Bem-Estar",
   therapist: "Mariah Luz",
-  city: "Chapecó / SC",
+  city: "Urubici / SC",
   whatsapp: "+55 49 99817-7652",
   instagram: "@serenar_massoterapiaebemestar",
   hours: "Segunda a Sexta 9h às 20h, Sábados 9h às 16h.",

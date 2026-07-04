@@ -11,7 +11,7 @@ export const Route = createFileRoute("/servicos")({
       {
         name: "description",
         content:
-          "Massagem relaxante, terapêutica, drenagem linfática, pedras quentes, spa dos pés e mais. Conheça todos os rituais de bem-estar do Serenar em Chapecó/SC.",
+          "Massagem relaxante, terapêutica, drenagem linfática, pedras quentes, spa dos pés e mais. Conheça todos os rituais de bem-estar do Serenar em Urubici/SC.",
       },
       { property: "og:title", content: "Serviços | Serenar" },
       { property: "og:description", content: "Rituais de autocuidado feitos com mãos que escutam." },

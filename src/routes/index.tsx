@@ -10,17 +10,17 @@ import { LeafMark } from "@/components/site/Logo";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Serenar — Massoterapia & Bem-Estar em Chapecó/SC" },
+      { title: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
       {
         name: "description",
         content:
-          "Massoterapia boutique em Chapecó. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão.",
+          "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão.",
       },
       { property: "og:title", content: "Serenar — Massoterapia & Bem-Estar" },
       {
         property: "og:description",
         content:
-          "Um espaço para você desacelerar. Agende sua sessão de bem-estar em Chapecó/SC.",
+          "Um espaço para você desacelerar. Agende sua sessão de bem-estar em Urubici/SC.",
       },
     ],
   }),
