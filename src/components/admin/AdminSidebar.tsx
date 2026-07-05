@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -7,8 +7,10 @@ import {
   Settings,
   MessageSquareHeart,
   Home,
+  LogOut,
 } from "lucide-react";
 import { LeafMark } from "@/components/site/Logo";
+import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
