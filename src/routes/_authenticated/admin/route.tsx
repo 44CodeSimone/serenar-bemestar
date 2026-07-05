@@ -50,8 +50,11 @@ function AdminLayout() {
           </div>
           <h1 className="font-serif text-3xl text-sage-deep">Acesso restrito</h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Esta área é apenas para a equipe do Serenar. Se você é a Mariah e este é o primeiro acesso,
-            clique abaixo para assumir o painel.
+            Você não tem permissão para acessar esta área.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Se você é a Mariah e este é o primeiro acesso ao painel, clique abaixo para
+            assumir a titularidade como owner do Serenar.
           </p>
           {claimMsg && (
             <p className="mt-4 rounded-xl bg-blush px-4 py-2 text-sm text-sage-deep">{claimMsg}</p>
@@ -68,7 +71,7 @@ function AdminLayout() {
                     setClaimMsg("Painel liberado! Redirecionando…");
                     setTimeout(() => window.location.reload(), 700);
                   } else {
-                    setClaimMsg("Já existe um administrador. Peça acesso à Mariah.");
+                    setClaimMsg("Já existe uma titularidade definida. Peça acesso à Mariah.");
                   }
                 } catch {
                   setClaimMsg("Não foi possível verificar agora. Tente novamente em instantes.");
@@ -79,6 +82,15 @@ function AdminLayout() {
               className="btn-serena"
             >
               {claiming ? <Loader2 className="h-4 w-4 animate-spin" /> : "Assumir painel como Mariah"}
+            </button>
+            <button
+              className="text-xs text-muted-foreground hover:text-sage-deep"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/auth" });
+              }}
+            >
+              Sair da conta
             </button>
             <button className="text-xs text-muted-foreground hover:text-sage-deep" onClick={() => navigate({ to: "/" })}>
               Voltar ao site

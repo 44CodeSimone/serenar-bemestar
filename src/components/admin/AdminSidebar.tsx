@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -7,8 +7,10 @@ import {
   Settings,
   MessageSquareHeart,
   Home,
+  LogOut,
 } from "lucide-react";
 import { LeafMark } from "@/components/site/Logo";
+import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -21,6 +23,7 @@ const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: 
 
 export function AdminSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-cream/40 md:flex md:flex-col">
       <div className="border-b border-border p-6">
@@ -53,13 +56,23 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-border p-3">
+      <div className="space-y-1 border-t border-border p-3">
         <Link
           to="/"
           className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground hover:text-sage-deep"
         >
           <Home className="h-3.5 w-3.5" /> Voltar ao site
         </Link>
+        <button
+          type="button"
+          onClick={async () => {
+            await supabase.auth.signOut();
+            navigate({ to: "/auth" });
+          }}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground hover:text-sage-deep"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Sair
+        </button>
       </div>
     </aside>
   );
