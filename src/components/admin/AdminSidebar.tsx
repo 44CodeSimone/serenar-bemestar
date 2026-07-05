@@ -23,6 +23,7 @@ const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: 
 
 export function AdminSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-cream/40 md:flex md:flex-col">
       <div className="border-b border-border p-6">
