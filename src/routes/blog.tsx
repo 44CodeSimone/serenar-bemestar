@@ -40,7 +40,7 @@ function Blog() {
         <a
           href="https://instagram.com/serenar_massoterapiaebemestar"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="btn-serena mt-6"
         >
           Seguir no Instagram

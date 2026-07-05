@@ -2,7 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { MessageCircle, Send, X, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { serenaChat } from "@/lib/serena.functions";
-import { waMessage } from "@/lib/site-config";
+import { SITE } from "@/lib/site-config";
 
 type Msg = { role: "user" | "assistant"; content: string; handoff?: boolean };
 
@@ -21,9 +21,7 @@ const CHIPS = [
   "Falar no WhatsApp",
 ] as const;
 
-const HANDOFF_URL = waMessage(
-  "Olá Mariah! Conversei com a Serená no site e gostaria de receber uma orientação.",
-);
+const HANDOFF_URL = SITE.whatsapp.link;
 
 export function SerenaChat() {
   const [open, setOpen] = useState(false);
@@ -188,9 +186,9 @@ export function SerenaChat() {
               </button>
             </div>
             <a
-              href={waMessage("Olá Mariah! Estava conversando com a Serená e gostaria de continuar por aqui.")}
+              href={HANDOFF_URL}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-2 block text-center text-[11px] tracking-wider text-muted-foreground transition-colors hover:text-sage-deep"
             >
               Prefere falar com uma pessoa? Continue no WhatsApp

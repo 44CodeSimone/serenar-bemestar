@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, MessageCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SITE } from "@/lib/site-config";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
   ssr: false,
@@ -95,7 +96,7 @@ export default function AdminLeads() {
                   <td className="p-3 font-medium text-sage-deep">{l.name}</td>
                   <td className="p-3 text-xs">
                     {l.phone && (
-                      <a href={`https://wa.me/${l.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[oklch(0.55_0.15_150)] hover:underline">
+                      <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[oklch(0.55_0.15_150)] hover:underline">
                         <MessageCircle className="h-3 w-3" /> {l.phone}
                       </a>
                     )}

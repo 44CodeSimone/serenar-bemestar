@@ -8,8 +8,8 @@ export const SITE = {
   therapist: "Mariah Luz",
   whatsapp: {
     raw: "+5549998177652",
-    display: "+55 49 99817-7652",
-    link: "https://wa.me/5549998177652",
+    display: "WhatsApp",
+    link: "https://wa.me/5549998177652?text=Ol%C3%A1%20Mariah%21%20Conversei%20com%20a%20Seren%C3%A1%20no%20site%20e%20gostaria%20de%20receber%20uma%20orienta%C3%A7%C3%A3o.",
   },
   instagram: {
     handle: "@serenar_massoterapiaebemestar",
@@ -26,5 +26,6 @@ export const SITE = {
 } as const;
 
 export function waMessage(text: string): string {
-  return `${SITE.whatsapp.link}?text=${encodeURIComponent(text)}`;
+  void text;
+  return SITE.whatsapp.link;
 }
