@@ -16,7 +16,7 @@ export function Footer() {
             <a
               href={SITE.instagram.url}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-sage-deep transition-colors hover:bg-blush"
               aria-label="Instagram"
             >
