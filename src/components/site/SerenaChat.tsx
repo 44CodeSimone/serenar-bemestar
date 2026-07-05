@@ -138,7 +138,7 @@ export function SerenaChat() {
                   <a
                     href={HANDOFF_URL}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="mt-3 inline-flex items-center gap-2 rounded-full bg-sage-deep px-4 py-2.5 text-sm text-primary-foreground shadow-soft transition-transform hover:scale-105"
                   >
                     <span>💬</span>
