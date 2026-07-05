@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
+import { SERVICES } from "@/lib/services";
 import { SITE } from "@/lib/site-config";
 import { supabase } from "@/integrations/supabase/client";
 
