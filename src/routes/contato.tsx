@@ -35,7 +35,7 @@ function Contato() {
             key={c.label}
             href={c.href}
             target={c.external ? "_blank" : undefined}
-            rel={c.external ? "noreferrer" : undefined}
+            rel={c.external ? "noopener noreferrer" : undefined}
             className="card-serena flex flex-col items-center text-center transition-transform hover:-translate-y-1"
           >
             <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blush text-gold">

@@ -247,7 +247,7 @@ function Home() {
               <Link to="/agendamento" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-8 py-4 text-sm font-medium text-gold-foreground shadow-elegant transition-transform hover:scale-105">
                 Agendar agora <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href={SITE.whatsapp.link} target="_blank" rel="noreferrer" className="text-sm text-cream/70 hover:text-cream">
+              <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="text-sm text-cream/70 hover:text-cream">
                 ou fale no WhatsApp {SITE.whatsapp.display}
               </a>
             </div>

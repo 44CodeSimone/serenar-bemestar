@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { SITE, waMessage } from "@/lib/site-config";
+import { SITE } from "@/lib/site-config";
 import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({ service: z.string().optional() });
@@ -75,9 +75,7 @@ function Agendamento() {
       });
       if (error) throw error;
       setDone(true);
-      const serviceName = SERVICES.find((s) => s.slug === form.service)?.name || form.service;
-      const msg = `Olá Mariah! Meu nome é ${form.full_name}. Gostaria de agendar: ${serviceName}${form.preferred_date ? ` para ${form.preferred_date}` : ""}${form.preferred_time ? ` às ${form.preferred_time}` : ""}. ${form.notes ? `Obs: ${form.notes}` : ""}`;
-      setTimeout(() => window.open(waMessage(msg), "_blank"), 800);
+      setTimeout(() => window.open(SITE.whatsapp.link, "_blank", "noopener,noreferrer"), 800);
     } catch (err) {
       console.error(err);
       setErrors({ _: "Não conseguimos enviar. Tente novamente ou fale no WhatsApp." });
@@ -99,7 +97,7 @@ function Agendamento() {
             para confirmar seu horário com a Mariah.
           </p>
           <div className="mt-8">
-            <a href={SITE.whatsapp.link} target="_blank" rel="noreferrer" className="btn-serena">
+            <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="btn-serena">
               Abrir WhatsApp
             </a>
           </div>

@@ -25,7 +25,7 @@ export function Footer() {
             <a
               href={SITE.whatsapp.link}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-sage-deep transition-colors hover:bg-blush"
               aria-label="WhatsApp"
             >
@@ -70,13 +70,13 @@ export function Footer() {
             </li>
             <li className="flex items-start gap-2">
               <Phone className="mt-0.5 h-4 w-4 text-gold" />
-              <a href={SITE.whatsapp.link} className="hover:text-sage-deep">
+              <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="hover:text-sage-deep">
                 {SITE.whatsapp.display}
               </a>
             </li>
             <li className="flex items-start gap-2">
               <Instagram className="mt-0.5 h-4 w-4 text-gold" />
-              <a href={SITE.instagram.url} target="_blank" rel="noreferrer" className="hover:text-sage-deep">
+              <a href={SITE.instagram.url} target="_blank" rel="noopener noreferrer" className="hover:text-sage-deep">
                 {SITE.instagram.handle}
               </a>
             </li>

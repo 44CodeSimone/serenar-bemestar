@@ -1,11 +1,11 @@
-import { SITE, waMessage } from "@/lib/site-config";
+import { SITE } from "@/lib/site-config";
 
 export function WhatsappFloat() {
   return (
     <a
-      href={waMessage("Olá! Vim pelo site do Serenar e gostaria de mais informações sobre os atendimentos.")}
+      href={SITE.whatsapp.link}
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
       aria-label={`Falar no WhatsApp ${SITE.whatsapp.display}`}
       className="group fixed bottom-6 right-6 z-50 md:bottom-8 md:right-8"
     >
