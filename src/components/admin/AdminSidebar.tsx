@@ -56,13 +56,23 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-border p-3">
+      <div className="space-y-1 border-t border-border p-3">
         <Link
           to="/"
           className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground hover:text-sage-deep"
         >
           <Home className="h-3.5 w-3.5" /> Voltar ao site
         </Link>
+        <button
+          type="button"
+          onClick={async () => {
+            await supabase.auth.signOut();
+            navigate({ to: "/auth" });
+          }}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground hover:text-sage-deep"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Sair
+        </button>
       </div>
     </aside>
   );
