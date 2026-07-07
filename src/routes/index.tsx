@@ -6,6 +6,7 @@ import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SERVICES } from "@/lib/services";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
+import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
