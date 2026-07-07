@@ -82,7 +82,8 @@ function Blog() {
               key={p.id}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               to={"/blog/$slug" as any}
-              params={{ slug: p.slug }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              params={{ slug: p.slug } as any}
               className="card-serena flex flex-col overflow-hidden text-left"
             >
               {p.cover_image_url && (
