@@ -74,7 +74,7 @@ function AdminBlog() {
       content: p.content,
       cover_image_url: p.cover_image_url,
       category: p.category,
-      tags: p.tags,
+      tags: (p.tags ?? []) as never,
       status: p.status,
       seo_title: p.seo_title,
       seo_description: p.seo_description,
