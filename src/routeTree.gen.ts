@@ -21,13 +21,20 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminWhatsappRouteImport } from './routes/_authenticated/admin/whatsapp'
 import { Route as AuthenticatedAdminServicosRouteImport } from './routes/_authenticated/admin/servicos'
+import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
+import { Route as AuthenticatedAdminImagensRouteImport } from './routes/_authenticated/admin/imagens'
 import { Route as AuthenticatedAdminFaqRouteImport } from './routes/_authenticated/admin/faq'
+import { Route as AuthenticatedAdminDepoimentosRouteImport } from './routes/_authenticated/admin/depoimentos'
+import { Route as AuthenticatedAdminConteudoRouteImport } from './routes/_authenticated/admin/conteudo'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
+import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin/blog'
 import { Route as AuthenticatedAdminAgendamentosRouteImport } from './routes/_authenticated/admin/agendamentos'
 
 const TermosRoute = TermosRouteImport.update({
@@ -89,6 +96,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -104,28 +116,62 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminWhatsappRoute =
+  AuthenticatedAdminWhatsappRouteImport.update({
+    id: '/whatsapp',
+    path: '/whatsapp',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminServicosRoute =
   AuthenticatedAdminServicosRouteImport.update({
     id: '/servicos',
     path: '/servicos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminImagensRoute =
+  AuthenticatedAdminImagensRouteImport.update({
+    id: '/imagens',
+    path: '/imagens',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminFaqRoute = AuthenticatedAdminFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminDepoimentosRoute =
+  AuthenticatedAdminDepoimentosRouteImport.update({
+    id: '/depoimentos',
+    path: '/depoimentos',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminConteudoRoute =
+  AuthenticatedAdminConteudoRouteImport.update({
+    id: '/conteudo',
+    path: '/conteudo',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminConfiguracoesRoute =
   AuthenticatedAdminConfiguracoesRouteImport.update({
     id: '/configuracoes',
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminBlogRoute = AuthenticatedAdminBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminAgendamentosRoute =
   AuthenticatedAdminAgendamentosRouteImport.update({
     id: '/agendamentos',
@@ -137,7 +183,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agendamento': typeof AgendamentoRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
@@ -147,18 +193,25 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
+  '/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
+  '/admin/imagens': typeof AuthenticatedAdminImagensRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
+  '/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agendamento': typeof AgendamentoRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
@@ -167,11 +220,18 @@ export interface FileRoutesByTo {
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
+  '/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
+  '/admin/imagens': typeof AuthenticatedAdminImagensRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
+  '/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -180,7 +240,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/agendamento': typeof AgendamentoRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/contato': typeof ContatoRoute
   '/faq': typeof FaqRoute
   '/politica-privacidade': typeof PoliticaPrivacidadeRoute
@@ -190,11 +250,18 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/_authenticated/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
+  '/_authenticated/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/_authenticated/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
+  '/_authenticated/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/_authenticated/admin/faq': typeof AuthenticatedAdminFaqRoute
+  '/_authenticated/admin/imagens': typeof AuthenticatedAdminImagensRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/servicos': typeof AuthenticatedAdminServicosRoute
+  '/_authenticated/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -213,11 +280,18 @@ export interface FileRouteTypes {
     | '/termos'
     | '/admin'
     | '/perfil'
+    | '/blog/$slug'
     | '/admin/agendamentos'
+    | '/admin/blog'
     | '/admin/configuracoes'
+    | '/admin/conteudo'
+    | '/admin/depoimentos'
     | '/admin/faq'
+    | '/admin/imagens'
     | '/admin/leads'
+    | '/admin/seo'
     | '/admin/servicos'
+    | '/admin/whatsapp'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -233,11 +307,18 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos'
     | '/perfil'
+    | '/blog/$slug'
     | '/admin/agendamentos'
+    | '/admin/blog'
     | '/admin/configuracoes'
+    | '/admin/conteudo'
+    | '/admin/depoimentos'
     | '/admin/faq'
+    | '/admin/imagens'
     | '/admin/leads'
+    | '/admin/seo'
     | '/admin/servicos'
+    | '/admin/whatsapp'
     | '/admin'
   id:
     | '__root__'
@@ -255,11 +336,18 @@ export interface FileRouteTypes {
     | '/termos'
     | '/_authenticated/admin'
     | '/_authenticated/perfil'
+    | '/blog/$slug'
     | '/_authenticated/admin/agendamentos'
+    | '/_authenticated/admin/blog'
     | '/_authenticated/admin/configuracoes'
+    | '/_authenticated/admin/conteudo'
+    | '/_authenticated/admin/depoimentos'
     | '/_authenticated/admin/faq'
+    | '/_authenticated/admin/imagens'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/seo'
     | '/_authenticated/admin/servicos'
+    | '/_authenticated/admin/whatsapp'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -268,7 +356,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AgendamentoRoute: typeof AgendamentoRoute
   AuthRoute: typeof AuthRoute
-  BlogRoute: typeof BlogRoute
+  BlogRoute: typeof BlogRouteWithChildren
   ContatoRoute: typeof ContatoRoute
   FaqRoute: typeof FaqRoute
   PoliticaPrivacidadeRoute: typeof PoliticaPrivacidadeRoute
@@ -364,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
       path: '/perfil'
@@ -385,11 +480,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/whatsapp': {
+      id: '/_authenticated/admin/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/admin/whatsapp'
+      preLoaderRoute: typeof AuthenticatedAdminWhatsappRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/servicos': {
       id: '/_authenticated/admin/servicos'
       path: '/servicos'
       fullPath: '/admin/servicos'
       preLoaderRoute: typeof AuthenticatedAdminServicosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/seo': {
+      id: '/_authenticated/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/leads': {
@@ -399,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/imagens': {
+      id: '/_authenticated/admin/imagens'
+      path: '/imagens'
+      fullPath: '/admin/imagens'
+      preLoaderRoute: typeof AuthenticatedAdminImagensRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/faq': {
       id: '/_authenticated/admin/faq'
       path: '/faq'
@@ -406,11 +522,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/depoimentos': {
+      id: '/_authenticated/admin/depoimentos'
+      path: '/depoimentos'
+      fullPath: '/admin/depoimentos'
+      preLoaderRoute: typeof AuthenticatedAdminDepoimentosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/conteudo': {
+      id: '/_authenticated/admin/conteudo'
+      path: '/conteudo'
+      fullPath: '/admin/conteudo'
+      preLoaderRoute: typeof AuthenticatedAdminConteudoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/configuracoes': {
       id: '/_authenticated/admin/configuracoes'
       path: '/configuracoes'
       fullPath: '/admin/configuracoes'
       preLoaderRoute: typeof AuthenticatedAdminConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/blog': {
+      id: '/_authenticated/admin/blog'
+      path: '/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AuthenticatedAdminBlogRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/agendamentos': {
@@ -425,20 +562,32 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAgendamentosRoute: typeof AuthenticatedAdminAgendamentosRoute
+  AuthenticatedAdminBlogRoute: typeof AuthenticatedAdminBlogRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
+  AuthenticatedAdminConteudoRoute: typeof AuthenticatedAdminConteudoRoute
+  AuthenticatedAdminDepoimentosRoute: typeof AuthenticatedAdminDepoimentosRoute
   AuthenticatedAdminFaqRoute: typeof AuthenticatedAdminFaqRoute
+  AuthenticatedAdminImagensRoute: typeof AuthenticatedAdminImagensRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminServicosRoute: typeof AuthenticatedAdminServicosRoute
+  AuthenticatedAdminWhatsappRoute: typeof AuthenticatedAdminWhatsappRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminAgendamentosRoute: AuthenticatedAdminAgendamentosRoute,
+    AuthenticatedAdminBlogRoute: AuthenticatedAdminBlogRoute,
     AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
+    AuthenticatedAdminConteudoRoute: AuthenticatedAdminConteudoRoute,
+    AuthenticatedAdminDepoimentosRoute: AuthenticatedAdminDepoimentosRoute,
     AuthenticatedAdminFaqRoute: AuthenticatedAdminFaqRoute,
+    AuthenticatedAdminImagensRoute: AuthenticatedAdminImagensRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+    AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
     AuthenticatedAdminServicosRoute: AuthenticatedAdminServicosRoute,
+    AuthenticatedAdminWhatsappRoute: AuthenticatedAdminWhatsappRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   }
 
@@ -460,12 +609,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AgendamentoRoute: AgendamentoRoute,
   AuthRoute: AuthRoute,
-  BlogRoute: BlogRoute,
+  BlogRoute: BlogRouteWithChildren,
   ContatoRoute: ContatoRoute,
   FaqRoute: FaqRoute,
   PoliticaPrivacidadeRoute: PoliticaPrivacidadeRoute,
