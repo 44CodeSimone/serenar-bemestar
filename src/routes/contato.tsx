@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { SITE } from "@/lib/site-config";
+import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
