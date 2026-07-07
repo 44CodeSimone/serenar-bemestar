@@ -362,6 +362,45 @@ export type Database = {
         }
         Relationships: []
       }
+      site_images: {
+        Row: {
+          alt: string
+          created_at: string
+          id: string
+          mime: string | null
+          public_url: string
+          size_bytes: number | null
+          storage_path: string
+          tag: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt?: string
+          created_at?: string
+          id?: string
+          mime?: string | null
+          public_url: string
+          size_bytes?: number | null
+          storage_path: string
+          tag?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt?: string
+          created_at?: string
+          id?: string
+          mime?: string | null
+          public_url?: string
+          size_bytes?: number | null
+          storage_path?: string
+          tag?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           is_public: boolean
