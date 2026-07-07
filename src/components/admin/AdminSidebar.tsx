@@ -8,16 +8,28 @@ import {
   MessageSquareHeart,
   Home,
   LogOut,
+  FileText,
+  Image as ImageIcon,
+  Newspaper,
+  MessageCircle,
+  Search,
+  Quote,
 } from "lucide-react";
 import { LeafMark } from "@/components/site/Logo";
 import { supabase } from "@/integrations/supabase/client";
 
 const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/conteudo", label: "Conteúdo do site", icon: FileText },
+  { to: "/admin/imagens", label: "Imagens", icon: ImageIcon },
+  { to: "/admin/servicos", label: "Serviços", icon: Sparkles },
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarCheck },
   { to: "/admin/leads", label: "Leads", icon: Users },
-  { to: "/admin/servicos", label: "Serviços", icon: Sparkles },
+  { to: "/admin/blog", label: "Blog", icon: Newspaper },
   { to: "/admin/faq", label: "FAQ", icon: MessageSquareHeart },
+  { to: "/admin/depoimentos", label: "Depoimentos", icon: Quote },
+  { to: "/admin/seo", label: "SEO", icon: Search },
+  { to: "/admin/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
@@ -35,7 +47,7 @@ export function AdminSidebar() {
           Painel administrativo
         </p>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {ITEMS.map((item) => {
           const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
           return (
