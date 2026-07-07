@@ -83,6 +83,8 @@ function Contato() {
           </div>
         </div>
       </section>
+
+      <WhatsappGroupSection surface="contact" />
     </>
   );
 }
