@@ -262,6 +262,8 @@ function Home() {
           />
         </div>
       </section>
+
+      <WhatsappGroupSection surface="home" />
     </>
   );
 }
