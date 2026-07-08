@@ -1,44 +1,88 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Clock, X } from "lucide-react";
-import { SERVICES, type Service } from "@/lib/services";
+import { listPublicServices, serviceBenefitsToArray, type PublicService } from "@/lib/services.repository";
 import { LeafMark } from "@/components/site/Logo";
 
 export const Route = createFileRoute("/servicos")({
   head: () => ({
     meta: [
-      { title: "Serviços — Massoterapia e rituais de bem-estar | Serenar" },
+      { title: "ServiÃ§os â€” Massoterapia e rituais de bem-estar | Serenar" },
       {
         name: "description",
         content:
-          "Massagem relaxante, terapêutica, drenagem linfática, pedras quentes, spa dos pés e mais. Conheça todos os rituais de bem-estar do Serenar em Urubici/SC.",
+          "Massagem relaxante, terapÃªutica, drenagem linfÃ¡tica, pedras quentes, spa dos pÃ©s e mais. ConheÃ§a todos os rituais de bem-estar do Serenar em Urubici/SC.",
       },
-      { property: "og:title", content: "Serviços | Serenar" },
-      { property: "og:description", content: "Rituais de autocuidado feitos com mãos que escutam." },
+      { property: "og:title", content: "ServiÃ§os | Serenar" },
+      { property: "og:description", content: "Rituais de autocuidado feitos com mÃ£os que escutam." },
     ],
   }),
   component: Servicos,
 });
 
 function Servicos() {
-  const [active, setActive] = useState<Service | null>(null);
+    const [services, setServices] = useState<PublicService[]>([]);
+  const [active, setActive] = useState<PublicService | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadServices() {
+      try {
+        const data = await listPublicServices();
+
+        if (mounted) {
+          setServices(data);
+          setError(null);
+        }
+      } catch {
+        if (mounted) {
+          setError("Não foi possível carregar os serviços no momento.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadServices();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
       <section className="container-narrow py-16 md:py-24 text-center">
         <p className="eyebrow mb-3">Rituais Serenar</p>
         <h1 className="display-serif text-5xl md:text-6xl">
-          Serviços de <span className="italic text-sage">bem-estar</span>
+          ServiÃ§os de <span className="italic text-sage">bem-estar</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
-          Cada modalidade tem seu propósito. Escolha o que seu corpo pede hoje —
-          ou fale com a Serená e ela ajuda você a decidir.
+          Cada modalidade tem seu propÃ³sito. Escolha o que seu corpo pede hoje â€”
+          ou fale com a SerenÃ¡ e ela ajuda vocÃª a decidir.
         </p>
       </section>
 
       <section className="container-narrow pb-24">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((s) => (
+          {loading ? (
+            <div className="col-span-full rounded-3xl border border-border bg-card p-8 text-center text-muted-foreground shadow-soft">
+              Carregando serviços...
+            </div>
+          ) : error ? (
+            <div className="col-span-full rounded-3xl border border-border bg-card p-8 text-center text-muted-foreground shadow-soft">
+              {error}
+            </div>
+          ) : services.length === 0 ? (
+            <div className="col-span-full rounded-3xl border border-border bg-card p-8 text-center text-muted-foreground shadow-soft">
+              Nenhum serviço disponível no momento.
+            </div>
+          ) : services.map((s) => (
             <button
               key={s.slug}
               onClick={() => setActive(s)}
@@ -47,13 +91,13 @@ function Servicos() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-gold flex items-center gap-1.5">
-                    <Clock className="h-3 w-3" />{s.duration}
+                    <Clock className="h-3 w-3" />{s.duration ?? "Duração sob consulta"}
                   </p>
                   <h3 className="mt-3 font-serif text-2xl text-sage-deep">{s.name}</h3>
                 </div>
                 <LeafMark className="h-6 w-6 text-gold/60 transition-transform group-hover:rotate-12" />
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{s.short}</p>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{s.short_description ?? "Conheça os detalhes deste ritual de bem-estar."}</p>
               <span className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-sage-deep">
                 Ver detalhes <ArrowRight className="h-3.5 w-3.5" />
               </span>
@@ -79,14 +123,14 @@ function Servicos() {
             >
               <X className="h-4 w-4" />
             </button>
-            <p className="eyebrow">{active.duration}</p>
+            <p className="eyebrow">{active.duration ?? "Duração sob consulta"}</p>
             <h2 className="mt-2 font-serif text-4xl text-sage-deep">{active.name}</h2>
-            <p className="mt-5 leading-relaxed text-muted-foreground">{active.description}</p>
+            <p className="mt-5 leading-relaxed text-muted-foreground">{active.description ?? active.short_description}</p>
 
             <div className="mt-8 space-y-6">
-              <Block title="Benefícios">
+              <Block title="BenefÃ­cios">
                 <ul className="grid gap-2 sm:grid-cols-2">
-                  {active.benefits.map((b) => (
+                  {serviceBenefitsToArray(active.benefits).map((b) => (
                     <li key={b} className="flex items-start gap-2 text-sm">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
                       <span>{b}</span>
@@ -94,14 +138,14 @@ function Servicos() {
                   ))}
                 </ul>
               </Block>
-              <Block title="Contraindicações">
-                <p className="text-sm text-muted-foreground">{active.contraindications}</p>
+              <Block title="ContraindicaÃ§Ãµes">
+                <p className="text-sm text-muted-foreground">{active.contraindications ?? "Consulte a Mariah para orientações específicas antes da sessão."}</p>
               </Block>
-              <Block title="Preparação">
-                <p className="text-sm text-muted-foreground">{active.preparation}</p>
+              <Block title="PreparaÃ§Ã£o">
+                <p className="text-sm text-muted-foreground">{active.preparation ?? "Venha com roupas confortáveis e alguns minutos de antecedência."}</p>
               </Block>
-              <Block title="Pós-sessão">
-                <p className="text-sm text-muted-foreground">{active.aftercare}</p>
+              <Block title="PÃ³s-sessÃ£o">
+                <p className="text-sm text-muted-foreground">{active.aftercare ?? "Beba água e respeite o tempo de descanso do seu corpo após a sessão."}</p>
               </Block>
             </div>
 
@@ -132,3 +176,5 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
     </div>
   );
 }
+
+
