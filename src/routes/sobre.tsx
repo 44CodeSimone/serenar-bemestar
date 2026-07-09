@@ -4,6 +4,7 @@ import therapistImg from "@/assets/therapist.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SITE } from "@/lib/site-config";
+import { ManagedImage } from "@/components/site/ManagedImage";
 
 export const Route = createFileRoute("/sobre")({
   head: () => ({
@@ -41,12 +42,12 @@ function Sobre() {
 
       <section className="container-narrow grid gap-12 py-12 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
-          <img
-            src={therapistImg}
+          <ManagedImage
+            slotKey="sobre.terapeuta"
+            fallbackSrc={therapistImg}
             alt={`${SITE.therapist}, massoterapeuta`}
             width={1200}
             height={1500}
-            loading="lazy"
             className="rounded-[2rem] shadow-elegant"
           />
         </div>
@@ -101,12 +102,12 @@ function Sobre() {
 
       <section className="bg-blush/50 py-24">
         <div className="container-narrow grid gap-10 md:grid-cols-2 md:items-center">
-          <img
-            src={roomImg}
+          <ManagedImage
+            slotKey="sobre.ambiente"
+            fallbackSrc={roomImg}
             alt="Ambiente da sala de atendimento"
             width={1400}
             height={1600}
-            loading="lazy"
             className="rounded-[2rem] shadow-elegant"
           />
           <div>
@@ -119,11 +120,11 @@ function Sobre() {
               tecidos naturais, plantas vivas, iluminação âmbar, óleos essenciais de
               qualidade terapêutica.
             </p>
-            <img
-              src={ritualImg}
+            <ManagedImage
+              slotKey="sobre.ritual"
+              fallbackSrc={ritualImg}
               alt=""
               aria-hidden
-              loading="lazy"
               className="mt-8 rounded-2xl shadow-soft"
             />
           </div>

@@ -6,6 +6,7 @@ import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SERVICES } from "@/lib/services";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
+import { ManagedImage } from "@/components/site/ManagedImage";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
 
 export const Route = createFileRoute("/")({
@@ -68,11 +69,13 @@ function Home() {
 
           <div className="relative lg:col-span-6">
             <div className="relative overflow-hidden rounded-[2rem] shadow-elegant">
-              <img
-                src={heroImg}
+              <ManagedImage
+                slotKey="home.hero"
+                fallbackSrc={heroImg}
                 alt="Ritual de bem-estar preparado com óleos e ervas naturais"
                 width={1600}
                 height={1280}
+                loading="eager"
                 className="h-[520px] w-full object-cover md:h-[640px]"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sage-deep/20 via-transparent to-transparent" />
@@ -164,12 +167,12 @@ function Home() {
       <section className="container-narrow grid gap-12 py-24 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
           <div className="relative">
-            <img
-              src={roomImg}
+            <ManagedImage
+              slotKey="home.sobre"
+              fallbackSrc={roomImg}
               alt="Ambiente do espaço Serenar"
               width={1400}
               height={1600}
-              loading="lazy"
               className="rounded-[2rem] shadow-elegant"
             />
             <div className="absolute -bottom-6 -right-4 hidden rounded-2xl bg-gold px-6 py-4 text-center text-gold-foreground shadow-elegant md:block">
@@ -253,11 +256,11 @@ function Home() {
               </a>
             </div>
           </div>
-          <img
-            src={ritualImg}
+          <ManagedImage
+            slotKey="home.cta"
+            fallbackSrc={ritualImg}
             alt=""
             aria-hidden
-            loading="lazy"
             className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-luminosity"
           />
         </div>
