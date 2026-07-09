@@ -29,6 +29,7 @@ import { Route as AuthenticatedAdminWhatsappRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminServicosRouteImport } from './routes/_authenticated/admin/servicos'
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin/leads'
+import { Route as AuthenticatedAdminImagensSiteRouteImport } from './routes/_authenticated/admin/imagens-site'
 import { Route as AuthenticatedAdminImagensRouteImport } from './routes/_authenticated/admin/imagens'
 import { Route as AuthenticatedAdminFaqRouteImport } from './routes/_authenticated/admin/faq'
 import { Route as AuthenticatedAdminDepoimentosRouteImport } from './routes/_authenticated/admin/depoimentos'
@@ -138,6 +139,12 @@ const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminImagensSiteRoute =
+  AuthenticatedAdminImagensSiteRouteImport.update({
+    id: '/imagens-site',
+    path: '/imagens-site',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminImagensRoute =
   AuthenticatedAdminImagensRouteImport.update({
     id: '/imagens',
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/admin/imagens': typeof AuthenticatedAdminImagensRoute
+  '/admin/imagens-site': typeof AuthenticatedAdminImagensSiteRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -228,6 +236,7 @@ export interface FileRoutesByTo {
   '/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/admin/imagens': typeof AuthenticatedAdminImagensRoute
+  '/admin/imagens-site': typeof AuthenticatedAdminImagensSiteRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -258,6 +267,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/depoimentos': typeof AuthenticatedAdminDepoimentosRoute
   '/_authenticated/admin/faq': typeof AuthenticatedAdminFaqRoute
   '/_authenticated/admin/imagens': typeof AuthenticatedAdminImagensRoute
+  '/_authenticated/admin/imagens-site': typeof AuthenticatedAdminImagensSiteRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/servicos': typeof AuthenticatedAdminServicosRoute
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/admin/depoimentos'
     | '/admin/faq'
     | '/admin/imagens'
+    | '/admin/imagens-site'
     | '/admin/leads'
     | '/admin/seo'
     | '/admin/servicos'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/depoimentos'
     | '/admin/faq'
     | '/admin/imagens'
+    | '/admin/imagens-site'
     | '/admin/leads'
     | '/admin/seo'
     | '/admin/servicos'
@@ -344,6 +356,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/depoimentos'
     | '/_authenticated/admin/faq'
     | '/_authenticated/admin/imagens'
+    | '/_authenticated/admin/imagens-site'
     | '/_authenticated/admin/leads'
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/servicos'
@@ -508,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/imagens-site': {
+      id: '/_authenticated/admin/imagens-site'
+      path: '/imagens-site'
+      fullPath: '/admin/imagens-site'
+      preLoaderRoute: typeof AuthenticatedAdminImagensSiteRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/imagens': {
       id: '/_authenticated/admin/imagens'
       path: '/imagens'
@@ -568,6 +588,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminDepoimentosRoute: typeof AuthenticatedAdminDepoimentosRoute
   AuthenticatedAdminFaqRoute: typeof AuthenticatedAdminFaqRoute
   AuthenticatedAdminImagensRoute: typeof AuthenticatedAdminImagensRoute
+  AuthenticatedAdminImagensSiteRoute: typeof AuthenticatedAdminImagensSiteRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminServicosRoute: typeof AuthenticatedAdminServicosRoute
@@ -584,6 +605,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminDepoimentosRoute: AuthenticatedAdminDepoimentosRoute,
     AuthenticatedAdminFaqRoute: AuthenticatedAdminFaqRoute,
     AuthenticatedAdminImagensRoute: AuthenticatedAdminImagensRoute,
+    AuthenticatedAdminImagensSiteRoute: AuthenticatedAdminImagensSiteRoute,
     AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
     AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
     AuthenticatedAdminServicosRoute: AuthenticatedAdminServicosRoute,
