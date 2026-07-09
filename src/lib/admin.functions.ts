@@ -2,6 +2,27 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
+ * Server-side check that the current bearer-authenticated user has the admin
+ * or owner role. Used to gate the /admin route before rendering any UI shell.
+ * Uses the service-role client so the check does not depend on client EXECUTE
+ * grants on the `is_admin` / `has_role` helpers.
+ */
+export const checkCurrentUserAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .in("role", ["owner", "admin"])
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error("check_failed");
+    return { isAdmin: Boolean(data) };
+  });
+
+/**
  * Bootstrap seguro: promove o usuário atual a "owner" apenas se ainda
  * não existir nenhum owner ou admin no sistema. Uma única execução — depois disso
  * novos papéis só podem ser atribuídos por um owner via banco de dados.
@@ -29,8 +50,15 @@ export const bootstrapAdmin = createServerFn({ method: "POST" })
 export const adminDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("is_admin", { _user_id: context.userId });
-    if (!isAdmin) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roleRow } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .in("role", ["owner", "admin"])
+      .limit(1)
+      .maybeSingle();
+    if (!roleRow) throw new Error("Forbidden");
 
     const today = new Date().toISOString().slice(0, 10);
     const monthStart = new Date();
