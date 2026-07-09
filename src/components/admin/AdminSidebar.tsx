@@ -21,7 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/conteudo", label: "Conteúdo do site", icon: FileText },
-  { to: "/admin/imagens", label: "Imagens", icon: ImageIcon },
+  { to: "/admin/imagens-site", label: "Imagens do site", icon: ImageIcon },
+  { to: "/admin/imagens", label: "Biblioteca de imagens", icon: ImageIcon },
   { to: "/admin/servicos", label: "Serviços", icon: Sparkles },
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarCheck },
   { to: "/admin/leads", label: "Leads", icon: Users },

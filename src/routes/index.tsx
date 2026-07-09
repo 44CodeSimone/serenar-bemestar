@@ -6,6 +6,7 @@ import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SERVICES } from "@/lib/services";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
+import { ManagedImage } from "@/components/site/ManagedImage";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
 
 export const Route = createFileRoute("/")({
@@ -68,11 +69,13 @@ function Home() {
 
           <div className="relative lg:col-span-6">
             <div className="relative overflow-hidden rounded-[2rem] shadow-elegant">
-              <img
-                src={heroImg}
+              <ManagedImage
+                slotKey="home.hero"
+                fallbackSrc={heroImg}
                 alt="Ritual de bem-estar preparado com óleos e ervas naturais"
                 width={1600}
                 height={1280}
+                loading="eager"
                 className="h-[520px] w-full object-cover md:h-[640px]"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sage-deep/20 via-transparent to-transparent" />
