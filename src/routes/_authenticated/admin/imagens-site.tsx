@@ -12,6 +12,7 @@ import {
   IMAGE_SLOTS,
   type ManagedImageRecord,
   type ImageSlot,
+  setManagedImageCache,
 } from "@/lib/managed-images";
 
 export const Route = createFileRoute("/_authenticated/admin/imagens-site")({
@@ -91,6 +92,7 @@ function AdminSiteImages() {
         .single();
       if (ins.error) throw ins.error;
       setMsg({ tone: "ok", text: `Imagem atualizada: ${slot.label}.` });
+      setManagedImageCache(slot.key, ins.data as ManagedImageRecord);
       setSlot(slot.key, { image: ins.data as ManagedImageRecord, busy: false });
     } catch (e) {
       setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao enviar imagem." });
@@ -105,6 +107,7 @@ function AdminSiteImages() {
       await supabase.storage.from(IMAGE_BUCKET).remove([img.storage_path]);
       await supabase.from("site_images").delete().eq("id", img.id);
       setMsg({ tone: "ok", text: "Imagem removida. Fallback padrão será exibido." });
+      setManagedImageCache(slot.key, null);
       setSlot(slot.key, { image: null, busy: false });
     } catch (e) {
       setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao remover." });
@@ -123,6 +126,7 @@ function AdminSiteImages() {
         .single();
       if (upd.error) throw upd.error;
       setMsg({ tone: "ok", text: "Textos atualizados." });
+      setManagedImageCache(slot.key, upd.data as ManagedImageRecord);
       setSlot(slot.key, { image: upd.data as ManagedImageRecord, busy: false });
     } catch (e) {
       setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao salvar." });

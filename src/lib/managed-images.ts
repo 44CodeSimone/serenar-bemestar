@@ -65,16 +65,50 @@ export type ManagedImageRecord = {
   created_at: string;
 };
 
+const imageCache = new Map<string, ManagedImageRecord | null>();
+const pendingRequests = new Map<string, Promise<ManagedImageRecord | null>>();
+
+export function setManagedImageCache(key: string, record: ManagedImageRecord | null): void {
+  imageCache.set(key, record);
+}
+
+export function clearManagedImageCache(): void {
+  imageCache.clear();
+}
+
 /** Fetch the most recent CMS image for a given slot key. */
 export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | null> {
-  const { data } = await supabase
-    .from("site_images")
-    .select("id, storage_path, public_url, alt, tag, caption, created_at")
-    .eq("tag", key)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return (data as ManagedImageRecord | null) ?? null;
+  if (imageCache.has(key)) {
+    return imageCache.get(key) ?? null;
+  }
+
+  const existingPromise = pendingRequests.get(key);
+  if (existingPromise) {
+    return existingPromise;
+  }
+
+  const promise = (async () => {
+    try {
+      const { data } = await supabase
+        .from("site_images")
+        .select("id, storage_path, public_url, alt, tag, caption, created_at")
+        .eq("tag", key)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const record = (data as ManagedImageRecord | null) ?? null;
+      imageCache.set(key, record);
+      return record;
+    } catch (err) {
+      console.error(`Failed to fetch slot image for key: ${key}`, err);
+      return null;
+    } finally {
+      pendingRequests.delete(key);
+    }
+  })();
+
+  pendingRequests.set(key, promise);
+  return promise;
 }
 
 /**
@@ -82,18 +116,31 @@ export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | 
  * Public components should render the fallback until this resolves.
  */
 export function useManagedImage(key: string) {
-  const [image, setImage] = useState<ManagedImageRecord | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [image, setImage] = useState<ManagedImageRecord | null>(() => {
+    return imageCache.has(key) ? (imageCache.get(key) ?? null) : null;
+  });
+  const [loading, setLoading] = useState(() => !imageCache.has(key));
+
   useEffect(() => {
     let alive = true;
+
+    if (imageCache.has(key)) {
+      setImage(imageCache.get(key) ?? null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     fetchSlotImage(key).then((img) => {
       if (!alive) return;
       setImage(img);
       setLoading(false);
     });
+
     return () => {
       alive = false;
     };
   }, [key]);
+
   return { image, loading };
 }
