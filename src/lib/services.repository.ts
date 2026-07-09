@@ -24,3 +24,19 @@ export function serviceBenefitsToArray(benefits: PublicService["benefits"]): str
 
   return benefits.filter((benefit): benefit is string => typeof benefit === "string");
 }
+
+export async function listFeaturedPublicServices(limit = 6): Promise<PublicService[]> {
+  const { data, error } = await supabase
+    .from("services")
+    .select("*")
+    .eq("active", true)
+    .eq("featured", true)
+    .order("display_order", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ?? [];
+}

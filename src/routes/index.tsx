@@ -3,7 +3,7 @@ import { ArrowRight, Clock, HeartHandshake, Leaf, Sparkles } from "lucide-react"
 import heroImg from "@/assets/hero-ritual.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
-import { SERVICES } from "@/lib/services";
+import { listFeaturedPublicServices } from "@/lib/services.repository";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
@@ -26,10 +26,16 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  ssr: false,
+  loader: async () => {
+    const services = await listFeaturedPublicServices(6);
+    return { services };
+  },
   component: Home,
 });
 
 function Home() {
+  const { services } = Route.useLoaderData();
   return (
     <>
       {/* HERO */}
@@ -138,7 +144,7 @@ function Home() {
           </div>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.slice(0, 6).map((s) => (
+            {services.map((s) => (
               <article key={s.slug} className="card-serena flex h-full flex-col">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -148,7 +154,7 @@ function Home() {
                   <LeafMark className="h-6 w-6 text-gold/70" />
                 </div>
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  {s.short}
+                  {s.short_description}
                 </p>
                 <Link
                   to="/agendamento"
@@ -306,3 +312,4 @@ const TESTIMONIALS = [
     text: "A experiência mais completa que já tive. Sensação de aconchego que dura dias.",
   },
 ];
+
