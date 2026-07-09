@@ -26,7 +26,15 @@ export const Route = createFileRoute("/blog/$slug")({
       ],
     };
   },
-  errorComponent: ({ error }) => <div className="container-narrow py-20 text-center text-destructive">{String(error)}</div>,
+  errorComponent: ({ error }) => {
+    // Log full detail server-side / to console; never render to the user.
+    if (typeof console !== "undefined") console.error("[blog/$slug] load error", error);
+    return (
+      <div className="container-narrow py-20 text-center text-destructive">
+        Não foi possível carregar este post. Tente novamente em instantes.
+      </div>
+    );
+  },
   notFoundComponent: () => (
     <div className="container-narrow py-24 text-center">
       <p className="font-serif text-2xl text-sage-deep">Post não encontrado.</p>

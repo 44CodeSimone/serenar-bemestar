@@ -40,10 +40,45 @@ ${userContext ? `\nCONTEXTO DA PESSOA COM VOCÊ: ${userContext}` : ""}`;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
+const MAX_MESSAGES = 32;
+const MAX_MESSAGE_CHARS = 2000;
+const MAX_USER_CONTEXT_CHARS = 500;
+
+/** Remove sequences that could break out of / hijack the system prompt. */
+function sanitizeForPrompt(input: string, maxLen: number): string {
+  return input
+    // strip control chars (except common whitespace)
+    .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, " ")
+    // neutralize role/system markers that LLMs treat as delimiters
+    .replace(/\b(system|assistant|user)\s*:/gi, "")
+    .replace(/<\|[^|>]{0,40}\|>/g, "")
+    .replace(/\[REDIRECIONAR_WHATSAPP\]/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLen);
+}
+
 export const serenaChat = createServerFn({ method: "POST" })
   .inputValidator((data: { messages: ChatMessage[]; userContext?: string }) => {
-    if (!Array.isArray(data?.messages)) throw new Error("messages obrigatório");
-    return data;
+    if (!data || typeof data !== "object") throw new Error("payload inválido");
+    if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
+    if (data.messages.length === 0) throw new Error("messages vazio");
+    if (data.messages.length > MAX_MESSAGES) throw new Error("muitas mensagens");
+    const cleanMessages: ChatMessage[] = data.messages.map((m) => {
+      if (!m || (m.role !== "user" && m.role !== "assistant")) {
+        throw new Error("role inválido");
+      }
+      if (typeof m.content !== "string") throw new Error("content inválido");
+      return {
+        role: m.role,
+        content: sanitizeForPrompt(m.content, MAX_MESSAGE_CHARS),
+      };
+    });
+    const userContext =
+      typeof data.userContext === "string" && data.userContext.length > 0
+        ? sanitizeForPrompt(data.userContext, MAX_USER_CONTEXT_CHARS)
+        : undefined;
+    return { messages: cleanMessages, userContext };
   })
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
