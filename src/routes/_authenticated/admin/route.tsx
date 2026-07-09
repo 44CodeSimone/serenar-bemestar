@@ -1,37 +1,40 @@
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { bootstrapAdmin } from "@/lib/admin.functions";
+import { bootstrapAdmin, checkCurrentUserAdmin } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   beforeLoad: async () => {
+    // Auth check first — must have a session.
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+    // Authoritative server-side role check. The result cannot be spoofed by
+    // manipulating client state: the server function verifies the bearer token
+    // and looks the role up with the service-role key.
+    let isAdmin = false;
+    try {
+      const res = await checkCurrentUserAdmin();
+      isAdmin = Boolean(res?.isAdmin);
+    } catch {
+      isAdmin = false;
+    }
+    return { user: data.user, isAdmin };
   },
   component: AdminLayout,
 });
 
 function AdminLayout() {
-  const { user } = Route.useRouteContext();
-  const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isAdmin } = Route.useRouteContext();
   const [claiming, setClaiming] = useState(false);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
   const navigate = useNavigate();
   const claim = useServerFn(bootstrapAdmin);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc("is_admin", { _user_id: user.id });
-      setIsAdmin(Boolean(data));
-      setChecking(false);
-    })();
-  }, [user.id]);
+  // Suppress unused-var linter — user context is still available for children.
+  void user;
 
   if (checking) {
     return (
