@@ -4,6 +4,7 @@ import therapistImg from "@/assets/therapist.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SITE } from "@/lib/site-config";
+import { ManagedImage } from "@/components/site/ManagedImage";
 
 export const Route = createFileRoute("/sobre")({
   head: () => ({
