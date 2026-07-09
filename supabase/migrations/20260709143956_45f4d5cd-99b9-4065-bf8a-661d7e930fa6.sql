@@ -1,0 +1,1 @@
+ALTER TABLE public.site_images ADD COLUMN IF NOT EXISTS caption text;

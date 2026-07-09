@@ -365,6 +365,7 @@ export type Database = {
       site_images: {
         Row: {
           alt: string
+          caption: string | null
           created_at: string
           id: string
           mime: string | null
@@ -377,6 +378,7 @@ export type Database = {
         }
         Insert: {
           alt?: string
+          caption?: string | null
           created_at?: string
           id?: string
           mime?: string | null
@@ -389,6 +391,7 @@ export type Database = {
         }
         Update: {
           alt?: string
+          caption?: string | null
           created_at?: string
           id?: string
           mime?: string | null
