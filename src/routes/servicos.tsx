@@ -7,14 +7,14 @@ import { LeafMark } from "@/components/site/Logo";
 export const Route = createFileRoute("/servicos")({
   head: () => ({
     meta: [
-      { title: "ServiÃ§os â€” Massoterapia e rituais de bem-estar | Serenar" },
+      { title: "Serviços — Massoterapia e rituais de bem-estar | Serenar" },
       {
         name: "description",
         content:
-          "Massagem relaxante, terapÃªutica, drenagem linfÃ¡tica, pedras quentes, spa dos pÃ©s e mais. ConheÃ§a todos os rituais de bem-estar do Serenar em Urubici/SC.",
+          "Massagem relaxante, terapêutica, drenagem linfática, pedras quentes, spa dos pés e mais. Conheça todos os rituais de bem-estar do Serenar em Urubici/SC.",
       },
-      { property: "og:title", content: "ServiÃ§os | Serenar" },
-      { property: "og:description", content: "Rituais de autocuidado feitos com mÃ£os que escutam." },
+      { property: "og:title", content: "Serviços | Serenar" },
+      { property: "og:description", content: "Rituais de autocuidado feitos com mãos que escutam." },
     ],
   }),
   component: Servicos,
@@ -60,11 +60,11 @@ function Servicos() {
       <section className="container-narrow py-16 md:py-24 text-center">
         <p className="eyebrow mb-3">Rituais Serenar</p>
         <h1 className="display-serif text-5xl md:text-6xl">
-          ServiÃ§os de <span className="italic text-sage">bem-estar</span>
+          Serviços de <span className="italic text-sage">bem-estar</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
-          Cada modalidade tem seu propÃ³sito. Escolha o que seu corpo pede hoje â€”
-          ou fale com a SerenÃ¡ e ela ajuda vocÃª a decidir.
+          Cada modalidade tem seu propósito. Escolha o que seu corpo pede hoje —
+          ou fale com a Serená e ela ajuda você a decidir.
         </p>
       </section>
 
@@ -128,7 +128,7 @@ function Servicos() {
             <p className="mt-5 leading-relaxed text-muted-foreground">{active.description ?? active.short_description}</p>
 
             <div className="mt-8 space-y-6">
-              <Block title="BenefÃ­cios">
+              <Block title="Benefícios">
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {serviceBenefitsToArray(active.benefits).map((b) => (
                     <li key={b} className="flex items-start gap-2 text-sm">
@@ -138,13 +138,13 @@ function Servicos() {
                   ))}
                 </ul>
               </Block>
-              <Block title="ContraindicaÃ§Ãµes">
+              <Block title="Contraindicações">
                 <p className="text-sm text-muted-foreground">{active.contraindications ?? "Consulte a Mariah para orientações específicas antes da sessão."}</p>
               </Block>
-              <Block title="PreparaÃ§Ã£o">
+              <Block title="Preparação">
                 <p className="text-sm text-muted-foreground">{active.preparation ?? "Venha com roupas confortáveis e alguns minutos de antecedência."}</p>
               </Block>
-              <Block title="PÃ³s-sessÃ£o">
+              <Block title="Pós-sessão">
                 <p className="text-sm text-muted-foreground">{active.aftercare ?? "Beba água e respeite o tempo de descanso do seu corpo após a sessão."}</p>
               </Block>
             </div>
