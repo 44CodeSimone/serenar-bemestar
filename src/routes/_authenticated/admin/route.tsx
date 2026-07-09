@@ -36,13 +36,6 @@ function AdminLayout() {
   // Suppress unused-var linter — user context is still available for children.
   void user;
 
-  if (checking) {
-    return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-sage-deep" />
-      </div>
-    );
-  }
 
   if (!isAdmin) {
     return (
