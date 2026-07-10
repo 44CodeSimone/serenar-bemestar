@@ -144,7 +144,7 @@ function Home() {
           </div>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {services.map((s) => (
+            {services.map((s: Awaited<ReturnType<typeof listFeaturedPublicServices>>[number]) => (
               <article key={s.slug} className="card-serena flex h-full flex-col">
                 <div className="flex items-start justify-between gap-4">
                   <div>
