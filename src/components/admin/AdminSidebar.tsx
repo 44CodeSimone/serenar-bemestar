@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Newspaper,
   MessageCircle,
+  CalendarDays,
   Search,
   Quote,
 } from "lucide-react";
@@ -25,6 +26,7 @@ const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: 
   { to: "/admin/imagens", label: "Biblioteca de imagens", icon: ImageIcon },
   { to: "/admin/servicos", label: "Serviços", icon: Sparkles },
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarCheck },
+  { to: "/admin/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/admin/leads", label: "Leads", icon: Users },
   { to: "/admin/blog", label: "Blog", icon: Newspaper },
   { to: "/admin/faq", label: "FAQ", icon: MessageSquareHeart },

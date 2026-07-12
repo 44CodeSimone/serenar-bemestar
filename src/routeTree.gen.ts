@@ -37,6 +37,7 @@ import { Route as AuthenticatedAdminConteudoRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
 import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin/blog'
 import { Route as AuthenticatedAdminAgendamentosRouteImport } from './routes/_authenticated/admin/agendamentos'
+import { Route as AuthenticatedAdminAgendaRouteImport } from './routes/_authenticated/admin/agenda'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
@@ -185,6 +186,12 @@ const AuthenticatedAdminAgendamentosRoute =
     path: '/agendamentos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAgendaRoute =
+  AuthenticatedAdminAgendaRouteImport.update({
+    id: '/agenda',
+    path: '/agenda',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
   '/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
@@ -229,6 +237,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
   '/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
@@ -260,6 +269,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/_authenticated/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/_authenticated/admin/agendamentos': typeof AuthenticatedAdminAgendamentosRoute
   '/_authenticated/admin/blog': typeof AuthenticatedAdminBlogRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/perfil'
     | '/blog/$slug'
+    | '/admin/agenda'
     | '/admin/agendamentos'
     | '/admin/blog'
     | '/admin/configuracoes'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/perfil'
     | '/blog/$slug'
+    | '/admin/agenda'
     | '/admin/agendamentos'
     | '/admin/blog'
     | '/admin/configuracoes'
@@ -349,6 +361,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/perfil'
     | '/blog/$slug'
+    | '/_authenticated/admin/agenda'
     | '/_authenticated/admin/agendamentos'
     | '/_authenticated/admin/blog'
     | '/_authenticated/admin/configuracoes'
@@ -577,10 +590,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAgendamentosRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/agenda': {
+      id: '/_authenticated/admin/agenda'
+      path: '/agenda'
+      fullPath: '/admin/agenda'
+      preLoaderRoute: typeof AuthenticatedAdminAgendaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAgendaRoute: typeof AuthenticatedAdminAgendaRoute
   AuthenticatedAdminAgendamentosRoute: typeof AuthenticatedAdminAgendamentosRoute
   AuthenticatedAdminBlogRoute: typeof AuthenticatedAdminBlogRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
@@ -598,6 +619,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminAgendaRoute: AuthenticatedAdminAgendaRoute,
     AuthenticatedAdminAgendamentosRoute: AuthenticatedAdminAgendamentosRoute,
     AuthenticatedAdminBlogRoute: AuthenticatedAdminBlogRoute,
     AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
