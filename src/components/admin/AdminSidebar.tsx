@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Newspaper,
   MessageCircle,
+  CalendarDays,
   Search,
   Quote,
 } from "lucide-react";
