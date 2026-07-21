@@ -76,9 +76,13 @@ export type Database = {
       }
       appointments: {
         Row: {
+          calendar_slot_id: string | null
+          cancelled_at: string | null
+          confirmed_at: string | null
           created_at: string
           email: string | null
           full_name: string
+          handled_by: string | null
           id: string
           internal_notes: string | null
           notes: string | null
@@ -88,13 +92,18 @@ export type Database = {
           service: string
           source: string | null
           status: string
+          submitted_at: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          calendar_slot_id?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           email?: string | null
           full_name: string
+          handled_by?: string | null
           id?: string
           internal_notes?: string | null
           notes?: string | null
@@ -104,13 +113,18 @@ export type Database = {
           service: string
           source?: string | null
           status?: string
+          submitted_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          calendar_slot_id?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
+          handled_by?: string | null
           id?: string
           internal_notes?: string | null
           notes?: string | null
@@ -120,10 +134,19 @@ export type Database = {
           service?: string
           source?: string | null
           status?: string
+          submitted_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_appointments_calendar_slot"
+            columns: ["calendar_slot_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_slots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_posts: {
         Row: {
@@ -179,6 +202,57 @@ export type Database = {
           tags?: Json | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      calendar_slots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          professional_name: string | null
+          published: boolean
+          reserved_at: string | null
+          slot_date: string
+          start_time: string
+          status: Database["public"]["Enums"]["calendar_slot_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          professional_name?: string | null
+          published?: boolean
+          reserved_at?: string | null
+          slot_date: string
+          start_time: string
+          status?: Database["public"]["Enums"]["calendar_slot_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          professional_name?: string | null
+          published?: boolean
+          reserved_at?: string | null
+          slot_date?: string
+          start_time?: string
+          status?: Database["public"]["Enums"]["calendar_slot_status"]
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -428,6 +502,105 @@ export type Database = {
         }
         Relationships: []
       }
+      slot_exceptions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_date: string
+          end_time: string | null
+          id: string
+          name: string
+          professional_name: string | null
+          reason: string | null
+          start_date: string
+          start_time: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date: string
+          end_time?: string | null
+          id?: string
+          name: string
+          professional_name?: string | null
+          reason?: string | null
+          start_date: string
+          start_time?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_date?: string
+          end_time?: string | null
+          id?: string
+          name?: string
+          professional_name?: string | null
+          reason?: string | null
+          start_date?: string
+          start_time?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      slot_templates: {
+        Row: {
+          active: boolean
+          available_times: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          favorite: boolean
+          id: string
+          name: string
+          professional_name: string | null
+          updated_at: string
+          updated_by: string | null
+          valid_from: string | null
+          valid_until: string | null
+          weekdays: number[]
+        }
+        Insert: {
+          active?: boolean
+          available_times: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          favorite?: boolean
+          id?: string
+          name: string
+          professional_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+          weekdays: number[]
+        }
+        Update: {
+          active?: boolean
+          available_times?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          favorite?: boolean
+          id?: string
+          name?: string
+          professional_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+          weekdays?: number[]
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           active: boolean
@@ -526,6 +699,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_prebooking: {
+        Args: {
+          p_calendar_slot_id: string
+          p_email: string
+          p_full_name: string
+          p_notes: string
+          p_phone: string
+          p_service_id: string
+        }
+        Returns: {
+          appointment_id: string
+          appointment_status: string
+          slot_id: string
+          submitted_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -538,6 +727,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client" | "owner"
+      calendar_slot_status: "open" | "reserved" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -666,6 +856,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client", "owner"],
+      calendar_slot_status: ["open", "reserved", "blocked"],
     },
   },
 } as const
