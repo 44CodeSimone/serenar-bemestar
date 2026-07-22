@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
+import { listPublicCalendarSlots } from "@/lib/calendar-slots.repository";
 import { SITE } from "@/lib/site-config";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,8 +49,11 @@ function Agendamento() {
     notes: "",
   });
 
-  /* ── Load services from repository ───────────────── */
+  /* ── Load services and calendar slots ──────────────── */
   const [services, setServices] = useState<PublicService[]>([]);
+  const [calendarSlots, setCalendarSlots] = useState<
+    Awaited<ReturnType<typeof listPublicCalendarSlots>>
+  >([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
 
@@ -58,12 +62,18 @@ function Agendamento() {
 
     async function load() {
       try {
-        const data = await listPublicServices();
-        if (!cancelled) setServices(data);
+        const [servicesData, slotsData] = await Promise.all([
+          listPublicServices(),
+          listPublicCalendarSlots(),
+        ]);
+        if (!cancelled) {
+          setServices(servicesData);
+          setCalendarSlots(slotsData);
+        }
       } catch (err) {
         if (!cancelled) {
-          console.error("Failed to load services:", err);
-          setServicesError("Não foi possível carregar os serviços. Tente recarregar a página.");
+          console.error("Failed to load booking data:", err);
+          setServicesError("Não foi possível carregar as informações. Tente recarregar a página.");
         }
       } finally {
         if (!cancelled) setServicesLoading(false);
@@ -71,11 +81,30 @@ function Agendamento() {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const availableDates = useMemo(() => {
+    return Array.from(new Set(calendarSlots.map((s) => s.slot_date))).sort();
+  }, [calendarSlots]);
+
+  const slotsForSelectedDate = useMemo(() => {
+    if (!form.preferred_date) return [];
+    return calendarSlots.filter((s) => s.slot_date === form.preferred_date);
+  }, [calendarSlots, form.preferred_date]);
 
   function upd<K extends keyof typeof form>(k: K, v: string) {
     setForm({ ...form, [k]: v });
+  }
+
+  function handleDateChange(dateStr: string) {
+    setForm((prev) => ({
+      ...prev,
+      preferred_date: dateStr,
+      preferred_time: "",
+    }));
   }
 
   async function submit(e: React.FormEvent) {
@@ -201,12 +230,56 @@ function Agendamento() {
           </Field>
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Data preferida">
-              <input value={form.preferred_date} onChange={(e) => upd("preferred_date", e.target.value)} type="date" className={input} />
+              <select
+                value={form.preferred_date}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className={input}
+                disabled={availableDates.length === 0}
+              >
+                <option value="">
+                  {availableDates.length === 0
+                    ? "Nenhuma data disponível"
+                    : "Selecione uma data…"}
+                </option>
+                {availableDates.map((d) => (
+                  <option key={d} value={d}>
+                    {formatDateLabel(d)}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Horário preferido">
-              <input value={form.preferred_time} onChange={(e) => upd("preferred_time", e.target.value)} type="time" className={input} />
+              <select
+                value={form.preferred_time}
+                onChange={(e) => upd("preferred_time", e.target.value)}
+                className={input}
+                disabled={availableDates.length === 0 || !form.preferred_date || slotsForSelectedDate.length === 0}
+              >
+                <option value="">
+                  {availableDates.length === 0
+                    ? "Nenhum horário disponível"
+                    : !form.preferred_date
+                    ? "Selecione a data primeiro…"
+                    : slotsForSelectedDate.length === 0
+                    ? "Nenhum horário disponível"
+                    : "Selecione um horário…"}
+                </option>
+                {slotsForSelectedDate.map((slot) => {
+                  const timeValue = slot.start_time.slice(0, 5);
+                  return (
+                    <option key={slot.id} value={timeValue}>
+                      {formatTimeLabel(slot)}
+                    </option>
+                  );
+                })}
+              </select>
             </Field>
           </div>
+          {availableDates.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">
+              Nenhum horário pré-definido disponível no momento.
+            </p>
+          )}
           <Field label="Alguma observação?">
             <textarea value={form.notes} onChange={(e) => upd("notes", e.target.value)} rows={4} className={input + " resize-none"} placeholder="Alergias, gestação, dores específicas, primeira vez…" />
           </Field>
@@ -237,4 +310,28 @@ function Field({ label, error, children }: { label: string; error?: string; chil
       {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </label>
   );
+}
+
+function formatDateLabel(dateStr: string): string {
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  const date = new Date(year, month, day);
+  return date.toLocaleDateString("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatTimeLabel(slot: { start_time: string; end_time: string | null }): string {
+  const start = slot.start_time.slice(0, 5);
+  if (slot.end_time) {
+    const end = slot.end_time.slice(0, 5);
+    return `${start} às ${end}`;
+  }
+  return start;
 }
