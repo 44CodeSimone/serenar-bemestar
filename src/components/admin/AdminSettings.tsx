@@ -35,7 +35,7 @@ const SECTIONS = [
     fields: [
       { key: "default", label: "Padrão (botão flutuante)", type: "textarea" },
       { key: "booking", label: "Após agendamento", type: "textarea" },
-      { key: "from_ai", label: "Após conversa com Serená", type: "textarea" },
+      { key: "from_ai", label: "Após conversa com Serenar", type: "textarea" },
     ],
   },
   {

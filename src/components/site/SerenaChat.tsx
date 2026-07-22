@@ -9,7 +9,7 @@ type Msg = { role: "user" | "assistant"; content: string; handoff?: boolean };
 const OPENER: Msg = {
   role: "assistant",
   content:
-    "Olá, que bom te ver por aqui. Sou a Serená, recepcionista do espaço. Me conta com calma — o que seu corpo está pedindo hoje?",
+    "Olá, que bom te ver por aqui. Sou a Serenar, recepcionista do espaço. Me conta com calma — o que seu corpo está pedindo hoje?",
 };
 
 const CHIPS = [
@@ -87,11 +87,11 @@ export function SerenaChat() {
           )}
           <button
             onClick={() => setOpen(true)}
-            aria-label="Abrir chat com Serená"
+            aria-label="Abrir chat com Serenar"
             className="group relative inline-flex items-center gap-2 rounded-full bg-sage-deep px-4 py-3 text-sm text-primary-foreground shadow-elegant transition-transform duration-300 hover:scale-105 animate-soft-pulse"
           >
             <Sparkles className="h-4 w-4 text-gold" />
-            <span className="hidden sm:inline">Converse com Serená</span>
+            <span className="hidden sm:inline">Converse com Serenar</span>
             <span className="sm:hidden"><MessageCircle className="h-4 w-4" /></span>
           </button>
         </div>
@@ -108,7 +108,7 @@ export function SerenaChat() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Recepcionista virtual</p>
-                <p className="font-serif text-xl text-sage-deep leading-tight">Serená</p>
+                <p className="font-serif text-xl text-sage-deep leading-tight">Serenar</p>
               </div>
             </div>
             <button

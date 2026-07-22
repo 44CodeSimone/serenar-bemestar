@@ -64,7 +64,7 @@ function Servicos() {
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-muted-foreground">
           Cada modalidade tem seu propósito. Escolha o que seu corpo pede hoje —
-          ou fale com a Serená e ela ajuda você a decidir.
+          ou fale com a Serenar e ela ajuda você a decidir.
         </p>
       </section>
 

@@ -51,7 +51,7 @@ function FaqPage() {
           Dúvidas <span className="italic text-sage">comuns</span>
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Não achou sua resposta? A Serená (nossa assistente) ou a Mariah no WhatsApp estarão felizes em ajudar.
+          Não achou sua resposta? A Serenar (nossa assistente) ou a Mariah no WhatsApp estarão felizes em ajudar.
         </p>
 
         <div className="mt-12 space-y-3">
