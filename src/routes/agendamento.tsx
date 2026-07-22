@@ -5,7 +5,6 @@ import { Check, Loader2 } from "lucide-react";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
 import { listPublicCalendarSlots } from "@/lib/calendar-slots.repository";
 import { SITE } from "@/lib/site-config";
-import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({ service: z.string().optional() });
 
@@ -29,7 +28,7 @@ const formSchema = z.object({
   email: z.string().trim().email("Email inválido").max(200).optional().or(z.literal("")),
   service: z.string().min(1, "Selecione um serviço"),
   preferred_date: z.string().optional(),
-  preferred_time: z.string().max(20).optional(),
+  preferred_time: z.string().min(1, "Selecione um hor?rio"),
   notes: z.string().max(600).optional(),
 });
 
@@ -119,16 +118,14 @@ function Agendamento() {
     setErrors({});
     setLoading(true);
     try {
-      const { error } = await supabase.from("appointments").insert({
-        full_name: form.full_name,
+      await createPrebooking({
+        calendarSlotId: form.preferred_time,
+        fullName: form.full_name,
         phone: form.phone,
-        email: form.email || null,
-        service: form.service,
-        preferred_date: form.preferred_date || null,
-        preferred_time: form.preferred_time || null,
-        notes: form.notes || null,
+        email: form.email || undefined,
+        serviceId: form.service,
+        notes: form.notes || undefined,
       });
-      if (error) throw error;
       setDone(true);
       setTimeout(() => window.open(SITE.whatsapp.link, "_blank", "noopener,noreferrer"), 800);
     } catch (err) {
@@ -222,7 +219,7 @@ function Agendamento() {
             <select value={form.service} onChange={(e) => upd("service", e.target.value)} className={input}>
               <option value="">Selecione um ritual…</option>
               {services.map((s) => (
-                <option key={s.slug} value={s.slug}>
+                <option key={s.id} value={s.id}>
                   {s.name}{s.duration ? ` — ${s.duration}` : ""}
                 </option>
               ))}
@@ -265,9 +262,8 @@ function Agendamento() {
                     : "Selecione um horário…"}
                 </option>
                 {slotsForSelectedDate.map((slot) => {
-                  const timeValue = slot.start_time.slice(0, 5);
                   return (
-                    <option key={slot.id} value={timeValue}>
+                    <option key={slot.id} value={slot.id}>
                       {formatTimeLabel(slot)}
                     </option>
                   );

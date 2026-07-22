@@ -43,3 +43,33 @@ export async function listPublicCalendarSlots(): Promise<
   // The shape returned by Supabase matches the Pick<> we declared.
   return data as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
 }
+
+export type CreatePrebookingParams = {
+  calendarSlotId: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  serviceId: string;
+  notes?: string;
+};
+
+/**
+ * Atomically reserves a calendar slot and creates a pre-booking appointment
+ * via the `create_prebooking` database RPC function.
+ */
+export async function createPrebooking(params: CreatePrebookingParams) {
+  const { data, error } = await supabase.rpc("create_prebooking", {
+    p_calendar_slot_id: params.calendarSlotId,
+    p_full_name: params.fullName,
+    p_phone: params.phone,
+    p_email: params.email || "",
+    p_service_id: params.serviceId,
+    p_notes: params.notes || "",
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
