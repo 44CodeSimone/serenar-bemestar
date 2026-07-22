@@ -15,7 +15,7 @@ export const Route = createFileRoute("/politica-privacidade")({
       <div className="prose prose-neutral mt-8 space-y-4 text-muted-foreground [&>h2]:font-serif [&>h2]:text-2xl [&>h2]:text-sage-deep [&>h2]:mt-8">
         <p>Sua tranquilidade importa dentro e fora do espaço. Esta política descreve, de forma simples, como tratamos seus dados no {SITE.name}.</p>
         <h2>Dados que coletamos</h2>
-        <p>Nome, telefone, email, data de nascimento (opcional), preferências de atendimento e conversas com a assistente virtual Serená, quando você concordar.</p>
+        <p>Nome, telefone, email, data de nascimento (opcional), preferências de atendimento e conversas com a assistente virtual Serenar, quando você concordar.</p>
         <h2>Como usamos</h2>
         <p>Para agendar sessões, personalizar seu cuidado, lembrar aniversários (com consentimento), enviar comunicações (quando autorizadas) e manter registros mínimos de negócio.</p>
         <h2>Base legal (LGPD)</h2>

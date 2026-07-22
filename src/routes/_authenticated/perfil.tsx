@@ -138,7 +138,7 @@ function Perfil() {
             <div>
               <h2 className="font-serif text-2xl text-sage-deep">Sua jornada personalizada</h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Com seu consentimento, a Serená e a Mariah podem lembrar preferências, sugerir horários ideais
+                Com seu consentimento, a Serenar e a Mariah podem lembrar preferências, sugerir horários ideais
                 para retornar, e desejar coisas importantes como aniversário. Você pode revogar quando quiser.
               </p>
             </div>
@@ -146,7 +146,7 @@ function Perfil() {
 
           <div className="mt-6 space-y-3">
             <Consent
-              label="Autorizo a IA Serená a lembrar minhas conversas e preferências"
+              label="Autorizo a IA Serenar a lembrar minhas conversas e preferências"
               hint="Isso permite recomendações personalizadas entre visitas."
               checked={aiConsent}
               onChange={(v) => toggleConsent("ai_memory", v)}
