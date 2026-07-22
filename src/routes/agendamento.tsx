@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
-import { SERVICES } from "@/lib/services";
+import { listPublicServices, type PublicService } from "@/lib/services.repository";
 import { SITE } from "@/lib/site-config";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,6 +47,32 @@ function Agendamento() {
     preferred_time: "",
     notes: "",
   });
+
+  /* ── Load services from repository ───────────────── */
+  const [services, setServices] = useState<PublicService[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesError, setServicesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await listPublicServices();
+        if (!cancelled) setServices(data);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load services:", err);
+          setServicesError("Não foi possível carregar os serviços. Tente recarregar a página.");
+        }
+      } finally {
+        if (!cancelled) setServicesLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   function upd<K extends keyof typeof form>(k: K, v: string) {
     setForm({ ...form, [k]: v });
@@ -112,6 +138,33 @@ function Agendamento() {
     );
   }
 
+  if (servicesLoading) {
+    return (
+      <section className="container-narrow py-24">
+        <div className="flex items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Carregando informações…</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (servicesError) {
+    return (
+      <section className="container-narrow py-24">
+        <div className="mx-auto max-w-lg rounded-[2rem] border border-destructive/30 bg-card p-10 text-center shadow-soft">
+          <p className="text-sm text-destructive">{servicesError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-serena mt-6"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="container-narrow py-16 md:py-24">
       <div className="mx-auto max-w-2xl">
@@ -139,8 +192,10 @@ function Agendamento() {
           <Field label="Serviço desejado *" error={errors.service}>
             <select value={form.service} onChange={(e) => upd("service", e.target.value)} className={input}>
               <option value="">Selecione um ritual…</option>
-              {SERVICES.map((s) => (
-                <option key={s.slug} value={s.slug}>{s.name} — {s.duration}</option>
+              {services.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.name}{s.duration ? ` — ${s.duration}` : ""}
+                </option>
               ))}
             </select>
           </Field>
