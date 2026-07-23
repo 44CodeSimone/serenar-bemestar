@@ -130,7 +130,33 @@ function Agendamento() {
       setTimeout(() => window.open(SITE.whatsapp.link, "_blank", "noopener,noreferrer"), 800);
     } catch (err) {
       console.error(err);
-      setErrors({ _: "Não conseguimos enviar. Tente novamente ou fale no WhatsApp." });
+
+      const message =
+        typeof err === "object" &&
+        err !== null &&
+        "message" in err &&
+        typeof err.message === "string"
+          ? err.message
+          : "";
+
+      if (message.includes("Horário indisponível")) {
+        try {
+          const refreshedSlots = await listPublicCalendarSlots();
+          setCalendarSlots(refreshedSlots);
+        } catch (refreshError) {
+          console.error("Failed to refresh calendar slots:", refreshError);
+        }
+
+        setForm((prev) => ({ ...prev, preferred_time: "" }));
+        setErrors({
+          preferred_time:
+            "Este horário acabou de ser reservado por outra pessoa. Escolha outro horário disponível.",
+        });
+      } else {
+        setErrors({
+          _: "Não conseguimos enviar. Tente novamente ou fale no WhatsApp.",
+        });
+      }
     } finally {
       setLoading(false);
     }
