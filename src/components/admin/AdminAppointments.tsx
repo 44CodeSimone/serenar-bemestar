@@ -142,15 +142,18 @@ export default function AdminAppointments() {
                 <div className="flex flex-col items-stretch gap-2 md:min-w-[220px]">
                   <select
                     value={a.status}
-                    onChange={(e) => updateStatus(a.id, e.target.value)}
-                    className="rounded-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-sage"
+                    disabled={pendingId === a.id || ALLOWED_TRANSITIONS[a.status]?.length === 0}
+                    onChange={(e) => updateStatus(a.id, e.target.value as AppointmentStatus)}
+                    className="rounded-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-sage disabled:opacity-60"
                   >
-                    {[a.status, ...STATUSES.filter((s) => s !== a.status)].map((s) => (
+                    <option value={a.status}>{STATUS_LABELS[a.status] ?? a.status}</option>
+                    {(ALLOWED_TRANSITIONS[a.status] ?? []).map((s) => (
                       <option key={s} value={s}>
-                        {s}
+                        {STATUS_LABELS[s] ?? s}
                       </option>
                     ))}
                   </select>
+
                   <a
                     href={SITE.whatsapp.link}
                     target="_blank"
