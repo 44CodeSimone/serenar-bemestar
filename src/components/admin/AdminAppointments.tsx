@@ -103,6 +103,13 @@ export default function AdminAppointments() {
         </div>
       </div>
 
+      {error && (
+        <p className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
+
       {loading ? (
         <div className="grid place-items-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-sage-deep" />
