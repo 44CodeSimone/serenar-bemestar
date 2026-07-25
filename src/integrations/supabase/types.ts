@@ -699,6 +699,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_appointment_status: {
+        Args: { p_appointment_id: string; p_new_status: string }
+        Returns: {
+          appointment_id: string
+          appointment_status: string
+          calendar_slot_id: string
+          changed_at: string
+          previous_status: string
+        }[]
+      }
       create_prebooking: {
         Args: {
           p_calendar_slot_id: string
