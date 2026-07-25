@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Loader2, Phone, MessageCircle, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  changeAppointmentStatus,
+  type AppointmentStatus,
+} from "@/lib/appointments.repository";
 import { SITE } from "@/lib/site-config";
 
 type Appt = {
@@ -17,12 +21,29 @@ type Appt = {
   created_at: string;
 };
 
-const STATUSES = ["Novo", "Confirmado", "Em atendimento", "Concluído", "Cancelado", "Não compareceu"]; // kept original ordering
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  completed: "Concluído",
+  cancelled: "Cancelado",
+};
+
+const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
+
+/** Espelha as transições permitidas na RPC change_appointment_status. */
+const ALLOWED_TRANSITIONS: Record<string, AppointmentStatus[]> = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
 
 export default function AdminAppointments() {
   const [items, setItems] = useState<Appt[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("todos");
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -35,9 +56,19 @@ export default function AdminAppointments() {
   }
   useEffect(() => { load(); }, []);
 
-  async function updateStatus(id: string, status: string) {
-    await supabase.from("appointments").update({ status }).eq("id", id);
-    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  async function updateStatus(id: string, status: AppointmentStatus) {
+    setPendingId(id);
+    setError(null);
+    try {
+      const result = await changeAppointmentStatus({ appointmentId: id, newStatus: status });
+      setItems((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: result.appointment_status } : a)),
+      );
+    } catch {
+      setError("Não foi possível alterar o status deste agendamento.");
+    } finally {
+      setPendingId(null);
+    }
   }
 
   async function updateNotes(id: string, internal_notes: string) {
@@ -45,6 +76,7 @@ export default function AdminAppointments() {
   }
 
   const filtered = filter === "todos" ? items : items.filter((a) => a.status === filter);
+
 
   return (
     <div className="p-6 md:p-10">
