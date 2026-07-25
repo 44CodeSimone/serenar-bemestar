@@ -95,10 +95,10 @@ export default function AdminAppointments() {
             <option value="todos">Todos</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {STATUS_LABELS[s] ?? s}
               </option>
             ))}
-            <option value="pending">Pending (legado)</option>
+
           </select>
         </div>
       </div>
