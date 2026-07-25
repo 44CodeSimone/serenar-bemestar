@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
-import { listPublicCalendarSlots } from "@/lib/calendar-slots.repository";
+import { listPublicCalendarSlots, createPrebooking } from "@/lib/calendar-slots.repository";
 import { SITE } from "@/lib/site-config";
 
 const searchSchema = z.object({ service: z.string().optional() });
