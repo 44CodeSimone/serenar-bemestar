@@ -44,6 +44,77 @@ export async function listPublicCalendarSlots(): Promise<
   return data as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
 }
 
+type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
+
+export type AdminCalendarAppointment = Pick<
+  AppointmentRow,
+  "id" | "full_name" | "service" | "status"
+> & {
+  calendar_slot_id: string;
+};
+
+export type AdminCalendarSlot = Pick<
+  CalendarSlotRow,
+  "id" | "slot_date" | "start_time" | "end_time" | "status" | "published"
+> & {
+  appointment: AdminCalendarAppointment | null;
+};
+
+/**
+ * Returns administrative calendar slots in chronological order, including
+ * the active appointment linked to each slot when one exists.
+ */
+export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
+  const { data: slots, error: slotsError } = await supabase
+    .from("calendar_slots")
+    .select("id,slot_date,start_time,end_time,status,published")
+    .is("deleted_at", null)
+    .order("slot_date", { ascending: true })
+    .order("start_time", { ascending: true });
+
+  if (slotsError) {
+    throw slotsError;
+  }
+
+  const calendarSlots = slots ?? [];
+
+  if (calendarSlots.length === 0) {
+    return [];
+  }
+
+  const slotIds = calendarSlots.map((slot) => slot.id);
+
+  const { data: appointments, error: appointmentsError } = await supabase
+    .from("appointments")
+    .select("id,calendar_slot_id,full_name,service,status")
+    .in("calendar_slot_id", slotIds)
+    .in("status", ["pending", "confirmed", "completed"]);
+
+  if (appointmentsError) {
+    throw appointmentsError;
+  }
+
+  const appointmentBySlot = new Map<string, AdminCalendarAppointment>();
+
+  for (const appointment of appointments ?? []) {
+    if (!appointment.calendar_slot_id) {
+      continue;
+    }
+
+    appointmentBySlot.set(appointment.calendar_slot_id, {
+      id: appointment.id,
+      calendar_slot_id: appointment.calendar_slot_id,
+      full_name: appointment.full_name,
+      service: appointment.service,
+      status: appointment.status,
+    });
+  }
+
+  return calendarSlots.map((slot) => ({
+    ...slot,
+    appointment: appointmentBySlot.get(slot.id) ?? null,
+  }));
+}
 export type CreatePrebookingParams = {
   calendarSlotId: string;
   fullName: string;
