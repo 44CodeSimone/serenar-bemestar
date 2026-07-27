@@ -1,25 +1,14 @@
 import { useEffect, useState } from "react";
 import { Loader2, Phone, MessageCircle, Filter } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   changeAppointmentStatus,
+  listAppointments,
+  updateAppointmentInternalNotes,
+  type AppointmentRecord,
   type AppointmentStatus,
 } from "@/lib/appointments.repository";
 import { SITE } from "@/lib/site-config";
 
-type Appt = {
-  id: string;
-  full_name: string;
-  phone: string;
-  email: string | null;
-  service: string;
-  preferred_date: string | null;
-  preferred_time: string | null;
-  notes: string | null;
-  internal_notes: string | null;
-  status: string;
-  created_at: string;
-};
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pendente",
@@ -39,7 +28,7 @@ const ALLOWED_TRANSITIONS: Record<string, AppointmentStatus[]> = {
 };
 
 export default function AdminAppointments() {
-  const [items, setItems] = useState<Appt[]>([]);
+  const [items, setItems] = useState<AppointmentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("todos");
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -47,14 +36,21 @@ export default function AdminAppointments() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase
-      .from("appointments")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setItems((data ?? []) as Appt[]);
-    setLoading(false);
+    setError(null);
+
+    try {
+      const appointments = await listAppointments();
+      setItems(appointments);
+    } catch {
+      setError("Não foi possível carregar os agendamentos.");
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function updateStatus(id: string, status: AppointmentStatus) {
     setPendingId(id);
@@ -71,8 +67,21 @@ export default function AdminAppointments() {
     }
   }
 
-  async function updateNotes(id: string, internal_notes: string) {
-    await supabase.from("appointments").update({ internal_notes }).eq("id", id);
+  async function updateNotes(id: string, internalNotes: string) {
+    setError(null);
+
+    try {
+      await updateAppointmentInternalNotes(id, internalNotes);
+      setItems((prev) =>
+        prev.map((appointment) =>
+          appointment.id === id
+            ? { ...appointment, internal_notes: internalNotes }
+            : appointment,
+        ),
+      );
+    } catch {
+      setError("Não foi possível salvar as observações internas.");
+    }
   }
 
   const filtered = filter === "todos" ? items : items.filter((a) => a.status === filter);

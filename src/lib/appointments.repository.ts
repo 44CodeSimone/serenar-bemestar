@@ -1,11 +1,21 @@
-// src/lib/appointments.repository.ts
+﻿// src/lib/appointments.repository.ts
 import { supabase } from "@/integrations/supabase/client";
 
-/**
- * Statuses accepted by the `change_appointment_status` RPC.
- * The allowed transitions themselves are enforced in PostgreSQL, not here.
- */
 export type AppointmentStatus = "confirmed" | "cancelled" | "completed";
+
+export type AppointmentRecord = {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  service: string;
+  preferred_date: string | null;
+  preferred_time: string | null;
+  notes: string | null;
+  internal_notes: string | null;
+  status: string;
+  created_at: string;
+};
 
 export type ChangeAppointmentStatusParams = {
   appointmentId: string;
@@ -20,11 +30,35 @@ export type ChangeAppointmentStatusResult = {
   changed_at: string;
 };
 
-/**
- * Thin wrapper around the `change_appointment_status` database RPC.
- * All business rules (authorization, allowed transitions, row locking and
- * calendar slot release) live inside PostgreSQL.
- */
+export async function listAppointments(): Promise<AppointmentRecord[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select(
+      "id, full_name, phone, email, service, preferred_date, preferred_time, notes, internal_notes, status, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as AppointmentRecord[];
+}
+
+export async function updateAppointmentInternalNotes(
+  appointmentId: string,
+  internalNotes: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("appointments")
+    .update({ internal_notes: internalNotes })
+    .eq("id", appointmentId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function changeAppointmentStatus(
   params: ChangeAppointmentStatusParams,
 ): Promise<ChangeAppointmentStatusResult> {
@@ -37,5 +71,11 @@ export async function changeAppointmentStatus(
     throw error;
   }
 
-  return (Array.isArray(data) ? data[0] : data) as ChangeAppointmentStatusResult;
+  const result = Array.isArray(data) ? data[0] : data;
+
+  if (!result) {
+    throw new Error("A RPC não retornou o agendamento atualizado.");
+  }
+
+  return result as ChangeAppointmentStatusResult;
 }
