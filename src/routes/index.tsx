@@ -4,6 +4,7 @@ import heroImg from "@/assets/hero-ritual.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { listFeaturedPublicServices } from "@/lib/services.repository";
+import { listPublicTestimonials } from "@/lib/testimonials.repository";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
@@ -28,14 +29,18 @@ export const Route = createFileRoute("/")({
   }),
   ssr: false,
   loader: async () => {
-    const services = await listFeaturedPublicServices(6);
-    return { services };
+    const [services, testimonials] = await Promise.all([
+      listFeaturedPublicServices(6),
+      listPublicTestimonials(6),
+    ]);
+
+    return { services, testimonials };
   },
   component: Home,
 });
 
 function Home() {
-  const { services } = Route.useLoaderData();
+  const { services, testimonials } = Route.useLoaderData();
   return (
     <>
       {/* HERO */}
@@ -219,22 +224,55 @@ function Home() {
             </h2>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t, i) => (
-              <figure key={i} className="card-serena">
-                <div className="mb-4 flex text-gold">
-                  {[...Array(5)].map((_, k) => (
-                    <Sparkles key={k} className="h-3.5 w-3.5" fill="currentColor" />
-                  ))}
-                </div>
-                <blockquote className="font-serif text-lg italic leading-relaxed text-sage-deep">
-                  “{t.text}”
-                </blockquote>
-                <figcaption className="mt-6 text-sm">
-                  <span className="font-medium text-foreground">{t.name}</span>
-                  <span className="text-muted-foreground"> · {t.service}</span>
-                </figcaption>
-              </figure>
-            ))}
+            {testimonials.length === 0 ? (
+              <div className="card-serena md:col-span-3 text-center">
+                <Sparkles className="mx-auto mb-4 h-5 w-5 text-gold" />
+                <p className="font-serif text-lg text-sage-deep">
+                  Os primeiros depoimentos aparecerão em breve.
+                </p>
+              </div>
+            ) : (
+              testimonials.map((t) => {
+                const rating = t.rating ?? 0;
+
+                return (
+                  <figure key={t.id} className="card-serena">
+                    <div
+                      className="mb-4 flex text-gold"
+                      aria-label={
+                        rating > 0
+                          ? `${rating} de 5 estrelas`
+                          : "Avaliação não informada"
+                      }
+                    >
+                      {[...Array(5)].map((_, index) => (
+                        <Sparkles
+                          key={index}
+                          className="h-3.5 w-3.5"
+                          fill={index < rating ? "currentColor" : "none"}
+                        />
+                      ))}
+                    </div>
+
+                    <blockquote className="font-serif text-lg italic leading-relaxed text-sage-deep">
+                      “{t.text}”
+                    </blockquote>
+
+                    <figcaption className="mt-6 text-sm">
+                      <span className="font-medium text-foreground">
+                        {t.name}
+                      </span>
+                      {t.service ? (
+                        <span className="text-muted-foreground">
+                          {" · "}
+                          {t.service}
+                        </span>
+                      ) : null}
+                    </figcaption>
+                  </figure>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
@@ -294,22 +332,3 @@ const BENEFITS = [
     text: "Ambiente sem pressa, sem barulho, sem ruído mental. Só você e sua respiração.",
   },
 ];
-
-const TESTIMONIALS = [
-  {
-    name: "Ana Beatriz",
-    service: "Massagem Relaxante",
-    text: "Saí de outra pessoa. A Mariah tem um toque que acalma antes mesmo de começar.",
-  },
-  {
-    name: "Camila R.",
-    service: "Drenagem Linfática",
-    text: "Espaço lindo, silencioso, tudo cuidado nos mínimos detalhes. Virei cliente fixa.",
-  },
-  {
-    name: "Juliana M.",
-    service: "Pedras Quentes",
-    text: "A experiência mais completa que já tive. Sensação de aconchego que dura dias.",
-  },
-];
-
