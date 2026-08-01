@@ -15,7 +15,8 @@ export const Route = createFileRoute("/agendamento")({
       { title: "Agendamento — Reserve sua sessão | Serenar" },
       {
         name: "description",
-        content: "Reserve seu horário no Serenar. Formulário rápido — confirmação pelo WhatsApp com a Mariah.",
+        content:
+          "Reserve seu horário no Serenar. Formulário rápido — confirmação pelo WhatsApp com a Mariah.",
       },
     ],
   }),
@@ -111,7 +112,9 @@ function Agendamento() {
     const parsed = formSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
-      parsed.error.issues.forEach((i) => { errs[String(i.path[0])] = i.message; });
+      parsed.error.issues.forEach((i) => {
+        errs[String(i.path[0])] = i.message;
+      });
       setErrors(errs);
       return;
     }
@@ -162,6 +165,9 @@ function Agendamento() {
     }
   }
 
+  const selectedService = services.find((service) => service.id === form.service);
+  const selectedSlot = calendarSlots.find((slot) => slot.id === form.preferred_time);
+
   if (done) {
     return (
       <section className="container-narrow py-24">
@@ -171,12 +177,48 @@ function Agendamento() {
           </div>
           <h1 className="mt-6 font-serif text-4xl text-sage-deep">Pedido recebido</h1>
           <p className="mt-4 text-muted-foreground">
-            Obrigada, {form.full_name.split(" ")[0]}. Estamos te redirecionando para o WhatsApp
-            para confirmar seu horário com a Mariah.
+            Obrigada, {form.full_name.split(" ")[0]}. Esta é uma solicitação de pré-agendamento e
+            ainda aguarda confirmação da Serenar.
+          </p>
+          <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-left text-sm">
+            <p className="font-medium text-sage-deep">Resumo da solicitação</p>
+            <dl className="mt-3 space-y-2 text-foreground/80">
+              <div className="flex justify-between gap-4">
+                <dt>Cliente</dt>
+                <dd className="text-right font-medium">{form.full_name}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>Serviço</dt>
+                <dd className="text-right font-medium">
+                  {selectedService?.name ?? "Serviço solicitado"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>Data</dt>
+                <dd className="text-right font-medium">
+                  {form.preferred_date ? formatDateLabel(form.preferred_date) : "Não informada"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>Horário</dt>
+                <dd className="text-right font-medium">
+                  {selectedSlot ? formatTimeLabel(selectedSlot) : "Não informado"}
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <p className="mt-5 text-sm text-muted-foreground">
+            A Serenar entrará em contato para confirmar. Não considere o horário confirmado antes
+            desse contato.
           </p>
           <div className="mt-8">
-            <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="btn-serena">
-              Abrir WhatsApp
+            <a
+              href={SITE.whatsapp.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-serena"
+            >
+              Falar com a Serenar no WhatsApp
             </a>
           </div>
           <button
@@ -206,10 +248,7 @@ function Agendamento() {
       <section className="container-narrow py-24">
         <div className="mx-auto max-w-lg rounded-[2rem] border border-destructive/30 bg-card p-10 text-center shadow-soft">
           <p className="text-sm text-destructive">{servicesError}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="btn-serena mt-6"
-          >
+          <button onClick={() => window.location.reload()} className="btn-serena mt-6">
             Tentar novamente
           </button>
         </div>
@@ -225,28 +264,50 @@ function Agendamento() {
           Reserve seu <span className="italic text-sage">momento</span>
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Preencha os campos abaixo. A confirmação acontece pelo WhatsApp com a Mariah,
-          para garantir o melhor horário para você.
+          Preencha os campos abaixo. A confirmação acontece pelo WhatsApp com a Mariah, para
+          garantir o melhor horário para você.
         </p>
 
-        <form onSubmit={submit} className="mt-10 space-y-5 rounded-[2rem] border border-border bg-card p-8 shadow-soft md:p-10">
+        <form
+          onSubmit={submit}
+          className="mt-10 space-y-5 rounded-[2rem] border border-border bg-card p-8 shadow-soft md:p-10"
+        >
           <Field label="Nome completo *" error={errors.full_name}>
-            <input value={form.full_name} onChange={(e) => upd("full_name", e.target.value)} className={input} />
+            <input
+              value={form.full_name}
+              onChange={(e) => upd("full_name", e.target.value)}
+              className={input}
+            />
           </Field>
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Telefone / WhatsApp *" error={errors.phone}>
-              <input value={form.phone} onChange={(e) => upd("phone", e.target.value)} placeholder="(49) 9 9999-9999" className={input} />
+              <input
+                value={form.phone}
+                onChange={(e) => upd("phone", e.target.value)}
+                placeholder="(49) 9 9999-9999"
+                className={input}
+              />
             </Field>
             <Field label="Email (opcional)" error={errors.email}>
-              <input value={form.email} onChange={(e) => upd("email", e.target.value)} type="email" className={input} />
+              <input
+                value={form.email}
+                onChange={(e) => upd("email", e.target.value)}
+                type="email"
+                className={input}
+              />
             </Field>
           </div>
           <Field label="Serviço desejado *" error={errors.service}>
-            <select value={form.service} onChange={(e) => upd("service", e.target.value)} className={input}>
+            <select
+              value={form.service}
+              onChange={(e) => upd("service", e.target.value)}
+              className={input}
+            >
               <option value="">Selecione um ritual…</option>
               {services.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name}{s.duration ? ` — ${s.duration}` : ""}
+                  {s.name}
+                  {s.duration ? ` — ${s.duration}` : ""}
                 </option>
               ))}
             </select>
@@ -260,9 +321,7 @@ function Agendamento() {
                 disabled={availableDates.length === 0}
               >
                 <option value="">
-                  {availableDates.length === 0
-                    ? "Nenhuma data disponível"
-                    : "Selecione uma data…"}
+                  {availableDates.length === 0 ? "Nenhuma data disponível" : "Selecione uma data…"}
                 </option>
                 {availableDates.map((d) => (
                   <option key={d} value={d}>
@@ -276,16 +335,20 @@ function Agendamento() {
                 value={form.preferred_time}
                 onChange={(e) => upd("preferred_time", e.target.value)}
                 className={input}
-                disabled={availableDates.length === 0 || !form.preferred_date || slotsForSelectedDate.length === 0}
+                disabled={
+                  availableDates.length === 0 ||
+                  !form.preferred_date ||
+                  slotsForSelectedDate.length === 0
+                }
               >
                 <option value="">
                   {availableDates.length === 0
                     ? "Nenhum horário disponível"
                     : !form.preferred_date
-                    ? "Selecione a data primeiro…"
-                    : slotsForSelectedDate.length === 0
-                    ? "Nenhum horário disponível"
-                    : "Selecione um horário…"}
+                      ? "Selecione a data primeiro…"
+                      : slotsForSelectedDate.length === 0
+                        ? "Nenhum horário disponível"
+                        : "Selecione um horário…"}
                 </option>
                 {slotsForSelectedDate.map((slot) => {
                   return (
@@ -303,7 +366,13 @@ function Agendamento() {
             </p>
           )}
           <Field label="Alguma observação?">
-            <textarea value={form.notes} onChange={(e) => upd("notes", e.target.value)} rows={4} className={input + " resize-none"} placeholder="Alergias, gestação, dores específicas, primeira vez…" />
+            <textarea
+              value={form.notes}
+              onChange={(e) => upd("notes", e.target.value)}
+              rows={4}
+              className={input + " resize-none"}
+              placeholder="Alergias, gestação, dores específicas, primeira vez…"
+            />
           </Field>
 
           {errors._ && <p className="text-sm text-destructive">{errors._}</p>}
@@ -322,9 +391,18 @@ function Agendamento() {
   );
 }
 
-const input = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-sage focus:ring-1 focus:ring-sage";
+const input =
+  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-sage focus:ring-1 focus:ring-sage";
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
