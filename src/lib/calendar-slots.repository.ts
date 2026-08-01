@@ -6,6 +6,39 @@ import type { Database } from "@/integrations/supabase/types";
  * Public calendar slot row type from the generated Supabase typings.
  */
 type CalendarSlotRow = Database["public"]["Tables"]["calendar_slots"]["Row"];
+type CalendarSlotInsert = Database["public"]["Tables"]["calendar_slots"]["Insert"];
+type CalendarSlotUpdate = Database["public"]["Tables"]["calendar_slots"]["Update"];
+
+export type CreateCalendarSlotParams = Omit<
+  CalendarSlotInsert,
+  "id" | "created_at" | "created_by" | "updated_at" | "updated_by" | "deleted_at" | "reserved_at"
+>;
+
+export type UpdateCalendarSlotParams = Omit<
+  CalendarSlotUpdate,
+  | "id"
+  | "created_at"
+  | "created_by"
+  | "updated_at"
+  | "updated_by"
+  | "deleted_at"
+  | "reserved_at"
+  | "status"
+>;
+
+async function getAuthenticatedUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data.user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  return data.user.id;
+}
 
 /**
  * Returns a list of publicly available calendar slots.
@@ -69,7 +102,14 @@ export type AdminCalendarAppointment = Pick<
 
 export type AdminCalendarSlot = Pick<
   CalendarSlotRow,
-  "id" | "slot_date" | "start_time" | "end_time" | "status" | "published"
+  | "id"
+  | "slot_date"
+  | "start_time"
+  | "end_time"
+  | "status"
+  | "published"
+  | "professional_name"
+  | "notes"
 > & {
   appointment: AdminCalendarAppointment | null;
 };
@@ -81,7 +121,7 @@ export type AdminCalendarSlot = Pick<
 export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
   const { data: slots, error: slotsError } = await supabase
     .from("calendar_slots")
-    .select("id,slot_date,start_time,end_time,status,published")
+    .select("id,slot_date,start_time,end_time,status,published,professional_name,notes")
     .is("deleted_at", null)
     .order("slot_date", { ascending: true })
     .order("start_time", { ascending: true });
@@ -129,6 +169,124 @@ export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
     appointment: appointmentBySlot.get(slot.id) ?? null,
   }));
 }
+
+export async function createCalendarSlot(
+  params: CreateCalendarSlotParams,
+): Promise<CalendarSlotRow> {
+  const userId = await getAuthenticatedUserId();
+  const { data, error } = await supabase
+    .from("calendar_slots")
+    .insert({
+      ...params,
+      created_by: userId,
+      updated_by: userId,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateCalendarSlot(
+  calendarSlotId: string,
+  params: UpdateCalendarSlotParams,
+): Promise<CalendarSlotRow> {
+  const userId = await getAuthenticatedUserId();
+  const { data, error } = await supabase
+    .from("calendar_slots")
+    .update({ ...params, updated_by: userId })
+    .eq("id", calendarSlotId)
+    .neq("status", "reserved")
+    .is("deleted_at", null)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function toggleCalendarSlotPublished(
+  calendarSlotId: string,
+  published: boolean,
+): Promise<CalendarSlotRow> {
+  const userId = await getAuthenticatedUserId();
+  const { data, error } = await supabase
+    .from("calendar_slots")
+    .update({ published, updated_by: userId })
+    .eq("id", calendarSlotId)
+    .neq("status", "reserved")
+    .is("deleted_at", null)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function blockCalendarSlot(calendarSlotId: string): Promise<CalendarSlotRow> {
+  const userId = await getAuthenticatedUserId();
+  const { data, error } = await supabase
+    .from("calendar_slots")
+    .update({ status: "blocked", reserved_at: null, updated_by: userId })
+    .eq("id", calendarSlotId)
+    .eq("status", "open")
+    .is("deleted_at", null)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function releaseCalendarSlot(calendarSlotId: string): Promise<CalendarSlotRow> {
+  const userId = await getAuthenticatedUserId();
+  const { data, error } = await supabase
+    .from("calendar_slots")
+    .update({ status: "open", reserved_at: null, updated_by: userId })
+    .eq("id", calendarSlotId)
+    .eq("status", "blocked")
+    .is("deleted_at", null)
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function deleteCalendarSlot(calendarSlotId: string): Promise<void> {
+  const userId = await getAuthenticatedUserId();
+  const { error } = await supabase
+    .from("calendar_slots")
+    .update({
+      deleted_at: new Date().toISOString(),
+      published: false,
+      updated_by: userId,
+    })
+    .eq("id", calendarSlotId)
+    .neq("status", "reserved")
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export type CreatePrebookingParams = {
   calendarSlotId: string;
   fullName: string;
