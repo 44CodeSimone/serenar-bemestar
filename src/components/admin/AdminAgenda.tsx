@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   Ban,
@@ -12,6 +12,7 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Search,
   Trash2,
   X,
 } from "lucide-react";
@@ -40,19 +41,29 @@ type SlotForm = {
   published: boolean;
 };
 
-function emptyForm(): SlotForm {
-  const now = new Date();
-  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 10);
+type SlotFilter = "all" | "available" | "reserved" | "blocked" | "hidden";
 
+function getSaoPauloDate(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function emptyForm(): SlotForm {
   return {
-    slotDate: localDate,
+    slotDate: getSaoPauloDate(),
     startTime: "09:00",
     endTime: "10:00",
     professionalName: "",
     notes: "",
-    published: true,
+    published: false,
   };
 }
 
@@ -68,6 +79,14 @@ function formatDate(value: string) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${value}T12:00:00Z`));
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
 }
 
 const statusText: Record<AdminCalendarSlot["status"], string> = {
@@ -86,9 +105,72 @@ export default function AdminAgenda() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [googleCalendarLoaded, setGoogleCalendarLoaded] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<SlotFilter>("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [professionalFilter, setProfessionalFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const minimumDate = getSaoPauloDate();
 
-  async function loadSlots() {
-    setLoading(true);
+  const indicators = useMemo(
+    () => ({
+      total: slots.length,
+      available: slots.filter((slot) => slot.status === "open" && slot.published).length,
+      reserved: slots.filter((slot) => slot.status === "reserved").length,
+      blocked: slots.filter((slot) => slot.status === "blocked").length,
+      hidden: slots.filter((slot) => !slot.published).length,
+      pending: slots.filter((slot) => slot.appointment?.status === "pending").length,
+      confirmed: slots.filter((slot) => slot.appointment?.status === "confirmed").length,
+    }),
+    [slots],
+  );
+
+  const professionals = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          slots
+            .map((slot) => slot.professional_name?.trim())
+            .filter((name): name is string => Boolean(name)),
+        ),
+      ).sort((left, right) => left.localeCompare(right, "pt-BR")),
+    [slots],
+  );
+
+  const filteredSlots = useMemo(() => {
+    const normalizedSearch = normalizeSearchText(search);
+
+    return slots.filter((slot) => {
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "available" && slot.status === "open" && slot.published) ||
+        (statusFilter === "reserved" && slot.status === "reserved") ||
+        (statusFilter === "blocked" && slot.status === "blocked") ||
+        (statusFilter === "hidden" && !slot.published);
+      const matchesDate = !dateFilter || slot.slot_date === dateFilter;
+      const matchesProfessional =
+        !professionalFilter || slot.professional_name === professionalFilter;
+      const searchableText = normalizeSearchText(
+        [
+          slot.appointment?.full_name ?? "",
+          slot.professional_name ?? "",
+          slot.slot_date,
+          formatDate(slot.slot_date),
+        ].join(" "),
+      );
+      const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
+
+      return matchesStatus && matchesDate && matchesProfessional && matchesSearch;
+    });
+  }, [dateFilter, professionalFilter, search, slots, statusFilter]);
+
+  const hasActiveFilters =
+    statusFilter !== "all" || Boolean(dateFilter || professionalFilter || search.trim());
+
+  async function loadSlots(showLoading = true) {
+    if (showLoading) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -96,7 +178,9 @@ export default function AdminAgenda() {
     } catch (loadError) {
       setError(errorMessage(loadError, "Não foi possível carregar os horários."));
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }
 
@@ -114,6 +198,13 @@ export default function AdminAgenda() {
     setForm(emptyForm());
   }
 
+  function clearFilters() {
+    setStatusFilter("all");
+    setDateFilter("");
+    setProfessionalFilter("");
+    setSearch("");
+  }
+
   function startEditing(slot: AdminCalendarSlot) {
     clearFeedback();
     setEditingId(slot.id);
@@ -125,7 +216,9 @@ export default function AdminAgenda() {
       notes: slot.notes ?? "",
       published: slot.published,
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -158,7 +251,7 @@ export default function AdminAgenda() {
       }
 
       resetForm();
-      await loadSlots();
+      await loadSlots(false);
     } catch (saveError) {
       setError(errorMessage(saveError, "Não foi possível salvar o horário."));
     } finally {
@@ -173,7 +266,7 @@ export default function AdminAgenda() {
     try {
       await action();
       setSuccess(message);
-      await loadSlots();
+      await loadSlots(false);
     } catch (actionError) {
       setError(errorMessage(actionError, "Não foi possível concluir a operação."));
     } finally {
@@ -187,7 +280,18 @@ export default function AdminAgenda() {
       return;
     }
 
-    if (!window.confirm("Excluir este horário disponível do site?")) {
+    const professional = slot.professional_name ?? "Não informado";
+    const confirmed = window.confirm(
+      [
+        "Excluir este horário disponível do site?",
+        "",
+        `Data: ${formatDate(slot.slot_date)}`,
+        `Horário: ${slot.start_time.slice(0, 5)}–${slot.end_time.slice(0, 5)}`,
+        `Profissional: ${professional}`,
+      ].join("\n"),
+    );
+
+    if (!confirmed) {
       return;
     }
 
@@ -217,7 +321,10 @@ export default function AdminAgenda() {
           </a>
           <button
             type="button"
-            onClick={() => void loadSlots()}
+            onClick={() => {
+              clearFeedback();
+              void loadSlots();
+            }}
             disabled={loading}
             className="btn-serena-outline"
           >
@@ -268,6 +375,28 @@ export default function AdminAgenda() {
         </p>
       </div>
 
+      <section aria-label="Resumo dos horários" className="mb-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
+          {[
+            ["Total", indicators.total],
+            ["Disponíveis", indicators.available],
+            ["Reservados", indicators.reserved],
+            ["Bloqueados", indicators.blocked],
+            ["Ocultos", indicators.hidden],
+            ["Pendentes", indicators.pending],
+            ["Confirmados", indicators.confirmed],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="mt-1 font-serif text-3xl text-sage-deep">{value}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          “Oculto” indica publicação e pode também estar bloqueado.
+        </p>
+      </section>
+
       {error ? (
         <div
           role="alert"
@@ -292,8 +421,9 @@ export default function AdminAgenda() {
       ) : null}
 
       <form
+        ref={formRef}
         onSubmit={submit}
-        className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-soft"
+        className="mb-8 scroll-mt-6 rounded-2xl border border-border bg-card p-5 shadow-soft"
       >
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
@@ -301,7 +431,8 @@ export default function AdminAgenda() {
               {editingId ? "Editar horário" : "Novo horário"}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Horários publicados e disponíveis aparecem para solicitação no site.
+              Novos horários começam ocultos. Depois de conferir os dados, publique-os para que
+              apareçam no site.
             </p>
           </div>
           {editingId ? (
@@ -321,6 +452,7 @@ export default function AdminAgenda() {
             <input
               type="date"
               required
+              min={minimumDate}
               value={form.slotDate}
               onChange={(event) =>
                 setForm((current) => ({ ...current, slotDate: event.target.value }))
@@ -405,6 +537,74 @@ export default function AdminAgenda() {
         </div>
       </form>
 
+      <section className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-soft">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium text-sage-deep">Buscar</span>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Cliente, profissional ou data"
+                className="w-full rounded-xl border border-border bg-background py-2 pl-9 pr-3 outline-none focus:border-sage"
+              />
+            </div>
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium text-sage-deep">Status</span>
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as SlotFilter)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-sage"
+            >
+              <option value="all">Todos</option>
+              <option value="available">Disponíveis</option>
+              <option value="reserved">Reservados</option>
+              <option value="blocked">Bloqueados</option>
+              <option value="hidden">Ocultos</option>
+            </select>
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium text-sage-deep">Data</span>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(event) => setDateFilter(event.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-sage"
+            />
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium text-sage-deep">Profissional</span>
+            <select
+              value={professionalFilter}
+              onChange={(event) => setProfessionalFilter(event.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-sage"
+            >
+              <option value="">Todos</option>
+              {professionals.map((professional) => (
+                <option key={professional} value={professional}>
+                  {professional}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
+            className="btn-serena-outline self-end"
+          >
+            <X className="h-4 w-4" />
+            Limpar filtros
+          </button>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Exibindo {filteredSlots.length} de {slots.length} horários.
+        </p>
+      </section>
+
       {loading ? (
         <div className="grid place-items-center py-20">
           <Loader2 className="h-7 w-7 animate-spin text-sage-deep" />
@@ -417,9 +617,20 @@ export default function AdminAgenda() {
             Use o formulário acima para disponibilizar o primeiro horário.
           </p>
         </div>
+      ) : filteredSlots.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-cream/40 p-10 text-center shadow-soft">
+          <Search className="mx-auto mb-3 h-8 w-8 text-gold" />
+          <h2 className="font-serif text-2xl text-sage-deep">Nenhum horário encontrado</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+            Não há horários que correspondam aos filtros ou à busca atual.
+          </p>
+          <button type="button" onClick={clearFilters} className="btn-serena-outline mt-5">
+            Limpar filtros
+          </button>
+        </div>
       ) : (
         <div className="space-y-3">
-          {slots.map((slot) => {
+          {filteredSlots.map((slot) => {
             const busy = busyId === slot.id;
             const reserved = slot.status === "reserved";
             return (
