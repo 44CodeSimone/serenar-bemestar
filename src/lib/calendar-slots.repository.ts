@@ -26,12 +26,25 @@ type CalendarSlotRow = Database["public"]["Tables"]["calendar_slots"]["Row"];
 export async function listPublicCalendarSlots(): Promise<
   Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>
 > {
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+  const currentTime = [
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0"),
+    String(now.getSeconds()).padStart(2, "0"),
+  ].join(":");
+
   const { data, error } = await supabase
     .from("calendar_slots")
     .select("id,slot_date,start_time,end_time")
     .eq("published", true)
     .eq("status", "open")
     .is("deleted_at", null)
+    .gte("slot_date", today)
     .order("slot_date", { ascending: true })
     .order("start_time", { ascending: true });
 
@@ -40,8 +53,9 @@ export async function listPublicCalendarSlots(): Promise<
     return [];
   }
 
-  // The shape returned by Supabase matches the Pick<> we declared.
-  return data as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
+  return (data ?? []).filter(
+    (slot) => slot.slot_date > today || slot.start_time > currentTime,
+  ) as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
 }
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
