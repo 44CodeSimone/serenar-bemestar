@@ -5,6 +5,7 @@ import { Check, Loader2 } from "lucide-react";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
 import { listPublicCalendarSlots, createPrebooking } from "@/lib/calendar-slots.repository";
 import { SITE } from "@/lib/site-config";
+import { createSeoHead } from "@/lib/seo";
 
 const searchSchema = z.object({ service: z.string().optional() });
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
@@ -33,16 +34,13 @@ declare global {
 
 export const Route = createFileRoute("/agendamento")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({
-    meta: [
-      { title: "Agendamento — Reserve sua sessão | Serenar" },
-      {
-        name: "description",
-        content:
-          "Reserve seu horário no Serenar. Formulário rápido — confirmação pelo WhatsApp com a Mariah.",
-      },
-    ],
-  }),
+  head: () =>
+    createSeoHead({
+      title: "Agendamento — Reserve sua sessão | Serenar",
+      description:
+        "Solicite seu horário de massoterapia e bem-estar no Serenar em Urubici. A confirmação do pré-agendamento é feita pela Mariah.",
+      path: "/agendamento",
+    }),
   component: Agendamento,
 });
 
