@@ -17,30 +17,74 @@ type Lead = {
   created_at: string;
 };
 
-const STATUSES = ["novo", "interessado", "em atendimento", "agendado", "cliente", "inativo", "arquivado"];
+const STATUSES = [
+  "novo",
+  "interessado",
+  "em atendimento",
+  "agendado",
+  "cliente",
+  "inativo",
+  "arquivado",
+];
 
 export default function AdminLeads() {
   const [items, setItems] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("todos");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    setItems((data ?? []) as Lead[]);
+    setFeedback(null);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      setFeedback("Não foi possível carregar os leads. Tente novamente.");
+    } else {
+      setItems((data ?? []) as Lead[]);
+    }
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function updateStatus(id: string, status: string) {
-    await supabase.from("leads").update({ status }).eq("id", id);
-    setItems((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+    if (updatingId) return;
+    setUpdatingId(id);
+    setFeedback(null);
+    const { error } = await supabase
+      .from("leads")
+      .update({ status })
+      .eq("id", id)
+      .select("id")
+      .single();
+    if (error) {
+      setFeedback("Não foi possível atualizar o status do lead. Tente novamente.");
+    } else {
+      setItems((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+      setFeedback("Status atualizado com sucesso.");
+    }
+    setUpdatingId(null);
   }
 
   async function remove(id: string) {
+    if (removingId) return;
     if (!confirm("Excluir este lead?")) return;
-    await supabase.from("leads").delete().eq("id", id);
-    setItems((prev) => prev.filter((l) => l.id !== id));
+    setRemovingId(id);
+    setFeedback(null);
+    const { error } = await supabase.from("leads").delete().eq("id", id).select("id").single();
+    if (error) {
+      setFeedback("Não foi possível excluir o lead. Tente novamente.");
+    } else {
+      setItems((prev) => prev.filter((l) => l.id !== id));
+      setFeedback("Lead excluído com sucesso.");
+    }
+    setRemovingId(null);
   }
 
   const filtered = filter === "todos" ? items : items.filter((l) => l.status === filter);
@@ -59,10 +103,16 @@ export default function AdminLeads() {
         >
           <option value="todos">Todos</option>
           {STATUSES.map((s) => (
-            <option key={s} value={s} className="capitalize">{s}</option>
+            <option key={s} value={s} className="capitalize">
+              {s}
+            </option>
           ))}
         </select>
       </div>
+
+      {feedback && (
+        <p className="mb-6 rounded-xl bg-blush px-4 py-2 text-sm text-sage-deep">{feedback}</p>
+      )}
 
       {loading ? (
         <div className="grid place-items-center py-16">
@@ -92,7 +142,12 @@ export default function AdminLeads() {
                   <td className="p-3 font-medium text-sage-deep">{l.name}</td>
                   <td className="p-3 text-xs">
                     {l.phone && (
-                      <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[oklch(0.55_0.15_150)] hover:underline">
+                      <a
+                        href={SITE.whatsapp.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[oklch(0.55_0.15_150)] hover:underline"
+                      >
                         <MessageCircle className="h-3 w-3" /> {l.phone}
                       </a>
                     )}
@@ -103,18 +158,32 @@ export default function AdminLeads() {
                   <td className="p-3">
                     <select
                       value={l.status}
+                      disabled={updatingId !== null}
                       onChange={(e) => updateStatus(l.id, e.target.value)}
                       className="rounded-full border border-border bg-background px-2 py-1 text-xs capitalize outline-none focus:border-sage"
                     >
                       {STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
                       ))}
                     </select>
                   </td>
-                  <td className="p-3 text-xs text-muted-foreground">{new Date(l.created_at).toLocaleDateString("pt-BR")}</td>
+                  <td className="p-3 text-xs text-muted-foreground">
+                    {new Date(l.created_at).toLocaleDateString("pt-BR")}
+                  </td>
                   <td className="p-3">
-                    <button onClick={() => remove(l.id)} className="text-destructive hover:opacity-70" aria-label="Excluir">
-                      <Trash2 className="h-4 w-4" />
+                    <button
+                      onClick={() => remove(l.id)}
+                      disabled={removingId !== null}
+                      className="text-destructive hover:opacity-70"
+                      aria-label="Excluir"
+                    >
+                      {removingId === l.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </button>
                   </td>
                 </tr>
