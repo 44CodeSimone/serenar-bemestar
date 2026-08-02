@@ -1,24 +1,17 @@
-﻿// src/lib/testimonials.repository.ts
+// src/lib/testimonials.repository.ts
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-export type TestimonialRecord =
-  Database["public"]["Tables"]["testimonials"]["Row"];
+export type TestimonialRecord = Database["public"]["Tables"]["testimonials"]["Row"];
 
-export type CreateTestimonialParams =
-  Database["public"]["Tables"]["testimonials"]["Insert"];
+export type CreateTestimonialParams = Database["public"]["Tables"]["testimonials"]["Insert"];
 
-export type UpdateTestimonialParams =
-  Database["public"]["Tables"]["testimonials"]["Update"];
+export type UpdateTestimonialParams = Database["public"]["Tables"]["testimonials"]["Update"];
 
-export async function listPublicTestimonials(
-  limit = 6,
-): Promise<TestimonialRecord[]> {
+export async function listPublicTestimonials(limit = 6): Promise<TestimonialRecord[]> {
   const { data, error } = await supabase
     .from("testimonials")
-    .select(
-      "id,name,text,rating,service,authorized,active,display_order,created_at,updated_at",
-    )
+    .select("id,name,text,rating,service,authorized,active,display_order,created_at,updated_at")
     .eq("active", true)
     .eq("authorized", true)
     .order("display_order", { ascending: true })
@@ -35,9 +28,7 @@ export async function listPublicTestimonials(
 export async function listAdminTestimonials(): Promise<TestimonialRecord[]> {
   const { data, error } = await supabase
     .from("testimonials")
-    .select(
-      "id,name,text,rating,service,authorized,active,display_order,created_at,updated_at",
-    )
+    .select("id,name,text,rating,service,authorized,active,display_order,created_at,updated_at")
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -51,11 +42,7 @@ export async function listAdminTestimonials(): Promise<TestimonialRecord[]> {
 export async function createTestimonial(
   params: CreateTestimonialParams,
 ): Promise<TestimonialRecord> {
-  const { data, error } = await supabase
-    .from("testimonials")
-    .insert(params)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("testimonials").insert(params).select().single();
 
   if (error) {
     throw error;
@@ -82,13 +69,13 @@ export async function updateTestimonial(
   return data;
 }
 
-export async function deleteTestimonial(
-  testimonialId: string,
-): Promise<void> {
+export async function deleteTestimonial(testimonialId: string): Promise<void> {
   const { error } = await supabase
     .from("testimonials")
     .delete()
-    .eq("id", testimonialId);
+    .eq("id", testimonialId)
+    .select("id")
+    .single();
 
   if (error) {
     throw error;
