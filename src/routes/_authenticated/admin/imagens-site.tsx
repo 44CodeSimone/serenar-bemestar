@@ -2,7 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { ACCEPTED_IMAGE_MIMES, IMAGE_BUCKET, MAX_IMAGE_MB, signedUrl } from "@/lib/cms";
+import {
+  ACCEPTED_IMAGE_MIMES,
+  IMAGE_BUCKET,
+  MAX_IMAGE_MB,
+  SIGNED_IMAGE_CACHE_TTL_MS,
+  StorageCleanupPendingError,
+  deleteSiteImage,
+  signedUrl,
+} from "@/lib/cms";
 import {
   IMAGE_SLOTS,
   type ManagedImageRecord,
@@ -25,31 +33,51 @@ function AdminSiteImages() {
   const [state, setState] = useState<Record<string, SlotState>>({});
   const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
-  async function loadAll() {
-    const init: Record<string, SlotState> = {};
-    IMAGE_SLOTS.forEach((s) => (init[s.key] = { image: null, loading: true, busy: false }));
-    setState(init);
-    const { data } = await supabase
-      .from("site_images")
-      .select("id, storage_path, public_url, alt, tag, caption, created_at")
-      .in(
-        "tag",
-        IMAGE_SLOTS.map((s) => s.key),
-      )
-      .order("created_at", { ascending: false });
-    const map: Record<string, ManagedImageRecord> = {};
-    ((data ?? []) as ManagedImageRecord[]).forEach((img) => {
-      if (!map[img.tag]) map[img.tag] = img;
-    });
-    const next: Record<string, SlotState> = {};
-    IMAGE_SLOTS.forEach((s) => {
-      next[s.key] = { image: map[s.key] ?? null, loading: false, busy: false };
-    });
-    setState(next);
+  async function loadAll(showLoader = true) {
+    if (showLoader) {
+      const init: Record<string, SlotState> = {};
+      IMAGE_SLOTS.forEach((s) => (init[s.key] = { image: null, loading: true, busy: false }));
+      setState(init);
+    }
+    try {
+      const { data, error } = await supabase
+        .from("site_images")
+        .select("id, storage_path, public_url, alt, tag, caption, created_at")
+        .in(
+          "tag",
+          IMAGE_SLOTS.map((s) => s.key),
+        )
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const images = await Promise.all(
+        ((data ?? []) as ManagedImageRecord[]).map(async (img) => ({
+          ...img,
+          public_url: await signedUrl(img.storage_path),
+        })),
+      );
+      const map: Record<string, ManagedImageRecord> = {};
+      images.forEach((img) => {
+        if (!map[img.tag]) map[img.tag] = img;
+      });
+      const next: Record<string, SlotState> = {};
+      IMAGE_SLOTS.forEach((s) => {
+        next[s.key] = { image: map[s.key] ?? null, loading: false, busy: false };
+      });
+      setState(next);
+    } catch {
+      setMsg({ tone: "err", text: "Não foi possível carregar as imagens do site." });
+      if (showLoader) {
+        const failed: Record<string, SlotState> = {};
+        IMAGE_SLOTS.forEach((s) => (failed[s.key] = { image: null, loading: false, busy: false }));
+        setState(failed);
+      }
+    }
   }
 
   useEffect(() => {
-    loadAll();
+    void loadAll();
+    const refreshTimer = setInterval(() => void loadAll(false), SIGNED_IMAGE_CACHE_TTL_MS);
+    return () => clearInterval(refreshTimer);
   }, []);
 
   function setSlot(key: string, patch: Partial<SlotState>) {
@@ -73,22 +101,33 @@ function AdminSiteImages() {
       const up = await supabase.storage
         .from(IMAGE_BUCKET)
         .upload(path, file, { contentType: file.type, upsert: false });
-      if (up.error) throw up.error;
-      const url = await signedUrl(path);
-      const ins = await supabase
-        .from("site_images")
-        .insert({
-          storage_path: path,
-          public_url: url,
-          alt: alt || slot.defaultAlt,
-          tag: slot.key,
-          caption: caption || null,
-          mime: file.type,
-          size_bytes: file.size,
-        } as never)
-        .select("id, storage_path, public_url, alt, tag, caption, created_at")
-        .single();
-      if (ins.error) throw ins.error;
+      if (up.error) throw new Error("Não foi possível enviar a imagem.");
+      let ins;
+      try {
+        const url = await signedUrl(path);
+        ins = await supabase
+          .from("site_images")
+          .insert({
+            storage_path: path,
+            // Required compatibility field; signed URLs are never persisted.
+            public_url: "",
+            alt: alt || slot.defaultAlt,
+            tag: slot.key,
+            caption: caption || null,
+            mime: file.type,
+            size_bytes: file.size,
+          } as never)
+          .select("id, storage_path, public_url, alt, tag, caption, created_at")
+          .single();
+        if (ins.error) throw ins.error;
+        ins.data.public_url = url;
+      } catch {
+        const rollback = await supabase.storage.from(IMAGE_BUCKET).remove([path]);
+        if (rollback.error) {
+          throw new Error("Falha ao concluir o upload e limpar o arquivo enviado.");
+        }
+        throw new Error("Não foi possível concluir o upload da imagem.");
+      }
       setMsg({ tone: "ok", text: `Imagem atualizada: ${slot.label}.` });
       setManagedImageCache(slot.key, ins.data as ManagedImageRecord);
       setSlot(slot.key, { image: ins.data as ManagedImageRecord, busy: false });
@@ -102,13 +141,17 @@ function AdminSiteImages() {
     if (!confirm(`Remover a imagem atual de "${slot.label}"? Voltará a exibir a padrão.`)) return;
     setSlot(slot.key, { busy: true });
     try {
-      await supabase.storage.from(IMAGE_BUCKET).remove([img.storage_path]);
-      await supabase.from("site_images").delete().eq("id", img.id);
+      await deleteSiteImage(img);
       setMsg({ tone: "ok", text: "Imagem removida. Fallback padrão será exibido." });
       setManagedImageCache(slot.key, null);
       setSlot(slot.key, { image: null, busy: false });
     } catch (e) {
-      setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao remover." });
+      if (e instanceof StorageCleanupPendingError) {
+        await loadAll();
+        setMsg({ tone: "err", text: e.message });
+        return;
+      }
+      setMsg({ tone: "err", text: "Não foi possível remover a imagem." });
       setSlot(slot.key, { busy: false });
     }
   }
@@ -116,6 +159,7 @@ function AdminSiteImages() {
   async function saveMeta(slot: ImageSlot, img: ManagedImageRecord, alt: string, caption: string) {
     setSlot(slot.key, { busy: true });
     try {
+      const url = await signedUrl(img.storage_path);
       const upd = await supabase
         .from("site_images")
         .update({ alt, caption: caption || null } as never)
@@ -123,11 +167,15 @@ function AdminSiteImages() {
         .select("id, storage_path, public_url, alt, tag, caption, created_at")
         .single();
       if (upd.error) throw upd.error;
+      const updatedImage = {
+        ...(upd.data as ManagedImageRecord),
+        public_url: url,
+      };
       setMsg({ tone: "ok", text: "Textos atualizados." });
-      setManagedImageCache(slot.key, upd.data as ManagedImageRecord);
-      setSlot(slot.key, { image: upd.data as ManagedImageRecord, busy: false });
-    } catch (e) {
-      setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao salvar." });
+      setManagedImageCache(slot.key, updatedImage);
+      setSlot(slot.key, { image: updatedImage, busy: false });
+    } catch {
+      setMsg({ tone: "err", text: "Não foi possível salvar os textos." });
       setSlot(slot.key, { busy: false });
     }
   }

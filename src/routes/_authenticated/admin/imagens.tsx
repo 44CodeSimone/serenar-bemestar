@@ -5,7 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ACCEPTED_IMAGE_MIMES,
   MAX_IMAGE_MB,
+  SIGNED_IMAGE_CACHE_TTL_MS,
+  StorageCleanupPendingError,
   deleteSiteImage,
+  signedUrl,
   uploadSiteImage,
   type SiteImage,
 } from "@/lib/cms";
@@ -26,17 +29,31 @@ function AdminImages() {
   const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function load() {
-    setLoading(true);
-    const { data } = await supabase
-      .from("site_images")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setItems((data ?? []) as SiteImage[]);
-    setLoading(false);
+  async function load(showLoader = true) {
+    if (showLoader) setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("site_images")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const images = await Promise.all(
+        ((data ?? []) as SiteImage[]).map(async (image) => ({
+          ...image,
+          public_url: await signedUrl(image.storage_path),
+        })),
+      );
+      setItems(images);
+    } catch {
+      setMsg({ tone: "err", text: "Não foi possível carregar as imagens." });
+    } finally {
+      if (showLoader) setLoading(false);
+    }
   }
   useEffect(() => {
-    load();
+    void load();
+    const refreshTimer = setInterval(() => void load(false), SIGNED_IMAGE_CACHE_TTL_MS);
+    return () => clearInterval(refreshTimer);
   }, []);
 
   async function onUpload(file: File) {
@@ -62,7 +79,12 @@ function AdminImages() {
       setMsg({ tone: "ok", text: "Imagem excluída." });
       await load();
     } catch (e) {
-      setMsg({ tone: "err", text: e instanceof Error ? e.message : "Falha ao excluir." });
+      if (e instanceof StorageCleanupPendingError) {
+        await load();
+        setMsg({ tone: "err", text: e.message });
+        return;
+      }
+      setMsg({ tone: "err", text: "Não foi possível excluir a imagem." });
     }
   }
 
