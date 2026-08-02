@@ -2,12 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  ACCEPTED_IMAGE_MIMES,
-  IMAGE_BUCKET,
-  MAX_IMAGE_MB,
-  signedUrl,
-} from "@/lib/cms";
+import { ACCEPTED_IMAGE_MIMES, IMAGE_BUCKET, MAX_IMAGE_MB, signedUrl } from "@/lib/cms";
 import {
   IMAGE_SLOTS,
   type ManagedImageRecord,
@@ -37,7 +32,10 @@ function AdminSiteImages() {
     const { data } = await supabase
       .from("site_images")
       .select("id, storage_path, public_url, alt, tag, caption, created_at")
-      .in("tag", IMAGE_SLOTS.map((s) => s.key))
+      .in(
+        "tag",
+        IMAGE_SLOTS.map((s) => s.key),
+      )
       .order("created_at", { ascending: false });
     const map: Record<string, ManagedImageRecord> = {};
     ((data ?? []) as ManagedImageRecord[]).forEach((img) => {
@@ -141,7 +139,8 @@ function AdminSiteImages() {
         <h1 className="font-serif text-4xl text-sage-deep">Imagens do site</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Substitua as imagens exibidas em cada seção do site. Quando nenhuma imagem estiver
-          enviada, o site mantém a imagem padrão original. Formatos aceitos: JPG, PNG, WEBP (até {MAX_IMAGE_MB} MB).
+          enviada, o site mantém a imagem padrão original. Formatos aceitos: JPG, PNG, WEBP (até{" "}
+          {MAX_IMAGE_MB} MB).
         </p>
       </div>
 
@@ -194,6 +193,9 @@ function SlotCard({
   useEffect(() => {
     setAlt(state.image?.alt ?? "");
     setCaption(state.image?.caption ?? "");
+    // Reset local fields only when the selected image changes; metadata dependencies
+    // would overwrite edits while the administrator is typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.image?.id]);
 
   return (
@@ -221,8 +223,7 @@ function SlotCard({
         ) : (
           <div className="grid h-full place-items-center text-center text-xs text-muted-foreground">
             Nenhuma imagem enviada.
-            <br />
-            O site está exibindo a imagem padrão.
+            <br />O site está exibindo a imagem padrão.
           </div>
         )}
       </div>

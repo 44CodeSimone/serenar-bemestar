@@ -77,14 +77,17 @@ function AdminImages() {
         <p className="eyebrow mb-2">Biblioteca</p>
         <h1 className="font-serif text-4xl text-sage-deep">Imagens do site</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Envie fotos para usar no site. Formatos aceitos: JPG, PNG, WEBP. Tamanho máximo: {MAX_IMAGE_MB} MB.
+          Envie fotos para usar no site. Formatos aceitos: JPG, PNG, WEBP. Tamanho máximo:{" "}
+          {MAX_IMAGE_MB} MB.
         </p>
       </div>
 
       <div className="mb-8 rounded-2xl border border-border bg-cream/40 p-5 shadow-soft">
         <div className="grid gap-3 md:grid-cols-3">
           <div className="md:col-span-2">
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Texto alternativo (alt)</label>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
+              Texto alternativo (alt)
+            </label>
             <input
               value={alt}
               onChange={(e) => setAlt(e.target.value)}
@@ -93,14 +96,18 @@ function AdminImages() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Categoria</label>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
+              Categoria
+            </label>
             <select
               value={tag}
               onChange={(e) => setTag(e.target.value)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-sage"
             >
               {TAGS.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -122,34 +129,62 @@ function AdminImages() {
             onClick={() => fileRef.current?.click()}
             className="btn-serena"
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Upload className="h-4 w-4" /> Enviar imagem</>}
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Upload className="h-4 w-4" /> Enviar imagem
+              </>
+            )}
           </button>
           {msg && (
-            <span className={"text-sm " + (msg.tone === "ok" ? "text-sage-deep" : "text-destructive")}>{msg.text}</span>
+            <span
+              className={"text-sm " + (msg.tone === "ok" ? "text-sage-deep" : "text-destructive")}
+            >
+              {msg.text}
+            </span>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className="grid place-items-center py-16"><Loader2 className="h-6 w-6 animate-spin text-sage-deep" /></div>
+        <div className="grid place-items-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-sage-deep" />
+        </div>
       ) : items.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhuma imagem enviada ainda.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((img) => (
-            <div key={img.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+            <div
+              key={img.id}
+              className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
+            >
               <div className="aspect-video overflow-hidden bg-blush/30">
-                {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
-                <img src={img.public_url} alt={img.alt || "imagem"} className="h-full w-full object-cover" />
+                <img
+                  src={img.public_url}
+                  alt={img.alt || "imagem"}
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="p-3">
-                <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{img.tag}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-foreground">{img.alt || <em className="text-muted-foreground">sem descrição</em>}</p>
+                <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">
+                  {img.tag}
+                </p>
+                <p className="mt-1 line-clamp-2 text-sm text-foreground">
+                  {img.alt || <em className="text-muted-foreground">sem descrição</em>}
+                </p>
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <button onClick={() => copy(img.public_url)} className="inline-flex items-center gap-1 text-xs text-sage-deep hover:opacity-70">
+                  <button
+                    onClick={() => copy(img.public_url)}
+                    className="inline-flex items-center gap-1 text-xs text-sage-deep hover:opacity-70"
+                  >
                     <Copy className="h-3.5 w-3.5" /> Copiar link
                   </button>
-                  <button onClick={() => onDelete(img)} className="inline-flex items-center gap-1 text-xs text-destructive hover:opacity-70">
+                  <button
+                    onClick={() => onDelete(img)}
+                    className="inline-flex items-center gap-1 text-xs text-destructive hover:opacity-70"
+                  >
                     <Trash2 className="h-3.5 w-3.5" /> Excluir
                   </button>
                 </div>

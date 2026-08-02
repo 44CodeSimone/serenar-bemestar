@@ -66,11 +66,26 @@ export const adminDashboardStats = createServerFn({ method: "GET" })
     monthStart.setHours(0, 0, 0, 0);
 
     const [apptTodayRes, apptTotalRes, leadsNewRes, leadsTotalRes, aiConvRes] = await Promise.all([
-      context.supabase.from("appointments").select("id", { count: "exact", head: true }).eq("preferred_date", today),
-      context.supabase.from("appointments").select("id", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()),
-      context.supabase.from("leads").select("id", { count: "exact", head: true }).eq("status", "novo"),
-      context.supabase.from("leads").select("id", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()),
-      context.supabase.from("ai_conversations").select("id", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()),
+      context.supabase
+        .from("appointments")
+        .select("id", { count: "exact", head: true })
+        .eq("preferred_date", today),
+      context.supabase
+        .from("appointments")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", monthStart.toISOString()),
+      context.supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "novo"),
+      context.supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", monthStart.toISOString()),
+      context.supabase
+        .from("ai_conversations")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", monthStart.toISOString()),
     ]);
 
     const { data: topServices } = await context.supabase

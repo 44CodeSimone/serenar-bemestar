@@ -53,7 +53,10 @@ export function Footer() {
               { to: "/contato", label: "Contato" },
             ].map((l) => (
               <li key={l.to}>
-                <Link to={l.to} className="text-foreground/70 transition-colors hover:text-sage-deep">
+                <Link
+                  to={l.to}
+                  className="text-foreground/70 transition-colors hover:text-sage-deep"
+                >
                   {l.label}
                 </Link>
               </li>
@@ -70,13 +73,23 @@ export function Footer() {
             </li>
             <li className="flex items-start gap-2">
               <Phone className="mt-0.5 h-4 w-4 text-gold" />
-              <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="hover:text-sage-deep">
+              <a
+                href={SITE.whatsapp.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-sage-deep"
+              >
                 {SITE.whatsapp.display}
               </a>
             </li>
             <li className="flex items-start gap-2">
               <Instagram className="mt-0.5 h-4 w-4 text-gold" />
-              <a href={SITE.instagram.url} target="_blank" rel="noopener noreferrer" className="hover:text-sage-deep">
+              <a
+                href={SITE.instagram.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-sage-deep"
+              >
                 {SITE.instagram.handle}
               </a>
             </li>
@@ -98,10 +111,16 @@ export function Footer() {
 
       <div className="border-t border-border/50">
         <div className="container-narrow flex flex-col items-center justify-between gap-3 py-6 text-xs text-muted-foreground md:flex-row">
-          <p>© {new Date().getFullYear()} {SITE.name}. Feito com cuidado por {SITE.therapist}.</p>
+          <p>
+            © {new Date().getFullYear()} {SITE.name}. Feito com cuidado por {SITE.therapist}.
+          </p>
           <div className="flex gap-5">
-            <Link to="/politica-privacidade" className="hover:text-sage-deep">Privacidade</Link>
-            <Link to="/termos" className="hover:text-sage-deep">Termos</Link>
+            <Link to="/politica-privacidade" className="hover:text-sage-deep">
+              Privacidade
+            </Link>
+            <Link to="/termos" className="hover:text-sage-deep">
+              Termos
+            </Link>
           </div>
         </div>
       </div>

@@ -67,7 +67,9 @@ export default function AdminSettings() {
     setRows(map);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   function edit(sectionKey: string, field: string, val: string) {
     setRows((prev) => ({
@@ -80,7 +82,9 @@ export default function AdminSettings() {
     setSaving(true);
     setSavedMsg(null);
     for (const s of SECTIONS) {
-      await supabase.from("site_settings").upsert({ key: s.key, value: rows[s.key].value as never, is_public: true });
+      await supabase
+        .from("site_settings")
+        .upsert({ key: s.key, value: rows[s.key].value as never, is_public: true });
     }
     setSaving(false);
     setSavedMsg("Configurações salvas.");
@@ -100,7 +104,13 @@ export default function AdminSettings() {
         <div className="flex items-center gap-3">
           {savedMsg && <span className="text-xs text-sage-deep">{savedMsg}</span>}
           <button onClick={saveAll} disabled={saving} className="btn-serena">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Salvar tudo</>}
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Save className="h-4 w-4" /> Salvar tudo
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -112,19 +122,34 @@ export default function AdminSettings() {
       ) : (
         <div className="space-y-6">
           {SECTIONS.map((s) => (
-            <section key={s.key} className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <section
+              key={s.key}
+              className="rounded-2xl border border-border bg-card p-6 shadow-soft"
+            >
               <h2 className="mb-4 font-serif text-2xl text-sage-deep">{s.title}</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 {s.fields.map((f) => {
                   const val = String((rows[s.key]?.value?.[f.key] as string) ?? "");
-                  const cls = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-sage";
+                  const cls =
+                    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-sage";
                   return (
                     <label key={f.key} className={f.type === "textarea" ? "md:col-span-2" : ""}>
-                      <span className="text-xs uppercase tracking-wider text-muted-foreground">{f.label}</span>
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                        {f.label}
+                      </span>
                       {f.type === "textarea" ? (
-                        <textarea value={val} onChange={(e) => edit(s.key, f.key, e.target.value)} rows={3} className={"mt-1 " + cls} />
+                        <textarea
+                          value={val}
+                          onChange={(e) => edit(s.key, f.key, e.target.value)}
+                          rows={3}
+                          className={"mt-1 " + cls}
+                        />
                       ) : (
-                        <input value={val} onChange={(e) => edit(s.key, f.key, e.target.value)} className={"mt-1 " + cls} />
+                        <input
+                          value={val}
+                          onChange={(e) => edit(s.key, f.key, e.target.value)}
+                          className={"mt-1 " + cls}
+                        />
                       )}
                     </label>
                   );

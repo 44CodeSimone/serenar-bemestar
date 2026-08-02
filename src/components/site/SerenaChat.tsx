@@ -92,7 +92,9 @@ export function SerenaChat() {
           >
             <Sparkles className="h-4 w-4 text-gold" />
             <span className="hidden sm:inline">Converse com Serenar</span>
-            <span className="sm:hidden"><MessageCircle className="h-4 w-4" /></span>
+            <span className="sm:hidden">
+              <MessageCircle className="h-4 w-4" />
+            </span>
           </button>
         </div>
       )}
@@ -104,10 +106,15 @@ export function SerenaChat() {
             <div className="flex items-center gap-3">
               <div className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-sage-deep text-gold">
                 <Sparkles className="h-4 w-4" />
-                <span className="absolute inset-0 rounded-full ring-1 ring-gold/30 animate-breathe" aria-hidden />
+                <span
+                  className="absolute inset-0 rounded-full ring-1 ring-gold/30 animate-breathe"
+                  aria-hidden
+                />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Recepcionista virtual</p>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  Recepcionista virtual
+                </p>
                 <p className="font-serif text-xl text-sage-deep leading-tight">Serenar</p>
               </div>
             </div>
@@ -171,7 +178,9 @@ export function SerenaChat() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendText(input))}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendText(input))
+                }
                 placeholder="Escreva com calma…"
                 className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-sage"
                 disabled={loading}

@@ -27,17 +27,33 @@ function Perfil() {
 
   useEffect(() => {
     (async () => {
-      const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
       if (p) setProfile(p as Profile);
-      else setProfile({ id: user.id, full_name: "", phone: "", whatsapp: "", birth_date: "", notes: "" });
+      else
+        setProfile({
+          id: user.id,
+          full_name: "",
+          phone: "",
+          whatsapp: "",
+          birth_date: "",
+          notes: "",
+        });
 
       const { data: consents } = await supabase
         .from("user_consents")
         .select("consent_type, granted, revoked_at")
         .eq("user_id", user.id);
       if (consents) {
-        setAiConsent(consents.some((c) => c.consent_type === "ai_memory" && c.granted && !c.revoked_at));
-        setMarketingConsent(consents.some((c) => c.consent_type === "marketing" && c.granted && !c.revoked_at));
+        setAiConsent(
+          consents.some((c) => c.consent_type === "ai_memory" && c.granted && !c.revoked_at),
+        );
+        setMarketingConsent(
+          consents.some((c) => c.consent_type === "marketing" && c.granted && !c.revoked_at),
+        );
       }
       setLoading(false);
     })();
@@ -79,7 +95,13 @@ function Perfil() {
         .eq("granted", true)
         .is("revoked_at", null);
       if (data && data.length) {
-        await supabase.from("user_consents").update({ revoked_at: new Date().toISOString() }).in("id", data.map((d) => d.id));
+        await supabase
+          .from("user_consents")
+          .update({ revoked_at: new Date().toISOString() })
+          .in(
+            "id",
+            data.map((d) => d.id),
+          );
       }
     }
   }
@@ -89,7 +111,10 @@ function Perfil() {
     navigate({ to: "/", replace: true });
   }
 
-  if (loading) return <div className="container-narrow py-24 text-center text-muted-foreground">Carregando…</div>;
+  if (loading)
+    return (
+      <div className="container-narrow py-24 text-center text-muted-foreground">Carregando…</div>
+    );
   if (!profile) return null;
 
   return (
@@ -98,36 +123,74 @@ function Perfil() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Sua área pessoal</p>
-            <h1 className="display-serif text-5xl">Olá, <span className="italic text-sage">{(profile.full_name || user.email || "").split(" ")[0]}</span></h1>
-            <p className="mt-3 text-muted-foreground">Personalize sua jornada de bem-estar no Serenar.</p>
+            <h1 className="display-serif text-5xl">
+              Olá,{" "}
+              <span className="italic text-sage">
+                {(profile.full_name || user.email || "").split(" ")[0]}
+              </span>
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              Personalize sua jornada de bem-estar no Serenar.
+            </p>
           </div>
           <button onClick={signOut} className="btn-serena-outline text-xs">
             <LogOut className="h-3.5 w-3.5" /> Sair
           </button>
         </div>
 
-        <form onSubmit={save} className="mt-10 space-y-5 rounded-[2rem] border border-border bg-card p-8 shadow-soft">
+        <form
+          onSubmit={save}
+          className="mt-10 space-y-5 rounded-[2rem] border border-border bg-card p-8 shadow-soft"
+        >
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Nome completo">
-              <input className={inp} value={profile.full_name || ""} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
+              <input
+                className={inp}
+                value={profile.full_name || ""}
+                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              />
             </Field>
             <Field label="Data de aniversário">
-              <input type="date" className={inp} value={profile.birth_date || ""} onChange={(e) => setProfile({ ...profile, birth_date: e.target.value })} />
+              <input
+                type="date"
+                className={inp}
+                value={profile.birth_date || ""}
+                onChange={(e) => setProfile({ ...profile, birth_date: e.target.value })}
+              />
             </Field>
             <Field label="Telefone">
-              <input className={inp} value={profile.phone || ""} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+              <input
+                className={inp}
+                value={profile.phone || ""}
+                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              />
             </Field>
             <Field label="WhatsApp">
-              <input className={inp} value={profile.whatsapp || ""} onChange={(e) => setProfile({ ...profile, whatsapp: e.target.value })} />
+              <input
+                className={inp}
+                value={profile.whatsapp || ""}
+                onChange={(e) => setProfile({ ...profile, whatsapp: e.target.value })}
+              />
             </Field>
           </div>
           <Field label="Observações (alergias, preferências, sensibilidades…)">
-            <textarea rows={3} className={inp + " resize-none"} value={profile.notes || ""} onChange={(e) => setProfile({ ...profile, notes: e.target.value })} />
+            <textarea
+              rows={3}
+              className={inp + " resize-none"}
+              value={profile.notes || ""}
+              onChange={(e) => setProfile({ ...profile, notes: e.target.value })}
+            />
           </Field>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">Suas informações ficam seguras (LGPD).</p>
             <button className="btn-serena">
-              {saved ? <><Check className="h-4 w-4" /> Salvo</> : "Salvar"}
+              {saved ? (
+                <>
+                  <Check className="h-4 w-4" /> Salvo
+                </>
+              ) : (
+                "Salvar"
+              )}
             </button>
           </div>
         </form>
@@ -138,8 +201,9 @@ function Perfil() {
             <div>
               <h2 className="font-serif text-2xl text-sage-deep">Sua jornada personalizada</h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Com seu consentimento, a Serenar e a Mariah podem lembrar preferências, sugerir horários ideais
-                para retornar, e desejar coisas importantes como aniversário. Você pode revogar quando quiser.
+                Com seu consentimento, a Serenar e a Mariah podem lembrar preferências, sugerir
+                horários ideais para retornar, e desejar coisas importantes como aniversário. Você
+                pode revogar quando quiser.
               </p>
             </div>
           </div>
@@ -164,7 +228,8 @@ function Perfil() {
   );
 }
 
-const inp = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-sage focus:ring-1 focus:ring-sage";
+const inp =
+  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-sage focus:ring-1 focus:ring-sage";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -175,7 +240,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Consent({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (v: boolean) => void }) {
+function Consent({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-sage/50">
       <input

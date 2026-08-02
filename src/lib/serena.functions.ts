@@ -6,14 +6,15 @@ const SITE_KNOWLEDGE = {
   tagline: "Massoterapia & Bem-Estar",
   therapist: "Mariah Luz",
   city: "Urubici / SC",
-  
+
   instagram: "@serenar_massoterapiaebemestar",
   hours: "Segunda a Sexta 9h Ã s 20h, SÃ¡bados 9h Ã s 16h.",
 } as const;
 
 function buildSystemPrompt(userContext?: string) {
   const serviceList = SERVICES.map(
-    (s) => `â€¢ ${s.name} (${s.duration}) â€” ${s.short} BenefÃ­cios: ${s.benefits.join("; ")}. ContraindicaÃ§Ãµes: ${s.contraindications}`,
+    (s) =>
+      `â€¢ ${s.name} (${s.duration}) â€” ${s.short} BenefÃ­cios: ${s.benefits.join("; ")}. ContraindicaÃ§Ãµes: ${s.contraindications}`,
   ).join("\n");
 
   return `VocÃª Ã© a Serenar, recepcionista virtual do espaÃ§o ${SITE_KNOWLEDGE.name} â€” ${SITE_KNOWLEDGE.tagline}.
@@ -46,16 +47,19 @@ const MAX_USER_CONTEXT_CHARS = 500;
 
 /** Remove sequences that could break out of / hijack the system prompt. */
 function sanitizeForPrompt(input: string, maxLen: number): string {
-  return input
-    // strip control chars (except common whitespace)
-    .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, " ")
-    // neutralize role/system markers that LLMs treat as delimiters
-    .replace(/\b(system|assistant|user)\s*:/gi, "")
-    .replace(/<\|[^|>]{0,40}\|>/g, "")
-    .replace(/\[REDIRECIONAR_WHATSAPP\]/gi, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, maxLen);
+  return (
+    input
+      // strip control chars (except common whitespace)
+      // eslint-disable-next-line no-control-regex -- Intentional prompt-sanitization range.
+      .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, " ")
+      // neutralize role/system markers that LLMs treat as delimiters
+      .replace(/\b(system|assistant|user)\s*:/gi, "")
+      .replace(/<\|[^|>]{0,40}\|>/g, "")
+      .replace(/\[REDIRECIONAR_WHATSAPP\]/gi, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, maxLen)
+  );
 }
 
 export const serenaChat = createServerFn({ method: "POST" })
@@ -126,4 +130,3 @@ export const serenaChat = createServerFn({ method: "POST" })
     const reply = rawReply.replace(/\[REDIRECIONAR_WHATSAPP\]/g, "").trim();
     return { reply, handoff };
   });
-

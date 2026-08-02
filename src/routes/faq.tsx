@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { createSeoHead } from "@/lib/seo";
 
-export const FAQS = [
+const FAQS = [
   {
     q: "Preciso agendar com antecedência?",
     a: "Sim. Trabalhamos com horários exclusivos para garantir um atendimento sem pressa. Recomendamos reservar com pelo menos 3 dias de antecedência.",
