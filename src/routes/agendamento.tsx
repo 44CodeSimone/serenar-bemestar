@@ -113,6 +113,10 @@ function Agendamento() {
   }, []);
 
   useEffect(() => {
+    if (servicesLoading || servicesError) {
+      return;
+    }
+
     if (!TURNSTILE_SITE_KEY) {
       setTurnstileError("A verificação de segurança não está disponível no momento.");
       return;
@@ -131,27 +135,39 @@ function Agendamento() {
         return;
       }
 
-      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-        sitekey: siteKey,
-        callback: (token) => {
-          setTurnstileToken(token);
-          setTurnstileError(null);
-        },
-        "expired-callback": () => {
-          setTurnstileToken("");
-          setTurnstileError("A verificação expirou. Confirme novamente para continuar.");
-        },
-        "error-callback": () => {
-          setTurnstileToken("");
-          setTurnstileError("Não foi possível concluir a verificação de segurança.");
-        },
-        theme: "light",
-      });
+      try {
+        turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+          sitekey: siteKey,
+          callback: (token) => {
+            setTurnstileToken(token);
+            setTurnstileError(null);
+          },
+          "expired-callback": () => {
+            setTurnstileToken("");
+            setTurnstileError("A verificação expirou. Confirme novamente para continuar.");
+          },
+          "error-callback": () => {
+            setTurnstileToken("");
+            setTurnstileError("Não foi possível concluir a verificação de segurança.");
+          },
+          theme: "light",
+        });
+      } catch {
+        setTurnstileToken("");
+        setTurnstileError("Não foi possível iniciar a verificação de segurança.");
+      }
+    }
+
+    function handleScriptError() {
+      if (!active) return;
+      setTurnstileToken("");
+      setTurnstileError("A verificação de segurança não está disponível no momento.");
     }
 
     const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID) as HTMLScriptElement | null;
     const script = existingScript ?? document.createElement("script");
     script.addEventListener("load", renderWidget);
+    script.addEventListener("error", handleScriptError);
 
     if (!existingScript) {
       script.id = TURNSTILE_SCRIPT_ID;
@@ -166,13 +182,14 @@ function Agendamento() {
     return () => {
       active = false;
       script.removeEventListener("load", renderWidget);
+      script.removeEventListener("error", handleScriptError);
 
       if (turnstileWidgetIdRef.current && window.turnstile) {
         window.turnstile.remove(turnstileWidgetIdRef.current);
         turnstileWidgetIdRef.current = null;
       }
     };
-  }, []);
+  }, [servicesError, servicesLoading]);
 
   function resetTurnstile() {
     setTurnstileToken("");
@@ -515,7 +532,7 @@ function Agendamento() {
             </p>
             <button
               type="submit"
-              disabled={loading || !TURNSTILE_SITE_KEY}
+              disabled={loading || !TURNSTILE_SITE_KEY || !turnstileToken}
               className="btn-serena min-w-40"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar pedido"}

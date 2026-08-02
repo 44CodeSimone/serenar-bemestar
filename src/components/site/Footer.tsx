@@ -64,7 +64,7 @@ export function Footer() {
           </ul>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <p className="eyebrow mb-4">Encontre-nos</p>
           <ul className="space-y-3 text-sm text-foreground/70">
             <li className="flex items-start gap-2">
@@ -88,7 +88,7 @@ export function Footer() {
                 href={SITE.instagram.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-sage-deep"
+                className="break-all hover:text-sage-deep"
               >
                 {SITE.instagram.handle}
               </a>
