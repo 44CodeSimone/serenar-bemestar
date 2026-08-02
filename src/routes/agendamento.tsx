@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
@@ -7,6 +7,29 @@ import { listPublicCalendarSlots, createPrebooking } from "@/lib/calendar-slots.
 import { SITE } from "@/lib/site-config";
 
 const searchSchema = z.object({ service: z.string().optional() });
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+const TURNSTILE_SCRIPT_ID = "serenar-turnstile-script";
+
+type TurnstileApi = {
+  render: (
+    container: HTMLElement,
+    options: {
+      sitekey: string;
+      callback: (token: string) => void;
+      "expired-callback": () => void;
+      "error-callback": () => void;
+      theme: "light";
+    },
+  ) => string;
+  reset: (widgetId?: string) => void;
+  remove: (widgetId: string) => void;
+};
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
 
 export const Route = createFileRoute("/agendamento")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -47,7 +70,12 @@ function Agendamento() {
     preferred_date: "",
     preferred_time: "",
     notes: "",
+    website: "",
   });
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
 
   /* ── Load services and calendar slots ──────────────── */
   const [services, setServices] = useState<PublicService[]>([]);
@@ -86,6 +114,76 @@ function Agendamento() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) {
+      setTurnstileError("A verificação de segurança não está disponível no momento.");
+      return;
+    }
+
+    const siteKey = TURNSTILE_SITE_KEY;
+    let active = true;
+
+    function renderWidget() {
+      if (
+        !active ||
+        !window.turnstile ||
+        !turnstileContainerRef.current ||
+        turnstileWidgetIdRef.current
+      ) {
+        return;
+      }
+
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: siteKey,
+        callback: (token) => {
+          setTurnstileToken(token);
+          setTurnstileError(null);
+        },
+        "expired-callback": () => {
+          setTurnstileToken("");
+          setTurnstileError("A verificação expirou. Confirme novamente para continuar.");
+        },
+        "error-callback": () => {
+          setTurnstileToken("");
+          setTurnstileError("Não foi possível concluir a verificação de segurança.");
+        },
+        theme: "light",
+      });
+    }
+
+    const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID) as HTMLScriptElement | null;
+    const script = existingScript ?? document.createElement("script");
+    script.addEventListener("load", renderWidget);
+
+    if (!existingScript) {
+      script.id = TURNSTILE_SCRIPT_ID;
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    } else if (window.turnstile) {
+      renderWidget();
+    }
+
+    return () => {
+      active = false;
+      script.removeEventListener("load", renderWidget);
+
+      if (turnstileWidgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+      }
+    };
+  }, []);
+
+  function resetTurnstile() {
+    setTurnstileToken("");
+
+    if (window.turnstile && turnstileWidgetIdRef.current) {
+      window.turnstile.reset(turnstileWidgetIdRef.current);
+    }
+  }
+
   const availableDates = useMemo(() => {
     return Array.from(new Set(calendarSlots.map((s) => s.slot_date))).sort();
   }, [calendarSlots]);
@@ -118,6 +216,12 @@ function Agendamento() {
       setErrors(errs);
       return;
     }
+
+    if (!turnstileToken) {
+      setTurnstileError("Confirme a verificação de segurança antes de enviar.");
+      return;
+    }
+
     setErrors({});
     setLoading(true);
     try {
@@ -128,10 +232,14 @@ function Agendamento() {
         email: form.email || undefined,
         serviceId: form.service,
         notes: form.notes || undefined,
+        turnstileToken,
+        website: form.website,
       });
+      resetTurnstile();
       setDone(true);
       setTimeout(() => window.open(SITE.whatsapp.link, "_blank", "noopener,noreferrer"), 800);
     } catch (err) {
+      resetTurnstile();
       console.error(err);
 
       const message =
@@ -155,6 +263,12 @@ function Agendamento() {
           preferred_time:
             "Este horário acabou de ser reservado por outra pessoa. Escolha outro horário disponível.",
         });
+      } else if (message.includes("telefone brasileiro")) {
+        setErrors({ phone: "Informe um telefone brasileiro válido com DDD." });
+      } else if (message.includes("validar o envio")) {
+        setTurnstileError(
+          "Não foi possível validar o envio. Faça a verificação novamente e tente de novo.",
+        );
       } else {
         setErrors({
           _: "Não conseguimos enviar. Tente novamente ou fale no WhatsApp.",
@@ -272,6 +386,17 @@ function Agendamento() {
           onSubmit={submit}
           className="mt-10 space-y-5 rounded-[2rem] border border-border bg-card p-8 shadow-soft md:p-10"
         >
+          <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+            <label htmlFor="company-website">Site da empresa</label>
+            <input
+              id="company-website"
+              name="company_website"
+              value={form.website}
+              onChange={(e) => upd("website", e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
           <Field label="Nome completo *" error={errors.full_name}>
             <input
               value={form.full_name}
@@ -377,11 +502,24 @@ function Agendamento() {
 
           {errors._ && <p className="text-sm text-destructive">{errors._}</p>}
 
+          <div className="space-y-2">
+            <div ref={turnstileContainerRef} />
+            {turnstileError && (
+              <p role="alert" className="text-sm text-destructive">
+                {turnstileError}
+              </p>
+            )}
+          </div>
+
           <div className="flex flex-col-reverse items-center justify-between gap-4 pt-2 sm:flex-row">
             <p className="text-xs text-muted-foreground">
               Ao enviar, você concorda com nossa política de privacidade (LGPD).
             </p>
-            <button type="submit" disabled={loading} className="btn-serena min-w-40">
+            <button
+              type="submit"
+              disabled={loading || !TURNSTILE_SITE_KEY}
+              className="btn-serena min-w-40"
+            >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar pedido"}
             </button>
           </div>

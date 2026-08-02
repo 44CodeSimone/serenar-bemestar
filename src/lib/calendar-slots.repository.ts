@@ -1,6 +1,7 @@
 // src/lib/calendar-slots.repository.ts
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { createProtectedPrebooking } from "@/lib/prebooking.functions";
 
 /**
  * Public calendar slot row type from the generated Supabase typings.
@@ -474,6 +475,8 @@ export type CreatePrebookingParams = {
   email?: string;
   serviceId: string;
   notes?: string;
+  turnstileToken?: string;
+  website?: string;
 };
 
 /**
@@ -481,18 +484,5 @@ export type CreatePrebookingParams = {
  * via the `create_prebooking` database RPC function.
  */
 export async function createPrebooking(params: CreatePrebookingParams) {
-  const { data, error } = await supabase.rpc("create_prebooking", {
-    p_calendar_slot_id: params.calendarSlotId,
-    p_full_name: params.fullName,
-    p_phone: params.phone,
-    p_email: params.email || "",
-    p_service_id: params.serviceId,
-    p_notes: params.notes || "",
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return createProtectedPrebooking({ data: params });
 }
