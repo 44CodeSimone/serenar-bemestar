@@ -250,7 +250,7 @@ function Home() {
                 </p>
               </div>
             ) : (
-              testimonials.map((t) => {
+              testimonials.map((t: TestimonialRecord) => {
                 const rating = t.rating ?? 0;
 
                 return (
