@@ -9,6 +9,7 @@ import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
+import { TestimonialSubmissionForm } from "@/components/site/TestimonialSubmissionForm";
 import { absoluteSiteUrl, createSeoHead, DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 
 const HOME_TITLE = "Serenar — Massoterapia & Bem-Estar em Urubici/SC";
@@ -288,6 +289,7 @@ function Home() {
               })
             )}
           </div>
+          <TestimonialSubmissionForm />
         </div>
       </section>
 

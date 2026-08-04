@@ -1,17 +1,30 @@
 // src/lib/testimonials.repository.ts
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { createPendingTestimonial } from "@/lib/testimonials.functions";
 
 export type TestimonialRecord = Database["public"]["Tables"]["testimonials"]["Row"];
+
+export type PublicTestimonial = Pick<
+  TestimonialRecord,
+  "id" | "name" | "text" | "rating" | "service" | "display_order" | "created_at"
+>;
+
+export type PublicTestimonialSubmission = Pick<TestimonialRecord, "name" | "text"> & {
+  service?: string | null;
+  rating: number;
+  turnstileToken: string;
+  website?: string;
+};
 
 export type CreateTestimonialParams = Database["public"]["Tables"]["testimonials"]["Insert"];
 
 export type UpdateTestimonialParams = Database["public"]["Tables"]["testimonials"]["Update"];
 
-export async function listPublicTestimonials(limit = 6): Promise<TestimonialRecord[]> {
+export async function listPublicTestimonials(limit = 6): Promise<PublicTestimonial[]> {
   const { data, error } = await supabase
     .from("testimonials")
-    .select("id,name,text,rating,service,authorized,active,display_order,created_at,updated_at")
+    .select("id,name,text,rating,service,display_order,created_at")
     .eq("active", true)
     .eq("authorized", true)
     .order("display_order", { ascending: true })
@@ -23,6 +36,12 @@ export async function listPublicTestimonials(limit = 6): Promise<TestimonialReco
   }
 
   return data ?? [];
+}
+
+export async function submitPublicTestimonial(
+  params: PublicTestimonialSubmission,
+): Promise<{ ok: true }> {
+  return createPendingTestimonial({ data: params });
 }
 
 export async function listAdminTestimonials(): Promise<TestimonialRecord[]> {
