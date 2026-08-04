@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { verifyTurnstileToken } from "@/lib/turnstile.server";
 
-const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const GENERIC_SECURITY_ERROR =
   "Não foi possível validar o envio. Atualize a verificação de segurança e tente novamente.";
 
@@ -13,10 +13,6 @@ type ProtectedPrebookingInput = {
   notes?: string;
   turnstileToken?: string;
   website?: string;
-};
-
-type TurnstileResponse = {
-  success?: boolean;
 };
 
 function normalizeBrazilianPhone(value: string): string {
@@ -33,29 +29,6 @@ function normalizeBrazilianPhone(value: string): string {
   return `55${digits}`;
 }
 
-async function validateTurnstileToken(token: string, secret: string): Promise<void> {
-  try {
-    const body = new URLSearchParams({ secret, response: token });
-    const response = await fetch(TURNSTILE_VERIFY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    });
-
-    if (!response.ok) {
-      throw new Error("turnstile_unavailable");
-    }
-
-    const result = (await response.json()) as TurnstileResponse;
-
-    if (result.success !== true) {
-      throw new Error("turnstile_rejected");
-    }
-  } catch {
-    throw new Error(GENERIC_SECURITY_ERROR);
-  }
-}
-
 export const createProtectedPrebooking = createServerFn({ method: "POST" })
   .validator((input: ProtectedPrebookingInput) => input)
   .handler(async ({ data }) => {
@@ -63,13 +36,11 @@ export const createProtectedPrebooking = createServerFn({ method: "POST" })
       throw new Error(GENERIC_SECURITY_ERROR);
     }
 
-    const secret = process.env.TURNSTILE_SECRET_KEY;
-
-    if (!secret || !data.turnstileToken?.trim()) {
+    try {
+      await verifyTurnstileToken({ token: data.turnstileToken ?? "" });
+    } catch {
       throw new Error(GENERIC_SECURITY_ERROR);
     }
-
-    await validateTurnstileToken(data.turnstileToken, secret);
     const phone = normalizeBrazilianPhone(data.phone);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: result, error } = await supabaseAdmin.rpc("create_prebooking", {

@@ -6,31 +6,13 @@ import { listPublicServices, type PublicService } from "@/lib/services.repositor
 import { listPublicCalendarSlots, createPrebooking } from "@/lib/calendar-slots.repository";
 import { SITE } from "@/lib/site-config";
 import { createSeoHead } from "@/lib/seo";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetHandle,
+  type TurnstileWidgetState,
+} from "@/components/shared/TurnstileWidget";
 
 const searchSchema = z.object({ service: z.string().optional() });
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
-const TURNSTILE_SCRIPT_ID = "serenar-turnstile-script";
-
-type TurnstileApi = {
-  render: (
-    container: HTMLElement,
-    options: {
-      sitekey: string;
-      callback: (token: string) => void;
-      "expired-callback": () => void;
-      "error-callback": () => void;
-      theme: "light";
-    },
-  ) => string;
-  reset: (widgetId?: string) => void;
-  remove: (widgetId: string) => void;
-};
-
-declare global {
-  interface Window {
-    turnstile?: TurnstileApi;
-  }
-}
 
 export const Route = createFileRoute("/agendamento")({
   validateSearch: (s) => searchSchema.parse(s),
@@ -71,9 +53,9 @@ function Agendamento() {
     website: "",
   });
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileAvailable, setTurnstileAvailable] = useState(false);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
-  const turnstileContainerRef = useRef<HTMLDivElement>(null);
-  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileWidgetRef = useRef<TurnstileWidgetHandle>(null);
 
   /* ── Load services and calendar slots ──────────────── */
   const [services, setServices] = useState<PublicService[]>([]);
@@ -112,90 +94,29 @@ function Agendamento() {
     };
   }, []);
 
-  useEffect(() => {
-    if (servicesLoading || servicesError) {
-      return;
-    }
+  function resetTurnstile() {
+    setTurnstileToken("");
+    turnstileWidgetRef.current?.reset();
+  }
 
-    if (!TURNSTILE_SITE_KEY) {
-      setTurnstileError("A verificação de segurança não está disponível no momento.");
-      return;
-    }
+  function handleTurnstileAvailability(available: boolean) {
+    setTurnstileAvailable(available);
 
-    const siteKey = TURNSTILE_SITE_KEY;
-    let active = true;
-
-    function renderWidget() {
-      if (
-        !active ||
-        !window.turnstile ||
-        !turnstileContainerRef.current ||
-        turnstileWidgetIdRef.current
-      ) {
-        return;
-      }
-
-      try {
-        turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-          sitekey: siteKey,
-          callback: (token) => {
-            setTurnstileToken(token);
-            setTurnstileError(null);
-          },
-          "expired-callback": () => {
-            setTurnstileToken("");
-            setTurnstileError("A verificação expirou. Confirme novamente para continuar.");
-          },
-          "error-callback": () => {
-            setTurnstileToken("");
-            setTurnstileError("Não foi possível concluir a verificação de segurança.");
-          },
-          theme: "light",
-        });
-      } catch {
-        setTurnstileToken("");
-        setTurnstileError("Não foi possível iniciar a verificação de segurança.");
-      }
-    }
-
-    function handleScriptError() {
-      if (!active) return;
+    if (!available) {
       setTurnstileToken("");
       setTurnstileError("A verificação de segurança não está disponível no momento.");
     }
+  }
 
-    const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID) as HTMLScriptElement | null;
-    const script = existingScript ?? document.createElement("script");
-    script.addEventListener("load", renderWidget);
-    script.addEventListener("error", handleScriptError);
-
-    if (!existingScript) {
-      script.id = TURNSTILE_SCRIPT_ID;
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    } else if (window.turnstile) {
-      renderWidget();
-    }
-
-    return () => {
-      active = false;
-      script.removeEventListener("load", renderWidget);
-      script.removeEventListener("error", handleScriptError);
-
-      if (turnstileWidgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(turnstileWidgetIdRef.current);
-        turnstileWidgetIdRef.current = null;
-      }
-    };
-  }, [servicesError, servicesLoading]);
-
-  function resetTurnstile() {
-    setTurnstileToken("");
-
-    if (window.turnstile && turnstileWidgetIdRef.current) {
-      window.turnstile.reset(turnstileWidgetIdRef.current);
+  function handleTurnstileState(state: TurnstileWidgetState) {
+    if (state === "ready") {
+      setTurnstileError(null);
+    } else if (state === "expired") {
+      setTurnstileError("A verificação expirou. Confirme novamente para continuar.");
+    } else if (state === "initialization-error") {
+      setTurnstileError("Não foi possível iniciar a verificação de segurança.");
+    } else {
+      setTurnstileError("Não foi possível concluir a verificação de segurança.");
     }
   }
 
@@ -518,7 +439,13 @@ function Agendamento() {
           {errors._ && <p className="text-sm text-destructive">{errors._}</p>}
 
           <div className="space-y-2">
-            <div ref={turnstileContainerRef} />
+            <TurnstileWidget
+              ref={turnstileWidgetRef}
+              action="prebooking"
+              onTokenChange={(token) => setTurnstileToken(token ?? "")}
+              onAvailabilityChange={handleTurnstileAvailability}
+              onStateChange={handleTurnstileState}
+            />
             {turnstileError && (
               <p role="alert" className="text-sm text-destructive">
                 {turnstileError}
@@ -532,7 +459,7 @@ function Agendamento() {
             </p>
             <button
               type="submit"
-              disabled={loading || !TURNSTILE_SITE_KEY || !turnstileToken}
+              disabled={loading || !turnstileAvailable || !turnstileToken}
               className="btn-serena min-w-40"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar pedido"}
