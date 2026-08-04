@@ -237,7 +237,7 @@ export default function AdminTestimonials() {
           <p className="eyebrow mb-2">Conteúdo</p>
           <h1 className="font-serif text-4xl text-sage-deep">Depoimentos</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Cadastre, autorize e organize os depoimentos exibidos no site.
+            Revise as solicitações enviadas pelo site, autorize e organize o que será publicado.
           </p>
         </div>
 
@@ -249,7 +249,7 @@ export default function AdminTestimonials() {
             className="btn-serena-outline"
           >
             <Plus className="h-4 w-4" />
-            Novo depoimento
+            Cadastrar manualmente
           </button>
 
           <button
@@ -491,7 +491,7 @@ export default function AdminTestimonials() {
                         })
                       }
                     />
-                    Ativo
+                    Ativo no site
                   </label>
 
                   <label className="inline-flex items-center gap-2 text-sm">
@@ -505,7 +505,7 @@ export default function AdminTestimonials() {
                         })
                       }
                     />
-                    Uso autorizado
+                    Aprovado para publicação
                   </label>
 
                   <label className="inline-flex items-center gap-2 text-sm">
