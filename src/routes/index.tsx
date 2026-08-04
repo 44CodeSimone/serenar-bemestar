@@ -4,7 +4,7 @@ import heroImg from "@/assets/hero-ritual.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { listFeaturedPublicServices } from "@/lib/services.repository";
-import { listPublicTestimonials, type TestimonialRecord } from "@/lib/testimonials.repository";
+import { listPublicTestimonials } from "@/lib/testimonials.repository";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
@@ -251,7 +251,7 @@ function Home() {
                 </p>
               </div>
             ) : (
-              testimonials.map((t: TestimonialRecord) => {
+              testimonials.map((t) => {
                 const rating = t.rating ?? 0;
 
                 return (
