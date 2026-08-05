@@ -15,11 +15,14 @@ const INITIAL_FORM = {
   website: "",
 };
 
+type FieldErrors = Partial<Record<"name" | "service" | "text", string>>;
+
 export function TestimonialSubmissionForm() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileAvailable, setTurnstileAvailable] = useState(false);
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
@@ -53,6 +56,26 @@ export function TestimonialSubmissionForm() {
     event.preventDefault();
     if (submitting) return;
 
+    const nextFieldErrors: FieldErrors = {};
+    const nameLength = form.name.trim().length;
+    const serviceLength = form.service.trim().length;
+    const textLength = form.text.trim().length;
+
+    if (nameLength < 2) nextFieldErrors.name = "Informe seu nome com pelo menos 2 caracteres.";
+    if (nameLength > 80) nextFieldErrors.name = "Seu nome deve ter no máximo 80 caracteres.";
+    if (serviceLength > 100) {
+      nextFieldErrors.service = "O serviço deve ter no máximo 100 caracteres.";
+    }
+    if (textLength < 30) {
+      nextFieldErrors.text = "Conte um pouco mais: use pelo menos 30 caracteres.";
+    }
+    if (textLength > 320) {
+      nextFieldErrors.text = "Seu depoimento deve ter no máximo 320 caracteres.";
+    }
+
+    setFieldErrors(nextFieldErrors);
+    if (Object.keys(nextFieldErrors).length > 0) return;
+
     if (!turnstileToken) {
       setTurnstileError("Confirme a verificação de segurança antes de enviar.");
       return;
@@ -73,6 +96,7 @@ export function TestimonialSubmissionForm() {
       });
       resetTurnstile();
       setForm(INITIAL_FORM);
+      setFieldErrors({});
       setSuccess(true);
     } catch {
       resetTurnstile();
@@ -84,7 +108,11 @@ export function TestimonialSubmissionForm() {
 
   return (
     <div className="mx-auto mt-10 max-w-5xl border-y border-border/70 py-7 sm:mt-12 sm:py-10">
-      <form onSubmit={submit} className="grid gap-6 sm:gap-7 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
+      <form
+        noValidate
+        onSubmit={submit}
+        className="grid gap-6 sm:gap-7 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10"
+      >
         <div className="flex flex-col justify-center lg:pr-2">
           <p className="eyebrow mb-2">Compartilhe sua experiência</p>
           <h3 className="max-w-md font-serif text-2xl leading-tight text-sage-deep sm:text-3xl lg:text-4xl">
@@ -137,28 +165,44 @@ export function TestimonialSubmissionForm() {
               <input
                 required
                 minLength={2}
-                maxLength={100}
+                maxLength={80}
                 value={form.name}
                 disabled={submitting}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, name: event.target.value }))
-                }
+                aria-invalid={Boolean(fieldErrors.name)}
+                aria-describedby={fieldErrors.name ? "testimonial-name-error" : undefined}
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, name: event.target.value }));
+                  setFieldErrors((current) => ({ ...current, name: undefined }));
+                }}
                 className="w-full rounded-xl border border-border bg-background px-4 py-2.5 outline-none transition-colors focus:border-sage"
               />
+              {fieldErrors.name ? (
+                <span id="testimonial-name-error" className="text-xs text-destructive">
+                  {fieldErrors.name}
+                </span>
+              ) : null}
             </label>
 
             <label className="space-y-1.5 text-sm sm:flex sm:flex-col">
               <span className="font-medium text-sage-deep">Serviço realizado</span>
               <input
-                maxLength={120}
+                maxLength={100}
                 value={form.service}
                 disabled={submitting}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, service: event.target.value }))
-                }
+                aria-invalid={Boolean(fieldErrors.service)}
+                aria-describedby={fieldErrors.service ? "testimonial-service-error" : undefined}
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, service: event.target.value }));
+                  setFieldErrors((current) => ({ ...current, service: undefined }));
+                }}
                 placeholder="Ex.: Massagem relaxante"
                 className="w-full rounded-xl border border-border bg-background px-4 py-2.5 outline-none transition-colors focus:border-sage"
               />
+              {fieldErrors.service ? (
+                <span id="testimonial-service-error" className="text-xs text-destructive">
+                  {fieldErrors.service}
+                </span>
+              ) : null}
             </label>
           </div>
 
@@ -166,14 +210,43 @@ export function TestimonialSubmissionForm() {
             <span className="font-medium text-sage-deep">Seu depoimento *</span>
             <textarea
               required
-              minLength={10}
-              maxLength={2000}
-              rows={3}
+              minLength={30}
+              maxLength={320}
+              rows={4}
               value={form.text}
               disabled={submitting}
-              onChange={(event) => setForm((current) => ({ ...current, text: event.target.value }))}
+              aria-invalid={Boolean(fieldErrors.text)}
+              aria-describedby="testimonial-text-help testimonial-text-counter testimonial-text-error"
+              onChange={(event) => {
+                setForm((current) => ({ ...current, text: event.target.value }));
+                setFieldErrors((current) => ({ ...current, text: undefined }));
+              }}
               className="w-full resize-y rounded-xl border border-border bg-background px-4 py-2.5 leading-relaxed outline-none transition-colors focus:border-sage"
             />
+            <span
+              id="testimonial-text-help"
+              className="block text-xs leading-relaxed text-muted-foreground/80"
+            >
+              Conte como foi sua experiência. Depoimentos curtos costumam proporcionar uma leitura
+              mais agradável.
+            </span>
+            <span className="flex items-start justify-between gap-3">
+              <span id="testimonial-text-error" className="text-xs text-destructive">
+                {fieldErrors.text ?? ""}
+              </span>
+              <span
+                id="testimonial-text-counter"
+                className={`ml-auto shrink-0 text-xs tabular-nums ${
+                  form.text.length >= 320
+                    ? "text-destructive"
+                    : form.text.length >= 256
+                      ? "text-gold"
+                      : "text-muted-foreground"
+                }`}
+              >
+                {form.text.length} / 320
+              </span>
+            </span>
           </label>
 
           <div

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Clock, HeartHandshake, Leaf, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, HeartHandshake, Leaf, Sparkles, Star } from "lucide-react";
 import heroImg from "@/assets/hero-ritual.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
@@ -242,9 +242,9 @@ function Home() {
               Palavras de quem já <span className="italic text-sage">respirou</span> aqui
             </h2>
           </div>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+          <div className="mt-14 grid items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
             {testimonials.length === 0 ? (
-              <div className="card-serena md:col-span-3 text-center">
+              <div className="card-serena md:col-span-2 lg:col-span-3 text-center">
                 <Sparkles className="mx-auto mb-4 h-5 w-5 text-gold" />
                 <p className="font-serif text-lg text-sage-deep">
                   Os primeiros depoimentos aparecerão em breve.
@@ -255,31 +255,41 @@ function Home() {
                 const rating = t.rating ?? 0;
 
                 return (
-                  <figure key={t.id} className="card-serena">
+                  <figure
+                    key={t.id}
+                    className="relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/80 px-7 py-8 shadow-soft sm:px-8 sm:py-9"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-3 left-5 font-serif text-8xl leading-none text-gold/15 select-none"
+                    >
+                      “
+                    </span>
                     <div
-                      className="mb-4 flex text-gold"
+                      className="relative z-10 flex justify-center gap-1.5 text-gold"
                       aria-label={
                         rating > 0 ? `${rating} de 5 estrelas` : "Avaliação não informada"
                       }
                     >
                       {[...Array(5)].map((_, index) => (
-                        <Sparkles
+                        <Star
                           key={index}
-                          className="h-3.5 w-3.5"
+                          className="h-5 w-5"
                           fill={index < rating ? "currentColor" : "none"}
                         />
                       ))}
                     </div>
 
-                    <blockquote className="font-serif text-lg italic leading-relaxed text-sage-deep">
-                      “{t.text}”
+                    <blockquote className="relative z-10 mt-7 flex-1 text-left font-serif text-[1.125rem] leading-[1.8] tracking-[0.005em] text-sage-deep italic sm:text-[1.1875rem]">
+                      {t.text}
                     </blockquote>
 
-                    <figcaption className="mt-6 text-sm">
-                      <span className="font-medium text-foreground">{t.name}</span>
+                    <figcaption className="relative z-10 mt-8 border-t border-border/60 pt-5 text-center">
+                      <span className="block text-base font-semibold text-foreground">
+                        {t.name}
+                      </span>
                       {t.service ? (
-                        <span className="text-muted-foreground">
-                          {" · "}
+                        <span className="mt-1 block text-xs tracking-wide text-muted-foreground">
                           {t.service}
                         </span>
                       ) : null}
