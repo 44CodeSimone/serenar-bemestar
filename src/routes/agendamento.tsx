@@ -38,6 +38,7 @@ const formSchema = z.object({
 
 function Agendamento() {
   const search = Route.useSearch();
+  const initialServiceSearchRef = useRef(search.service);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -77,6 +78,18 @@ function Agendamento() {
         if (!cancelled) {
           setServices(servicesData);
           setCalendarSlots(slotsData);
+          setForm((current) => {
+            const incomingService = initialServiceSearchRef.current;
+            if (!incomingService || current.service !== incomingService) return current;
+
+            const matchedService = servicesData.find(
+              (service) => service.id === incomingService || service.slug === incomingService,
+            );
+
+            return matchedService && matchedService.id !== current.service
+              ? { ...current, service: matchedService.id }
+              : current;
+          });
         }
       } catch (err) {
         if (!cancelled) {
