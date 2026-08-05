@@ -251,7 +251,7 @@ function Home() {
                 </p>
               </div>
             ) : (
-              testimonials.map((t) => {
+              testimonials.map((t: PublicTestimonial) => {
                 const rating = t.rating ?? 0;
 
                 return (
