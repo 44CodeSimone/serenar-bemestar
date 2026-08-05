@@ -2,17 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Leaf, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createSeoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog")({
-  head: () => ({
-    meta: [
-      { title: "Blog — Bem-estar e autocuidado | Serenar" },
-      {
-        name: "description",
-        content: "Artigos sobre massoterapia, autocuidado, respiração, sono e rotinas de bem-estar por Mariah Luz e o time Serenar.",
-      },
-    ],
-  }),
+  head: () =>
+    createSeoHead({
+      title: "Blog — Bem-estar e autocuidado | Serenar",
+      description:
+        "Artigos sobre massoterapia, autocuidado, respiração, sono e rotinas de bem-estar por Mariah Luz e o Serenar.",
+      path: "/blog",
+    }),
   component: Blog,
 });
 
@@ -50,13 +49,15 @@ function Blog() {
           Leituras <span className="italic text-sage">calmas</span>
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Reflexões sobre autocuidado, técnicas de respiração, sono reparador e como
-          manter a serenidade nos dias corridos.
+          Reflexões sobre autocuidado, técnicas de respiração, sono reparador e como manter a
+          serenidade nos dias corridos.
         </p>
       </div>
 
       {loading ? (
-        <div className="grid place-items-center py-20"><Loader2 className="h-6 w-6 animate-spin text-sage-deep" /></div>
+        <div className="grid place-items-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-sage-deep" />
+        </div>
       ) : posts.length === 0 ? (
         <div className="mx-auto mt-14 max-w-md rounded-[2rem] border border-border bg-cream/60 p-10 text-center shadow-soft">
           <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blush text-gold">
@@ -64,7 +65,8 @@ function Blog() {
           </div>
           <p className="font-serif text-2xl text-sage-deep">Nossos artigos estão brotando</p>
           <p className="mt-3 text-sm text-muted-foreground">
-            Enquanto os primeiros textos florescem, siga o Serenar no Instagram para reflexões diárias sobre bem-estar.
+            Enquanto os primeiros textos florescem, siga o Serenar no Instagram para reflexões
+            diárias sobre bem-estar.
           </p>
           <a
             href="https://instagram.com/serenar_massoterapiaebemestar"
@@ -88,15 +90,25 @@ function Blog() {
             >
               {p.cover_image_url && (
                 <div className="-mx-6 -mt-6 mb-4 aspect-video overflow-hidden bg-blush/30">
-                  <img src={p.cover_image_url} alt={p.title} className="h-full w-full object-cover" />
+                  <img
+                    src={p.cover_image_url}
+                    alt={p.title}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               )}
               {p.category && <p className="eyebrow">{p.category}</p>}
               <h2 className="mt-2 font-serif text-2xl text-sage-deep">{p.title}</h2>
-              {p.excerpt && <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.excerpt}</p>}
+              {p.excerpt && (
+                <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.excerpt}</p>
+              )}
               {p.published_at && (
                 <p className="mt-4 text-xs text-muted-foreground">
-                  {new Date(p.published_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                  {new Date(p.published_at).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
               )}
             </Link>

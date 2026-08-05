@@ -1,4 +1,3 @@
-
 # Serenar CMS — Plano incremental
 
 Objetivo: transformar `/admin` em um CMS completo para a Mariah, sem quebrar arquitetura, design, Auth, RLS, agendamentos, chat, WhatsApp ou SEO existentes. Tudo em Português (Brasil).
@@ -12,6 +11,7 @@ Para reduzir risco, entrego em **3 fases**. Cada fase é funcional e testável a
 Escopo mínimo que já dá controle real à Mariah sem risco de quebrar o público.
 
 ### 1.1 Banco de dados (migração única)
+
 - Nova tabela `public.site_images` — biblioteca de imagens
   - campos: `storage_path`, `public_url`, `alt`, `tag` (hero/servico/blog/sobre/outros), `width`, `height`, `size_bytes`, `mime`, `uploaded_by`
 - Nova tabela `public.site_content` — conteúdo editável do site (key/value JSONB)
@@ -24,15 +24,18 @@ Escopo mínimo que já dá controle real à Mariah sem risco de quebrar o públi
 - GRANTs completos (anon SELECT onde há política pública; authenticated + service_role para admin)
 
 ### 1.2 Supabase Storage
+
 - Bucket `site-images` (privado; URLs assinadas ou público read apenas via política)
 - Políticas: upload/delete só para admin; leitura pública dos objetos
 - Validação client-side: apenas `image/jpeg|png|webp`, máx 5 MB
 
 ### 1.3 Admin — navegação e telas base
+
 Atualizar `AdminSidebar` com os itens finais:
 Dashboard · Conteúdo do site · Imagens · Serviços · Agendamentos · Blog · FAQ · Depoimentos · SEO · WhatsApp · Configurações
 
 Nesta fase implemento telas funcionais para:
+
 - **Imagens** (`/admin/imagens`) — upload, preview, alt text, tag, copiar URL, excluir
 - **Conteúdo do site** (`/admin/conteudo`) — editor de campos do `home_hero`, `home_about`, `home_cta`, `contact_info`, `footer`, com salvar/mensagem de sucesso
 - **WhatsApp** (`/admin/whatsapp`) — número principal + link do grupo (título, descrição, link, CTA, ativo, aparece em Home/Contato); se link vazio, botão público fica escondido
@@ -42,6 +45,7 @@ Nesta fase implemento telas funcionais para:
 Telas placeholder (evolução Fase 2/3): SEO, Depoimentos.
 
 ### 1.4 Server functions
+
 - `uploadSiteImage`, `deleteSiteImage`, `listSiteImages` (admin only)
 - `getSiteContent(key)` público / `updateSiteContent(key, value)` admin
 - `listBlogPosts(admin)` / `getPublishedPost(slug)` público / `upsertBlogPost` / `deleteBlogPost`
@@ -50,7 +54,9 @@ Telas placeholder (evolução Fase 2/3): SEO, Depoimentos.
 Todas admin usam `requireSupabaseAuth` + checagem `is_admin`.
 
 ### 1.5 Público conectado
+
 Nesta fase conecto ao editável:
+
 - Home: hero + about + CTA lidos de `site_content`
 - Rodapé/Contato: dados de `site_content.contact_info`
 - Página `/blog`: lista posts publicados (substitui o placeholder atual), rota nova `/blog/$slug`
@@ -60,12 +66,14 @@ Nesta fase conecto ao editável:
 ---
 
 ## Fase 2 — Blog rico + SEO + Depoimentos
+
 - Editor de conteúdo mais rico (toolbar markdown)
 - Página `/admin/seo` para meta por rota
 - CRUD de depoimentos + carrossel público
 - OG image por post (usa cover)
 
 ## Fase 3 — Polimento CMS
+
 - Galeria de reuso de imagens em qualquer campo (image picker modal)
 - Log de auditoria de edições
 - Preview de post antes de publicar

@@ -17,7 +17,12 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fn().then((s) => { setStats(s); setLoading(false); }).catch(() => setLoading(false));
+    fn()
+      .then((s) => {
+        setStats(s);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [fn]);
 
   return (
@@ -39,11 +44,23 @@ function Dashboard() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <KpiCard icon={CalendarCheck} label="Agendamentos hoje" value={stats.appointmentsToday} />
-            <KpiCard icon={TrendingUp} label="Agendamentos no mês" value={stats.appointmentsMonth} />
+            <KpiCard
+              icon={CalendarCheck}
+              label="Agendamentos hoje"
+              value={stats.appointmentsToday}
+            />
+            <KpiCard
+              icon={TrendingUp}
+              label="Agendamentos no mês"
+              value={stats.appointmentsMonth}
+            />
             <KpiCard icon={Users} label="Leads novos" value={stats.leadsNew} accent />
             <KpiCard icon={Users} label="Leads no mês" value={stats.leadsMonth} />
-            <KpiCard icon={MessageCircle} label="Conversas IA (mês)" value={stats.aiConversationsMonth} />
+            <KpiCard
+              icon={MessageCircle}
+              label="Conversas IA (mês)"
+              value={stats.aiConversationsMonth}
+            />
           </div>
 
           <div className="mt-10 rounded-3xl border border-border bg-card p-6 shadow-soft">
@@ -61,11 +78,16 @@ function Dashboard() {
                   return (
                     <li key={s.service}>
                       <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="capitalize text-foreground/80">{i + 1}. {s.service.replace(/-/g, " ")}</span>
+                        <span className="capitalize text-foreground/80">
+                          {i + 1}. {s.service.replace(/-/g, " ")}
+                        </span>
                         <span className="text-muted-foreground">{s.count}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-blush">
-                        <div className="h-full rounded-full bg-sage-deep transition-all" style={{ width: `${pct}%` }} />
+                        <div
+                          className="h-full rounded-full bg-sage-deep transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </li>
                   );
@@ -79,11 +101,33 @@ function Dashboard() {
   );
 }
 
-function KpiCard({ icon: Icon, label, value, accent }: { icon: typeof Users; label: string; value: number; accent?: boolean }) {
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: number;
+  accent?: boolean;
+}) {
   return (
-    <div className={"rounded-2xl border border-border p-5 shadow-soft transition-all hover:shadow-elegant " + (accent ? "bg-sage-deep text-primary-foreground" : "bg-card")}>
+    <div
+      className={
+        "rounded-2xl border border-border p-5 shadow-soft transition-all hover:shadow-elegant " +
+        (accent ? "bg-sage-deep text-primary-foreground" : "bg-card")
+      }
+    >
       <div className="flex items-center justify-between">
-        <p className={"text-xs uppercase tracking-wider " + (accent ? "text-primary-foreground/70" : "text-muted-foreground")}>{label}</p>
+        <p
+          className={
+            "text-xs uppercase tracking-wider " +
+            (accent ? "text-primary-foreground/70" : "text-muted-foreground")
+          }
+        >
+          {label}
+        </p>
         <Icon className={"h-4 w-4 " + (accent ? "text-gold" : "text-gold")} />
       </div>
       <p className="mt-3 font-serif text-4xl">{value}</p>

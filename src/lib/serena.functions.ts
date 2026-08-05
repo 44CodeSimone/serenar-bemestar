@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { SERVICES } from "./services";
 
 const SITE_KNOWLEDGE = {
@@ -6,17 +6,18 @@ const SITE_KNOWLEDGE = {
   tagline: "Massoterapia & Bem-Estar",
   therapist: "Mariah Luz",
   city: "Urubici / SC",
-  
+
   instagram: "@serenar_massoterapiaebemestar",
   hours: "Segunda a Sexta 9h às 20h, Sábados 9h às 16h.",
 } as const;
 
 function buildSystemPrompt(userContext?: string) {
   const serviceList = SERVICES.map(
-    (s) => `• ${s.name} (${s.duration}) — ${s.short} Benefícios: ${s.benefits.join("; ")}. Contraindicações: ${s.contraindications}`,
+    (s) =>
+      `• ${s.name} (${s.duration}) — ${s.short} Benefícios: ${s.benefits.join("; ")}. Contraindicações: ${s.contraindications}`,
   ).join("\n");
 
-  return `Você é a Serená, recepcionista virtual do espaço ${SITE_KNOWLEDGE.name} — ${SITE_KNOWLEDGE.tagline}.
+  return `Você é a Serenar, recepcionista virtual do espaço ${SITE_KNOWLEDGE.name} — ${SITE_KNOWLEDGE.tagline}.
 
 TOM: você é humana em espírito — acolhedora, elegante, calma, empática, profissional. Nunca robótica. Nunca respostas em listas numeradas a menos que solicitado. Conversa fluida, breve, respiração de spa. Trate a pessoa pelo nome quando souber. Escreva em português brasileiro, natural e caloroso.
 
@@ -46,20 +47,23 @@ const MAX_USER_CONTEXT_CHARS = 500;
 
 /** Remove sequences that could break out of / hijack the system prompt. */
 function sanitizeForPrompt(input: string, maxLen: number): string {
-  return input
-    // strip control chars (except common whitespace)
-    .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, " ")
-    // neutralize role/system markers that LLMs treat as delimiters
-    .replace(/\b(system|assistant|user)\s*:/gi, "")
-    .replace(/<\|[^|>]{0,40}\|>/g, "")
-    .replace(/\[REDIRECIONAR_WHATSAPP\]/gi, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, maxLen);
+  return (
+    input
+      // strip control chars (except common whitespace)
+      // eslint-disable-next-line no-control-regex -- Intentional prompt-sanitization range.
+      .replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, " ")
+      // neutralize role/system markers that LLMs treat as delimiters
+      .replace(/\b(system|assistant|user)\s*:/gi, "")
+      .replace(/<\|[^|>]{0,40}\|>/g, "")
+      .replace(/\[REDIRECIONAR_WHATSAPP\]/gi, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, maxLen)
+  );
 }
 
 export const serenaChat = createServerFn({ method: "POST" })
-  .inputValidator((data: { messages: ChatMessage[]; userContext?: string }) => {
+  .validator((data: { messages: ChatMessage[]; userContext?: string }) => {
     if (!data || typeof data !== "object") throw new Error("payload inválido");
     if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
     if (data.messages.length === 0) throw new Error("messages vazio");

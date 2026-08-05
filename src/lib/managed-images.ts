@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SIGNED_IMAGE_CACHE_TTL_MS, signedUrl } from "@/lib/cms";
 
 /**
  * Registry of image "slots" used across the public site.
@@ -65,22 +66,36 @@ export type ManagedImageRecord = {
   created_at: string;
 };
 
-const imageCache = new Map<string, ManagedImageRecord | null>();
+type CachedImage = {
+  record: ManagedImageRecord | null;
+  refreshAt: number;
+};
+
+const imageCache = new Map<string, CachedImage>();
 const pendingRequests = new Map<string, Promise<ManagedImageRecord | null>>();
 
 export function setManagedImageCache(key: string, record: ManagedImageRecord | null): void {
-  imageCache.set(key, record);
+  imageCache.set(key, { record, refreshAt: Date.now() + SIGNED_IMAGE_CACHE_TTL_MS });
 }
 
 export function clearManagedImageCache(): void {
   imageCache.clear();
 }
 
+function getCachedImage(key: string): CachedImage | null {
+  const cached = imageCache.get(key);
+  if (!cached) return null;
+  if (cached.refreshAt <= Date.now()) {
+    imageCache.delete(key);
+    return null;
+  }
+  return cached;
+}
+
 /** Fetch the most recent CMS image for a given slot key. */
 export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | null> {
-  if (imageCache.has(key)) {
-    return imageCache.get(key) ?? null;
-  }
+  const cached = getCachedImage(key);
+  if (cached) return cached.record;
 
   const existingPromise = pendingRequests.get(key);
   if (existingPromise) {
@@ -89,15 +104,21 @@ export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | 
 
   const promise = (async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("site_images")
         .select("id, storage_path, public_url, alt, tag, caption, created_at")
         .eq("tag", key)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      const record = (data as ManagedImageRecord | null) ?? null;
-      imageCache.set(key, record);
+      if (error) throw error;
+      const record = data
+        ? ({
+            ...data,
+            public_url: await signedUrl(data.storage_path),
+          } as ManagedImageRecord)
+        : null;
+      setManagedImageCache(key, record);
       return record;
     } catch (err) {
       console.error(`Failed to fetch slot image for key: ${key}`, err);
@@ -116,29 +137,37 @@ export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | 
  * Public components should render the fallback until this resolves.
  */
 export function useManagedImage(key: string) {
-  const [image, setImage] = useState<ManagedImageRecord | null>(() => {
-    return imageCache.has(key) ? (imageCache.get(key) ?? null) : null;
-  });
-  const [loading, setLoading] = useState(() => !imageCache.has(key));
+  const initialCache = getCachedImage(key);
+  const [image, setImage] = useState<ManagedImageRecord | null>(initialCache?.record ?? null);
+  const [loading, setLoading] = useState(() => !initialCache);
 
   useEffect(() => {
     let alive = true;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
-    if (imageCache.has(key)) {
-      setImage(imageCache.get(key) ?? null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    fetchSlotImage(key).then((img) => {
+    async function loadImage() {
+      const cached = getCachedImage(key);
+      if (!cached) setLoading(true);
+      const img = await fetchSlotImage(key);
       if (!alive) return;
       setImage(img);
       setLoading(false);
-    });
+
+      const refreshed = getCachedImage(key);
+      if (refreshed) {
+        const delay = Math.max(0, refreshed.refreshAt - Date.now());
+        refreshTimer = setTimeout(() => {
+          imageCache.delete(key);
+          void loadImage();
+        }, delay);
+      }
+    }
+
+    void loadImage();
 
     return () => {
       alive = false;
+      if (refreshTimer) clearTimeout(refreshTimer);
     };
   }, [key]);
 

@@ -27,6 +27,7 @@ import { WhatsappFloat } from "@/components/site/WhatsappFloat";
 import { SerenaChat } from "@/components/site/SerenaChat";
 import { LgpdBanner } from "@/components/site/LgpdBanner";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -38,7 +39,9 @@ function NotFoundComponent() {
           Esta página se perdeu no caminho. Que tal voltar ao início e respirar fundo?
         </p>
         <div className="mt-8">
-          <Link to="/" className="btn-serena">Voltar ao início</Link>
+          <Link to="/" className="btn-serena">
+            Voltar ao início
+          </Link>
         </div>
       </div>
     </div>
@@ -61,12 +64,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="btn-serena"
           >
             Tentar novamente
           </button>
-          <a href="/" className="btn-serena-outline">Início</a>
+          <a href="/" className="btn-serena-outline">
+            Início
+          </a>
         </div>
       </div>
     </div>
@@ -86,6 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Serenar — Mariah Luz" },
       { name: "theme-color", content: "#F5E3D8" },
+      { property: "og:site_name", content: "Serenar" },
       { property: "og:title", content: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
       {
         property: "og:description",
@@ -95,17 +104,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
-      { name: "description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
-      { property: "og:description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
-      { name: "twitter:description", content: "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yHzyaPQ07sbGc5SzgYFWhTB3yvP2/social-images/social-1783179174591-Serenar.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yHzyaPQ07sbGc5SzgYFWhTB3yvP2/social-images/social-1783179174591-Serenar.webp" },
+      { property: "og:image", content: DEFAULT_SOCIAL_IMAGE },
+      { name: "twitter:image", content: DEFAULT_SOCIAL_IMAGE },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "canonical", href: "/" },
     ],
   }),
   shellComponent: RootShell,

@@ -5,20 +5,16 @@ import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SITE } from "@/lib/site-config";
 import { ManagedImage } from "@/components/site/ManagedImage";
+import { createSeoHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/sobre")({
-  head: () => ({
-    meta: [
-      { title: "Sobre a Serenar — Mariah Luz | Massoterapia em Urubici" },
-      {
-        name: "description",
-        content:
-          "Conheça o espaço Serenar e a história de Mariah Luz. Uma jornada dedicada ao bem-estar, ao toque humano e à massoterapia como ato de cuidado.",
-      },
-      { property: "og:title", content: "Sobre a Serenar" },
-      { property: "og:description", content: "A história por trás do espaço e de quem acolhe." },
-    ],
-  }),
+  head: () =>
+    createSeoHead({
+      title: "Sobre a Serenar — Mariah Luz | Massoterapia em Urubici",
+      description:
+        "Conheça o espaço Serenar e a história de Mariah Luz, dedicada ao bem-estar, ao toque humano e à massoterapia como ato de cuidado em Urubici.",
+      path: "/sobre",
+    }),
   component: Sobre,
 });
 
@@ -29,13 +25,12 @@ function Sobre() {
         <div className="mx-auto max-w-3xl text-center">
           <p className="eyebrow mb-3">Nossa história</p>
           <h1 className="display-serif text-5xl md:text-6xl">
-            Um espaço nasceu do{" "}
-            <span className="italic text-sage">desejo de acolher</span>
+            Um espaço nasceu do <span className="italic text-sage">desejo de acolher</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
-            O Serenar surgiu como resposta a um tempo acelerado. Um convite para que
-            cada pessoa pudesse ter, ao menos uma hora do seu dia, dedicada ao próprio
-            corpo — sem culpa, sem pressa.
+            O Serenar surgiu como resposta a um tempo acelerado. Um convite para que cada pessoa
+            pudesse ter, ao menos uma hora do seu dia, dedicada ao próprio corpo — sem culpa, sem
+            pressa.
           </p>
         </div>
       </section>
@@ -56,13 +51,12 @@ function Sobre() {
           <h2 className="display-serif text-4xl md:text-5xl">{SITE.therapist}</h2>
           <p className="mt-6 leading-relaxed text-muted-foreground">
             Mariah acredita que o toque é uma das formas mais antigas e legítimas de cuidado.
-            Formada em massoterapia e em constante estudo, ela une técnica, aromaterapia,
-            escuta ativa e uma sensibilidade rara.
+            Formada em massoterapia e em constante estudo, ela une técnica, aromaterapia, escuta
+            ativa e uma sensibilidade rara.
           </p>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Antes de cada sessão, há uma conversa. Antes de cada toque, há atenção plena.
-            É esse cuidado que faz o Serenar ser mais do que um espaço de massagens —
-            é um pequeno refúgio.
+            Antes de cada sessão, há uma conversa. Antes de cada toque, há atenção plena. É esse
+            cuidado que faz o Serenar ser mais do que um espaço de massagens — é um pequeno refúgio.
           </p>
           <div className="mt-8 grid grid-cols-3 gap-4">
             {[
@@ -70,9 +64,14 @@ function Sobre() {
               { n: "7+", l: "anos de prática" },
               { n: "8", l: "rituais autorais" },
             ].map((s) => (
-              <div key={s.l} className="rounded-2xl border border-border bg-cream/60 p-4 text-center">
+              <div
+                key={s.l}
+                className="rounded-2xl border border-border bg-cream/60 p-4 text-center"
+              >
                 <p className="font-serif text-3xl text-sage-deep">{s.n}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">{s.l}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {s.l}
+                </p>
               </div>
             ))}
           </div>
@@ -81,7 +80,9 @@ function Sobre() {
 
       <section className="container-narrow py-24">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="leaf-divider mb-5"><Leaf className="h-4 w-4" /></div>
+          <div className="leaf-divider mb-5">
+            <Leaf className="h-4 w-4" />
+          </div>
           <p className="eyebrow mb-3">Nossos valores</p>
           <h2 className="display-serif text-4xl md:text-5xl">
             O que sustenta cada <span className="italic text-sage">sessão</span>
@@ -116,9 +117,8 @@ function Sobre() {
               Silêncio, luz suave, aromas <span className="italic text-sage">naturais</span>
             </h2>
             <p className="mt-6 text-muted-foreground leading-relaxed">
-              Cada detalhe do espaço foi pensado para que os sentidos se acalmem à porta:
-              tecidos naturais, plantas vivas, iluminação âmbar, óleos essenciais de
-              qualidade terapêutica.
+              Cada detalhe do espaço foi pensado para que os sentidos se acalmem à porta: tecidos
+              naturais, plantas vivas, iluminação âmbar, óleos essenciais de qualidade terapêutica.
             </p>
             <ManagedImage
               slotKey="sobre.ritual"
@@ -139,8 +139,12 @@ function Sobre() {
           Reserve seu horário ou venha para uma primeira conversa. Estamos em {SITE.city}.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link to="/agendamento" className="btn-serena">Agendar sessão</Link>
-          <Link to="/contato" className="btn-serena-outline">Ver endereço</Link>
+          <Link to="/agendamento" className="btn-serena">
+            Agendar sessão
+          </Link>
+          <Link to="/contato" className="btn-serena-outline">
+            Ver endereço
+          </Link>
         </div>
       </section>
     </>
@@ -148,7 +152,19 @@ function Sobre() {
 }
 
 const VALUES = [
-  { icon: HeartHandshake, title: "Escuta antes do toque", text: "Cada corpo carrega uma história. Ouvir é parte do tratamento." },
-  { icon: ShieldCheck, title: "Técnica com consciência", text: "Formação sólida e estudo constante, aplicados com respeito ao seu limite." },
-  { icon: Sparkles, title: "Beleza como cuidado", text: "Um ambiente belo é um convite à presença. Cuidamos disso por você." },
+  {
+    icon: HeartHandshake,
+    title: "Escuta antes do toque",
+    text: "Cada corpo carrega uma história. Ouvir é parte do tratamento.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Técnica com consciência",
+    text: "Formação sólida e estudo constante, aplicados com respeito ao seu limite.",
+  },
+  {
+    icon: Sparkles,
+    title: "Beleza como cuidado",
+    text: "Um ambiente belo é um convite à presença. Cuidamos disso por você.",
+  },
 ];

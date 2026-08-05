@@ -9,9 +9,7 @@ export function Logo({ className = "h-10 w-auto", variant = "full" }: Props) {
   if (variant === "mark") {
     return (
       <span
-        className={
-          "inline-flex items-center gap-2 font-serif text-2xl text-sage-deep " + className
-        }
+        className={"inline-flex items-center gap-2 font-serif text-2xl text-sage-deep " + className}
       >
         <LeafMark className="h-5 w-5 text-gold" />
         <span>Serenar</span>

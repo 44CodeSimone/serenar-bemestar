@@ -4,38 +4,59 @@ import heroImg from "@/assets/hero-ritual.jpg";
 import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { listFeaturedPublicServices } from "@/lib/services.repository";
+import { listPublicTestimonials } from "@/lib/testimonials.repository";
 import { SITE } from "@/lib/site-config";
 import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
+import { TestimonialSubmissionForm } from "@/components/site/TestimonialSubmissionForm";
+import { absoluteSiteUrl, createSeoHead, DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
+
+const HOME_TITLE = "Serenar — Massoterapia & Bem-Estar em Urubici/SC";
+const HOME_DESCRIPTION =
+  "Massoterapia boutique em Urubici, Santa Catarina. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado com Mariah Luz.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title: "Serenar — Massoterapia & Bem-Estar em Urubici/SC" },
+    ...createSeoHead({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" }),
+    scripts: [
       {
-        name: "description",
-        content:
-          "Massoterapia boutique em Urubici. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado por Mariah Luz. Agende sua sessão.",
-      },
-      { property: "og:title", content: "Serenar — Massoterapia & Bem-Estar" },
-      {
-        property: "og:description",
-        content:
-          "Um espaço para você desacelerar. Agende sua sessão de bem-estar em Urubici/SC.",
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: SITE.name,
+          description: HOME_DESCRIPTION,
+          url: absoluteSiteUrl("/"),
+          image: DEFAULT_SOCIAL_IMAGE,
+          telephone: SITE.whatsapp.raw,
+          email: SITE.email,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Urubici",
+            addressRegion: "SC",
+            addressCountry: "BR",
+          },
+          founder: { "@type": "Person", name: SITE.therapist },
+          sameAs: [SITE.instagram.url],
+        }),
       },
     ],
   }),
   ssr: false,
   loader: async () => {
-    const services = await listFeaturedPublicServices(6);
-    return { services };
+    const [services, testimonials] = await Promise.all([
+      listFeaturedPublicServices(6),
+      listPublicTestimonials(6),
+    ]);
+
+    return { services, testimonials };
   },
   component: Home,
 });
 
 function Home() {
-  const { services } = Route.useLoaderData();
+  const { services, testimonials } = Route.useLoaderData();
   return (
     <>
       {/* HERO */}
@@ -44,14 +65,13 @@ function Home() {
           <div className="lg:col-span-6 space-y-8 animate-fade-up">
             <p className="eyebrow">{SITE.city} · Boutique de bem-estar</p>
             <h1 className="display-serif text-5xl md:text-6xl lg:text-7xl">
-              O tempo de{" "}
-              <span className="italic text-sage">respirar</span>
+              O tempo de <span className="italic text-sage">respirar</span>
               <br />
               começa <span className="gold-underline">aqui</span>.
             </h1>
             <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
-              Um espaço pensado para desacelerar. Massoterapia e rituais de autocuidado
-              conduzidos com toque humano por {SITE.therapist}.
+              Um espaço pensado para desacelerar. Massoterapia e rituais de autocuidado conduzidos
+              com toque humano por {SITE.therapist}.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link to="/agendamento" className="btn-serena">
@@ -102,7 +122,9 @@ function Home() {
       {/* BENEFITS */}
       <section className="container-narrow py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="leaf-divider mb-5"><Leaf className="h-4 w-4" /></div>
+          <div className="leaf-divider mb-5">
+            <Leaf className="h-4 w-4" />
+          </div>
           <p className="eyebrow mb-3">Por que Serenar</p>
           <h2 className="display-serif text-4xl md:text-5xl">
             Cuidar de você é <span className="italic text-sage">essencial</span>
@@ -190,21 +212,23 @@ function Home() {
         <div className="lg:col-span-7 lg:pl-8">
           <p className="eyebrow mb-3">Sobre</p>
           <h2 className="display-serif text-4xl md:text-5xl">
-            Um cuidado que{" "}
-            <span className="italic text-sage">acolhe</span> antes de tocar
+            Um cuidado que <span className="italic text-sage">acolhe</span> antes de tocar
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-            No Serenar, cada detalhe é pensado para que você chegue e possa,
-            enfim, se soltar. Aromas suaves, música que respira, mãos treinadas
-            para escutar antes de tratar.
+            No Serenar, cada detalhe é pensado para que você chegue e possa, enfim, se soltar.
+            Aromas suaves, música que respira, mãos treinadas para escutar antes de tratar.
           </p>
           <p className="mt-4 text-muted-foreground">
-            {SITE.therapist} conduz cada sessão com escuta atenta e técnica apurada,
-            unindo massoterapia, aromaterapia e uma visão integral do bem-estar.
+            {SITE.therapist} conduz cada sessão com escuta atenta e técnica apurada, unindo
+            massoterapia, aromaterapia e uma visão integral do bem-estar.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/sobre" className="btn-serena">Conhecer nossa história</Link>
-            <Link to="/agendamento" className="btn-serena-outline">Reservar horário</Link>
+            <Link to="/sobre" className="btn-serena">
+              Conhecer nossa história
+            </Link>
+            <Link to="/agendamento" className="btn-serena-outline">
+              Reservar horário
+            </Link>
           </div>
         </div>
       </section>
@@ -219,23 +243,53 @@ function Home() {
             </h2>
           </div>
           <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t, i) => (
-              <figure key={i} className="card-serena">
-                <div className="mb-4 flex text-gold">
-                  {[...Array(5)].map((_, k) => (
-                    <Sparkles key={k} className="h-3.5 w-3.5" fill="currentColor" />
-                  ))}
-                </div>
-                <blockquote className="font-serif text-lg italic leading-relaxed text-sage-deep">
-                  “{t.text}”
-                </blockquote>
-                <figcaption className="mt-6 text-sm">
-                  <span className="font-medium text-foreground">{t.name}</span>
-                  <span className="text-muted-foreground"> · {t.service}</span>
-                </figcaption>
-              </figure>
-            ))}
+            {testimonials.length === 0 ? (
+              <div className="card-serena md:col-span-3 text-center">
+                <Sparkles className="mx-auto mb-4 h-5 w-5 text-gold" />
+                <p className="font-serif text-lg text-sage-deep">
+                  Os primeiros depoimentos aparecerão em breve.
+                </p>
+              </div>
+            ) : (
+              testimonials.map((t) => {
+                const rating = t.rating ?? 0;
+
+                return (
+                  <figure key={t.id} className="card-serena">
+                    <div
+                      className="mb-4 flex text-gold"
+                      aria-label={
+                        rating > 0 ? `${rating} de 5 estrelas` : "Avaliação não informada"
+                      }
+                    >
+                      {[...Array(5)].map((_, index) => (
+                        <Sparkles
+                          key={index}
+                          className="h-3.5 w-3.5"
+                          fill={index < rating ? "currentColor" : "none"}
+                        />
+                      ))}
+                    </div>
+
+                    <blockquote className="font-serif text-lg italic leading-relaxed text-sage-deep">
+                      “{t.text}”
+                    </blockquote>
+
+                    <figcaption className="mt-6 text-sm">
+                      <span className="font-medium text-foreground">{t.name}</span>
+                      {t.service ? (
+                        <span className="text-muted-foreground">
+                          {" · "}
+                          {t.service}
+                        </span>
+                      ) : null}
+                    </figcaption>
+                  </figure>
+                );
+              })
+            )}
           </div>
+          <TestimonialSubmissionForm />
         </div>
       </section>
 
@@ -246,18 +300,25 @@ function Home() {
             <div>
               <p className="eyebrow text-cream/70">Pronta para começar?</p>
               <h2 className="mt-3 font-serif text-4xl text-cream md:text-5xl">
-                Reserve seu momento de{" "}
-                <span className="italic text-gold">serenidade</span>
+                Reserve seu momento de <span className="italic text-gold">serenidade</span>
               </h2>
               <p className="mt-4 max-w-md text-cream/80">
                 Escolha o ritual, o dia e deixe o resto conosco.
               </p>
             </div>
             <div className="flex flex-col gap-3 md:items-end">
-              <Link to="/agendamento" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-8 py-4 text-sm font-medium text-gold-foreground shadow-elegant transition-transform hover:scale-105">
+              <Link
+                to="/agendamento"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-8 py-4 text-sm font-medium text-gold-foreground shadow-elegant transition-transform hover:scale-105"
+              >
                 Agendar agora <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href={SITE.whatsapp.link} target="_blank" rel="noopener noreferrer" className="text-sm text-cream/70 hover:text-cream">
+              <a
+                href={SITE.whatsapp.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-cream/70 hover:text-cream"
+              >
                 ou fale no WhatsApp {SITE.whatsapp.display}
               </a>
             </div>
@@ -294,22 +355,3 @@ const BENEFITS = [
     text: "Ambiente sem pressa, sem barulho, sem ruído mental. Só você e sua respiração.",
   },
 ];
-
-const TESTIMONIALS = [
-  {
-    name: "Ana Beatriz",
-    service: "Massagem Relaxante",
-    text: "Saí de outra pessoa. A Mariah tem um toque que acalma antes mesmo de começar.",
-  },
-  {
-    name: "Camila R.",
-    service: "Drenagem Linfática",
-    text: "Espaço lindo, silencioso, tudo cuidado nos mínimos detalhes. Virei cliente fixa.",
-  },
-  {
-    name: "Juliana M.",
-    service: "Pedras Quentes",
-    text: "A experiência mais completa que já tive. Sensação de aconchego que dura dias.",
-  },
-];
-

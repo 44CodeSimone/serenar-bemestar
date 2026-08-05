@@ -36,7 +36,6 @@ function AdminLayout() {
   // Suppress unused-var linter — user context is still available for children.
   void user;
 
-
   if (!isAdmin) {
     return (
       <section className="container-narrow py-16">
@@ -49,8 +48,8 @@ function AdminLayout() {
             Você não tem permissão para acessar esta área.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            Se você é a Mariah e este é o primeiro acesso ao painel, clique abaixo para
-            assumir a titularidade como owner do Serenar.
+            Se você é a Mariah e este é o primeiro acesso ao painel, clique abaixo para assumir a
+            titularidade como owner do Serenar.
           </p>
           {claimMsg && (
             <p className="mt-4 rounded-xl bg-blush px-4 py-2 text-sm text-sage-deep">{claimMsg}</p>
@@ -77,7 +76,11 @@ function AdminLayout() {
               }}
               className="btn-serena"
             >
-              {claiming ? <Loader2 className="h-4 w-4 animate-spin" /> : "Assumir painel como Mariah"}
+              {claiming ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Assumir painel como Mariah"
+              )}
             </button>
             <button
               className="text-xs text-muted-foreground hover:text-sage-deep"
@@ -88,7 +91,10 @@ function AdminLayout() {
             >
               Sair da conta
             </button>
-            <button className="text-xs text-muted-foreground hover:text-sage-deep" onClick={() => navigate({ to: "/" })}>
+            <button
+              className="text-xs text-muted-foreground hover:text-sage-deep"
+              onClick={() => navigate({ to: "/" })}
+            >
               Voltar ao site
             </button>
           </div>

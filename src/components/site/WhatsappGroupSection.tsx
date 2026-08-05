@@ -31,12 +31,7 @@ export function WhatsappGroupSection({ surface }: { surface: "home" | "contact" 
         {value.description && (
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{value.description}</p>
         )}
-        <a
-          href={value.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-serena mt-8"
-        >
+        <a href={value.link} target="_blank" rel="noopener noreferrer" className="btn-serena mt-8">
           💬 {value.cta || "Entrar no grupo"}
         </a>
       </div>
