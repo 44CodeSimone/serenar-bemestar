@@ -37,7 +37,10 @@ export const createProtectedPrebooking = createServerFn({ method: "POST" })
     }
 
     try {
-      await verifyTurnstileToken({ token: data.turnstileToken ?? "" });
+      await verifyTurnstileToken({
+        token: data.turnstileToken ?? "",
+        expectedAction: "prebooking",
+      });
     } catch {
       throw new Error(GENERIC_SECURITY_ERROR);
     }
