@@ -52,10 +52,10 @@ function normalizePublicTestimonial(input: PublicTestimonialInput) {
 
   if (
     name.length < 2 ||
-    name.length > 100 ||
-    (service !== null && service.length > 120) ||
-    text.length < 10 ||
-    text.length > 2000 ||
+    name.length > 80 ||
+    (service !== null && service.length > 100) ||
+    text.length < 30 ||
+    text.length > 320 ||
     !Number.isInteger(rating) ||
     rating < 1 ||
     rating > 5
