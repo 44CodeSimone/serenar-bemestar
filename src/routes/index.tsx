@@ -10,47 +10,59 @@ import { LeafMark } from "@/components/site/Logo";
 import { ManagedImage } from "@/components/site/ManagedImage";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
 import { TestimonialSubmissionForm } from "@/components/site/TestimonialSubmissionForm";
-import { absoluteSiteUrl, createSeoHead, DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
-
-const HOME_TITLE = "Serenar — Massoterapia & Bem-Estar em Urubici/SC";
-const HOME_DESCRIPTION =
-  "Massoterapia boutique em Urubici, Santa Catarina. Massagens terapêuticas, relaxantes, drenagem linfática e rituais de autocuidado com Mariah Luz.";
+import {
+  absoluteSiteUrl,
+  createSeoHead,
+  DEFAULT_SOCIAL_IMAGE,
+  SEO_PAGE_DEFAULTS,
+  resolveSeoPage,
+} from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    ...createSeoHead({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" }),
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "LocalBusiness",
-          name: SITE.name,
-          description: HOME_DESCRIPTION,
-          url: absoluteSiteUrl("/"),
-          image: DEFAULT_SOCIAL_IMAGE,
-          telephone: SITE.whatsapp.raw,
-          email: SITE.email,
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: "Urubici",
-            addressRegion: "SC",
-            addressCountry: "BR",
-          },
-          founder: { "@type": "Person", name: SITE.therapist },
-          sameAs: [SITE.instagram.url],
-        }),
-      },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("home", loaderData?.seoPage);
+    return {
+      ...createSeoHead({
+        title: seo.title,
+        description: seo.description,
+        path: seo.path,
+        image: seo.socialImageUrl,
+      }),
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: SITE.name,
+            description: SEO_PAGE_DEFAULTS.home.description,
+            url: absoluteSiteUrl("/"),
+            image: DEFAULT_SOCIAL_IMAGE,
+            telephone: SITE.whatsapp.raw,
+            email: SITE.email,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Urubici",
+              addressRegion: "SC",
+              addressCountry: "BR",
+            },
+            founder: { "@type": "Person", name: SITE.therapist },
+            sameAs: [SITE.instagram.url],
+          }),
+        },
+      ],
+    };
+  },
   ssr: false,
   loader: async () => {
-    const [services, testimonials] = await Promise.all([
+    const [services, testimonials, seoPage] = await Promise.all([
       listFeaturedPublicServices(6),
       listPublicTestimonials(6),
+      loadPublicSeoPage("home"),
     ]);
 
-    return { services, testimonials };
+    return { services, testimonials, seoPage };
   },
   component: Home,
 });

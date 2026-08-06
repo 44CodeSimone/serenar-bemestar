@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -36,14 +37,6 @@ const SECTIONS = [
       { key: "default", label: "Padrão (botão flutuante)", type: "textarea" },
       { key: "booking", label: "Após agendamento", type: "textarea" },
       { key: "from_ai", label: "Após conversa com Serenar", type: "textarea" },
-    ],
-  },
-  {
-    key: "seo",
-    title: "SEO global",
-    fields: [
-      { key: "title", label: "Título" },
-      { key: "description", label: "Descrição", type: "textarea" },
     ],
   },
 ];
@@ -157,6 +150,16 @@ export default function AdminSettings() {
               </div>
             </section>
           ))}
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <h2 className="font-serif text-2xl text-sage-deep">SEO do site</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Títulos, descrições e imagens sociais agora são gerenciados por página no painel SEO
+              Enterprise.
+            </p>
+            <Link to="/admin/seo" className="btn-serena-outline mt-4">
+              Abrir painel de SEO
+            </Link>
+          </section>
         </div>
       )}
     </div>
