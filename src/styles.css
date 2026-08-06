@@ -406,3 +406,17 @@
 @utility animate-soft-pulse {
   animation: serena-soft-pulse 2.6s ease-in-out infinite;
 }
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe,
+  .animate-soft-pulse,
+  .animate-float-slow {
+    animation: none !important;
+  }
+  .animate-fade-up,
+  .animate-fade-in {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

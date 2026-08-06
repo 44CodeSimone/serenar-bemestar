@@ -23,8 +23,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import { WhatsappFloat } from "@/components/site/WhatsappFloat";
-import { SerenaChat } from "@/components/site/SerenaChat";
+import { FloatingContactActions } from "@/components/site/FloatingContactActions";
 import { LgpdBanner } from "@/components/site/LgpdBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SOCIAL_IMAGE } from "@/lib/seo";
@@ -155,8 +154,7 @@ function RootComponent() {
         </main>
         <Footer />
       </div>
-      <WhatsappFloat />
-      <SerenaChat />
+      <FloatingContactActions />
       <LgpdBanner />
     </QueryClientProvider>
   );
