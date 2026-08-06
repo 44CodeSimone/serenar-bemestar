@@ -26,14 +26,14 @@ export function FloatingContactActions() {
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
-          {/* Serena AI trigger */}
+          {/* Serenar AI trigger */}
           <button
             onClick={() => setChatOpen(true)}
             aria-label="Abrir chat com Serenar"
             className="group inline-flex items-center gap-2 rounded-full bg-sage-deep px-3.5 py-2.5 text-sm text-primary-foreground shadow-soft transition-all duration-300 hover:shadow-elegant hover:translate-y-[-2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
           >
             <Sparkles className="h-4 w-4 text-gold" />
-            <span className="hidden sm:inline text-xs tracking-wide">Falar com Serena</span>
+            <span className="hidden sm:inline text-xs tracking-wide">Falar com Serenar</span>
             <span className="sm:hidden">
               <MessageCircle className="h-4 w-4" />
             </span>
