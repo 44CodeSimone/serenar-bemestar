@@ -2,16 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Leaf, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/blog")({
-  head: () =>
-    createSeoHead({
-      title: "Blog — Bem-estar e autocuidado | Serenar",
-      description:
-        "Artigos sobre massoterapia, autocuidado, respiração, sono e rotinas de bem-estar por Mariah Luz e o Serenar.",
-      path: "/blog",
-    }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("blog") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("blog", loaderData?.seoPage);
+    return createSeoHead({
+      title: seo.title,
+      description: seo.description,
+      path: seo.path,
+      image: seo.socialImageUrl,
+    });
+  },
   component: Blog,
 });
 

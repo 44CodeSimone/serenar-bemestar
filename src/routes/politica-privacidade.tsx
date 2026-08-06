@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SITE } from "@/lib/site-config";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/politica-privacidade")({
-  head: () =>
-    createSeoHead({
-      title: "Política de Privacidade — Serenar",
-      description: "Como o Serenar coleta, usa e protege seus dados pessoais conforme a LGPD.",
-      path: "/politica-privacidade",
-    }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("politica-privacidade") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("politica-privacidade", loaderData?.seoPage);
+    return createSeoHead({
+      title: seo.title,
+      description: seo.description,
+      path: seo.path,
+      image: seo.socialImageUrl,
+    });
+  },
   component: () => (
     <section className="container-narrow max-w-3xl py-16 md:py-24">
       <p className="eyebrow mb-3">LGPD</p>

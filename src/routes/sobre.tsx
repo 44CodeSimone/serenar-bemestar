@@ -5,16 +5,20 @@ import roomImg from "@/assets/spa-room.jpg";
 import ritualImg from "@/assets/ritual-flatlay.jpg";
 import { SITE } from "@/lib/site-config";
 import { ManagedImage } from "@/components/site/ManagedImage";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/sobre")({
-  head: () =>
-    createSeoHead({
-      title: "Sobre a Serenar — Mariah Luz | Massoterapia em Urubici",
-      description:
-        "Conheça o espaço Serenar e a história de Mariah Luz, dedicada ao bem-estar, ao toque humano e à massoterapia como ato de cuidado em Urubici.",
-      path: "/sobre",
-    }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("sobre") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("sobre", loaderData?.seoPage);
+    return createSeoHead({
+      title: seo.title,
+      description: seo.description,
+      path: seo.path,
+      image: seo.socialImageUrl,
+    });
+  },
   component: Sobre,
 });
 

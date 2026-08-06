@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 const FAQS = [
   {
@@ -39,28 +40,32 @@ const FAQS = [
 ];
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    ...createSeoHead({
-      title: "Perguntas frequentes — Serenar Massoterapia",
-      description:
-        "Tire suas dúvidas sobre massagens, agendamentos, pagamentos e cuidados antes e depois das sessões no Serenar.",
-      path: "/faq",
-    }),
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: FAQS.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
-        }),
-      },
-    ],
-  }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("faq") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("faq", loaderData?.seoPage);
+    return {
+      ...createSeoHead({
+        title: seo.title,
+        description: seo.description,
+        path: seo.path,
+        image: seo.socialImageUrl,
+      }),
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: FAQS.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }),
+        },
+      ],
+    };
+  },
   component: FaqPage,
 });
 

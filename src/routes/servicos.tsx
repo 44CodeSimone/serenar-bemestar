@@ -7,16 +7,20 @@ import {
   type PublicService,
 } from "@/lib/services.repository";
 import { LeafMark } from "@/components/site/Logo";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/servicos")({
-  head: () =>
-    createSeoHead({
-      title: "Serviços — Massoterapia e rituais de bem-estar | Serenar",
-      description:
-        "Massagem relaxante, terapêutica, drenagem linfática, pedras quentes, spa dos pés e mais. Conheça os rituais do Serenar em Urubici/SC.",
-      path: "/servicos",
-    }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("servicos") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("servicos", loaderData?.seoPage);
+    return createSeoHead({
+      title: seo.title,
+      description: seo.description,
+      path: seo.path,
+      image: seo.socialImageUrl,
+    });
+  },
   component: Servicos,
 });
 

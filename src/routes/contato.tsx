@@ -2,16 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { SITE } from "@/lib/site-config";
 import { WhatsappGroupSection } from "@/components/site/WhatsappGroupSection";
-import { createSeoHead } from "@/lib/seo";
+import { createSeoHead, resolveSeoPage } from "@/lib/seo";
+import { loadPublicSeoPage } from "@/lib/seo.repository";
 
 export const Route = createFileRoute("/contato")({
-  head: () =>
-    createSeoHead({
-      title: "Contato — Serenar Massoterapia | Urubici/SC",
-      description:
-        "Fale com o Serenar por WhatsApp, Instagram ou email. Estamos em Urubici, Santa Catarina, prontas para receber você.",
-      path: "/contato",
-    }),
+  loader: async () => ({ seoPage: await loadPublicSeoPage("contato") }),
+  head: ({ loaderData }) => {
+    const seo = resolveSeoPage("contato", loaderData?.seoPage);
+    return createSeoHead({
+      title: seo.title,
+      description: seo.description,
+      path: seo.path,
+      image: seo.socialImageUrl,
+    });
+  },
   component: Contato,
 });
 

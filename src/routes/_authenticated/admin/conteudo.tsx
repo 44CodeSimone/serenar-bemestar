@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,12 +26,9 @@ type Contact = {
   instagram_url?: string;
 };
 
-type Seo = { title?: string; description?: string };
-
 function AdminContent() {
   const [hero, setHero] = useState<Hero>({});
   const [contact, setContact] = useState<Contact>({});
-  const [seo, setSeo] = useState<Seo>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -41,11 +38,10 @@ function AdminContent() {
       const { data } = await supabase
         .from("site_settings")
         .select("*")
-        .in("key", ["hero", "contact", "seo"]);
+        .in("key", ["hero", "contact"]);
       (data ?? []).forEach((r) => {
         if (r.key === "hero") setHero((r.value as Hero) ?? {});
         if (r.key === "contact") setContact((r.value as Contact) ?? {});
-        if (r.key === "seo") setSeo((r.value as Seo) ?? {});
       });
       setLoading(false);
     })();
@@ -57,7 +53,6 @@ function AdminContent() {
     const rows = [
       { key: "hero", value: hero, is_public: true },
       { key: "contact", value: contact, is_public: true },
-      { key: "seo", value: seo, is_public: true },
     ];
     const { error } = await supabase.from("site_settings").upsert(rows, { onConflict: "key" });
     setSaving(false);
@@ -163,18 +158,14 @@ function AdminContent() {
         </div>
       </Section>
 
-      <Section title="SEO (home)">
-        <Field
-          label="Título SEO"
-          value={seo.title}
-          onChange={(v) => setSeo({ ...seo, title: v })}
-        />
-        <Field
-          label="Descrição SEO"
-          value={seo.description}
-          onChange={(v) => setSeo({ ...seo, description: v })}
-          textarea
-        />
+      <Section title="SEO do site">
+        <p className="text-sm text-muted-foreground">
+          O SEO de cada página é gerenciado no painel dedicado, com prévias do Google e das redes
+          sociais.
+        </p>
+        <Link to="/admin/seo" className="btn-serena-outline">
+          Abrir painel de SEO
+        </Link>
       </Section>
     </div>
   );
