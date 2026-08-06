@@ -76,7 +76,7 @@ export function SerenaChat({ open, onOpenChange }: SerenaChatProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-50 flex max-h-[85dvh] flex-col overflow-hidden rounded-3xl border border-border/70 bg-background/95 shadow-elegant backdrop-blur-xl animate-fade-up md:inset-auto md:bottom-8 md:left-8 md:w-[400px]">
+    <div className="fixed inset-x-4 bottom-4 z-50 flex max-h-[85dvh] flex-col overflow-hidden rounded-3xl border border-border/70 bg-background/95 shadow-elegant backdrop-blur-xl animate-fade-up md:inset-auto md:bottom-8 md:right-8 md:w-[400px]">
       <div className="flex items-center justify-between border-b border-border/60 bg-cream/80 px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-sage-deep text-gold">
