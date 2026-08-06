@@ -20,9 +20,9 @@ export function FloatingContactActions() {
       {/* Floating group — hidden when chat panel is open */}
       {!chatOpen && (
         <div
-          className="fixed bottom-6 left-6 z-40 flex items-end gap-2.5 md:bottom-8 md:left-8"
+          className="fixed bottom-6 right-6 z-40 flex items-end gap-2.5 md:bottom-8 md:right-8"
           style={{
-            paddingLeft: "env(safe-area-inset-left, 0px)",
+            paddingRight: "env(safe-area-inset-right, 0px)",
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
