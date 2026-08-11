@@ -106,7 +106,7 @@ export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | 
     try {
       const { data, error } = await supabase
         .from("site_images")
-        .select("id, storage_path, public_url, alt, tag, caption, created_at")
+        .select("id, storage_path, alt, tag, caption, created_at")
         .eq("tag", key)
         .order("created_at", { ascending: false })
         .limit(1)
