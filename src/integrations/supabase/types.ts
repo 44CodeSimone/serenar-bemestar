@@ -442,6 +442,7 @@ export type Database = {
           caption: string | null
           created_at: string
           id: string
+          is_public: boolean
           mime: string | null
           public_url: string
           size_bytes: number | null
@@ -455,6 +456,7 @@ export type Database = {
           caption?: string | null
           created_at?: string
           id?: string
+          is_public?: boolean
           mime?: string | null
           public_url: string
           size_bytes?: number | null
@@ -468,6 +470,7 @@ export type Database = {
           caption?: string | null
           created_at?: string
           id?: string
+          is_public?: boolean
           mime?: string | null
           public_url?: string
           size_bytes?: number | null
