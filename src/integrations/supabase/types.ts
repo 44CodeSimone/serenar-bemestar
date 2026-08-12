@@ -78,6 +78,7 @@ export type Database = {
         Row: {
           calendar_slot_id: string | null
           cancelled_at: string | null
+          client_id: string | null
           confirmed_at: string | null
           created_at: string
           email: string | null
@@ -90,6 +91,7 @@ export type Database = {
           preferred_date: string | null
           preferred_time: string | null
           service: string
+          service_id: string | null
           source: string | null
           status: string
           submitted_at: string | null
@@ -99,6 +101,7 @@ export type Database = {
         Insert: {
           calendar_slot_id?: string | null
           cancelled_at?: string | null
+          client_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           email?: string | null
@@ -111,6 +114,7 @@ export type Database = {
           preferred_date?: string | null
           preferred_time?: string | null
           service: string
+          service_id?: string | null
           source?: string | null
           status?: string
           submitted_at?: string | null
@@ -120,6 +124,7 @@ export type Database = {
         Update: {
           calendar_slot_id?: string | null
           cancelled_at?: string | null
+          client_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           email?: string | null
@@ -132,6 +137,7 @@ export type Database = {
           preferred_date?: string | null
           preferred_time?: string | null
           service?: string
+          service_id?: string | null
           source?: string | null
           status?: string
           submitted_at?: string | null
@@ -139,6 +145,20 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_appointments_calendar_slot"
             columns: ["calendar_slot_id"]
@@ -615,6 +635,7 @@ export type Database = {
       leads: {
         Row: {
           consent: boolean
+          converted_client_id: string | null
           created_at: string
           email: string | null
           id: string
@@ -630,6 +651,7 @@ export type Database = {
         }
         Insert: {
           consent?: boolean
+          converted_client_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -645,6 +667,7 @@ export type Database = {
         }
         Update: {
           consent?: boolean
+          converted_client_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -658,7 +681,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_client_id_fkey"
+            columns: ["converted_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
