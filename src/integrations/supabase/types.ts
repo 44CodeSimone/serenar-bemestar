@@ -256,6 +256,129 @@ export type Database = {
         }
         Relationships: []
       }
+      client_guardians: {
+        Row: {
+          authorization_granted_at: string | null
+          authorization_version: string | null
+          client_id: string
+          created_at: string
+          guardian_id: string
+          id: string
+          is_primary: boolean
+          legal_authority_confirmed: boolean
+          relationship: string
+          revoked_at: string | null
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          authorization_granted_at?: string | null
+          authorization_version?: string | null
+          client_id: string
+          created_at?: string
+          guardian_id: string
+          id?: string
+          is_primary?: boolean
+          legal_authority_confirmed?: boolean
+          relationship: string
+          revoked_at?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          authorization_granted_at?: string | null
+          authorization_version?: string | null
+          client_id?: string
+          created_at?: string
+          guardian_id?: string
+          id?: string
+          is_primary?: boolean
+          legal_authority_confirmed?: boolean
+          relationship?: string
+          revoked_at?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_guardians_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_guardians_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          auth_user_id: string | null
+          birth_date: string
+          city: string | null
+          cpf: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          mother_name: string | null
+          notes: string | null
+          phone: string
+          profession: string | null
+          source: string
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          birth_date: string
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          mother_name?: string | null
+          notes?: string | null
+          phone: string
+          profession?: string | null
+          source: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          birth_date?: string
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          mother_name?: string | null
+          notes?: string | null
+          phone?: string
+          profession?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       faq_items: {
         Row: {
           active: boolean
@@ -286,6 +409,42 @@ export type Database = {
           id?: string
           question?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      guardians: {
+        Row: {
+          cpf: string
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          phone: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          cpf: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          phone: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          cpf?: string
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
