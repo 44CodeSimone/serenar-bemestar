@@ -24,7 +24,7 @@ graph TD
     AM["Arquitetura Mestra v1<br/>(Serenar-CRM-Arquitetura-Mestra-v1.md)<br/><i>Governança Geral & Visão Enterprise</i>"]
     MD["Modelo de Dados v1<br/>(Serenar-CRM-Modelo-de-Dados-v1.md)<br/><i>Regras de Negócio & Modelo Conceitual</i>"]
     MF["Modelo Físico v1<br/>(Serenar-CRM-Modelo-Fisico-v1.md)<br/><i>Especificação DDL PostgreSQL & RLS</i>"]
-    MIG["Migração 001<br/>(20260809160000_create_crm_identity_foundation.sql)<br/><i>Fundação Física Integrada</i>"]
+    MIG["Migração 001<br/>(20260812214125_70ba53de-ac10-440e-8001-6ab47f016279.sql)<br/><i>Fundação Física Integrada</i>"]
 
     AM --> MD
     AM --> MF
@@ -34,7 +34,7 @@ graph TD
 1. **`Serenar-CRM-Arquitetura-Mestra-v1.md` (Este documento):** Governa a visão estratégica, os contratos entre camadas, a matriz de segurança, a LGPD, o desacoplamento de domínios e a governança de evolução.
 2. **`Serenar-CRM-Modelo-de-Dados-v1.md`:** Governa os conceitos de negócio, entidades, relacionamentos conceituais, regras operacionais e limites regulatórios de privacidade.
 3. **`Serenar-CRM-Modelo-Fisico-v1.md`:** Governa a implementação física no banco de dados PostgreSQL, especificando tabelas, tipos controlados, restrições `CHECK`, políticas RLS, índices e chaves estrangeiras.
-4. **`20260809160000_create_crm_identity_foundation.sql`:** Script SQL da Migração 001 que materializa a fundação de identidade cadastral (`clients`, `guardians`, `client_guardians`).
+4. **`20260812214125_70ba53de-ac10-440e-8001-6ab47f016279.sql`:** Script SQL da Migração 001 que materializa a fundação de identidade cadastral (`clients`, `guardians`, `client_guardians`).
 
 ---
 
@@ -686,7 +686,7 @@ Nenhuma Sprint tem autorização para alterar decisões consolidadas (`ARC-xxx`)
 
 1. **`docs/Arquitetura/CRM/Serenar-CRM-Modelo-de-Dados-v1.md`** — Modelo de Dados e Regras de Negócio do CRM (v1.0).
 2. **`docs/Arquitetura/CRM/Serenar-CRM-Modelo-Fisico-v1.md`** — Modelo Físico PostgreSQL e Matriz RLS do CRM (v1.0).
-3. **`supabase/migrations/20260809160000_create_crm_identity_foundation.sql`** — Migração 001 da Fundação de Identidade do CRM Serenar.
+3. **`supabase/migrations/20260812214125_70ba53de-ac10-440e-8001-6ab47f016279.sql`** — Migração 001 da Fundação de Identidade do CRM Serenar.
 4. **`supabase/migrations/20260803001147_b7726250-4cf7-4b3e-bf8b-23738d2ed489.sql`** — Migração de Bloqueio de Segurança da RPC `create_prebooking`.
 
 ---
