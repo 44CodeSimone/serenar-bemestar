@@ -256,6 +256,135 @@ export type Database = {
         }
         Relationships: []
       }
+      client_consents: {
+        Row: {
+          client_id: string
+          collection_channel: string
+          consent_type: string
+          created_at: string
+          evidence_document_id: string | null
+          expires_at: string | null
+          granted: boolean
+          granted_at: string
+          guardian_id: string | null
+          id: string
+          legal_basis: string
+          recorded_by: string | null
+          revoked_at: string | null
+          term_hash: string | null
+          term_version: string
+        }
+        Insert: {
+          client_id: string
+          collection_channel: string
+          consent_type: string
+          created_at?: string
+          evidence_document_id?: string | null
+          expires_at?: string | null
+          granted: boolean
+          granted_at?: string
+          guardian_id?: string | null
+          id?: string
+          legal_basis: string
+          recorded_by?: string | null
+          revoked_at?: string | null
+          term_hash?: string | null
+          term_version: string
+        }
+        Update: {
+          client_id?: string
+          collection_channel?: string
+          consent_type?: string
+          created_at?: string
+          evidence_document_id?: string | null
+          expires_at?: string | null
+          granted?: boolean
+          granted_at?: string
+          guardian_id?: string | null
+          id?: string
+          legal_basis?: string
+          recorded_by?: string | null
+          revoked_at?: string | null
+          term_hash?: string | null
+          term_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_consents_evidence_document_id_fkey"
+            columns: ["evidence_document_id"]
+            isOneToOne: false
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_consents_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          archived_at: string | null
+          client_id: string
+          created_at: string
+          document_type: string
+          file_size: number
+          id: string
+          mime_type: string
+          original_filename: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          archived_at?: string | null
+          client_id: string
+          created_at?: string
+          document_type: string
+          file_size: number
+          id?: string
+          mime_type: string
+          original_filename: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          archived_at?: string | null
+          client_id?: string
+          created_at?: string
+          document_type?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          original_filename?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_guardians: {
         Row: {
           authorization_granted_at: string | null
@@ -315,6 +444,41 @@ export type Database = {
             columns: ["guardian_id"]
             isOneToOne: false
             referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_preferences: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          preference_key: string
+          preference_value: Json
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          preference_key: string
+          preference_value: Json
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          preference_key?: string
+          preference_value?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
