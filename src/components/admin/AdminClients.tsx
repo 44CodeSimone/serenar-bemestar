@@ -16,8 +16,10 @@ import {
   Mail,
   MapPin,
   FileText,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
+import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
 import {
   listClientsFn,
   getClientByIdFn,
@@ -208,6 +210,13 @@ export default function AdminClients() {
   const [isArchiveAlertOpen, setIsArchiveAlertOpen] = useState(false);
   const [isRestoreAlertOpen, setIsRestoreAlertOpen] = useState(false);
   const [isDuplicateConfirmOpen, setIsDuplicateConfirmOpen] = useState(false);
+  const [isAnamnesisOpen, setIsAnamnesisOpen] = useState(false);
+  const [anamnesisClient, setAnamnesisClient] = useState<{ id: string; name: string } | null>(null);
+
+  const handleOpenAnamnesis = (client: { id: string; full_name: string }) => {
+    setAnamnesisClient({ id: client.id, name: client.full_name });
+    setIsAnamnesisOpen(true);
+  };
 
   // Formulário e registros selecionados
   const [formData, setFormData] = useState<ClientFormData>(EMPTY_FORM);
@@ -616,6 +625,15 @@ export default function AdminClients() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Anamnese do Cliente"
+                          onClick={() => handleOpenAnamnesis(client)}
+                          className="h-8 w-8 text-sage-deep hover:bg-blush"
+                        >
+                          <ClipboardList className="h-4 w-4" />
+                        </Button>
 
                         {client.status !== "archived" ? (
                           <>
@@ -1022,7 +1040,18 @@ export default function AdminClients() {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
+            <Button
+              onClick={() => {
+                if (selectedClient) {
+                  setIsDetailOpen(false);
+                  handleOpenAnamnesis(selectedClient);
+                }
+              }}
+              className="btn-serena gap-2 text-xs"
+            >
+              <ClipboardList className="h-4 w-4" /> Anamnese
+            </Button>
             <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
               Fechar
             </Button>
@@ -1089,6 +1118,15 @@ export default function AdminClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Modal de Anamnese Integrado */}
+      {anamnesisClient && (
+        <AdminClientAnamnesis
+          clientId={anamnesisClient.id}
+          clientName={anamnesisClient.name}
+          isOpen={isAnamnesisOpen}
+          onOpenChange={setIsAnamnesisOpen}
+        />
+      )}
     </div>
   );
 }
