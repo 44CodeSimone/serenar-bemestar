@@ -25,6 +25,7 @@ import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
 import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import AdminClientDashboard from "@/components/admin/AdminClientDashboard";
 import AdminClientConsents from "@/components/admin/AdminClientConsents";
+import AdminClientDocuments from "@/components/admin/AdminClientDocuments";
 import {
   listClientsFn,
   getClientByIdFn,
@@ -221,6 +222,8 @@ export default function AdminClients() {
   const [sessionsClient, setSessionsClient] = useState<{ id: string; name: string } | null>(null);
   const [isConsentsOpen, setIsConsentsOpen] = useState(false);
   const [consentsClient, setConsentsClient] = useState<{ id: string; name: string } | null>(null);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [documentsClient, setDocumentsClient] = useState<{ id: string; name: string } | null>(null);
 
   const handleOpenAnamnesis = (client: { id: string; full_name: string }) => {
     setAnamnesisClient({ id: client.id, name: client.full_name });
@@ -235,6 +238,11 @@ export default function AdminClients() {
   const handleOpenConsents = (client: { id: string; full_name: string }) => {
     setConsentsClient({ id: client.id, name: client.full_name });
     setIsConsentsOpen(true);
+  };
+
+  const handleOpenDocuments = (client: { id: string; full_name: string }) => {
+    setDocumentsClient({ id: client.id, name: client.full_name });
+    setIsDocumentsOpen(true);
   };
 
   // Formulário e registros selecionados
@@ -670,6 +678,15 @@ export default function AdminClients() {
                           className="h-8 w-8 text-sage-deep hover:bg-blush"
                         >
                           <ShieldCheck className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Documentos e Anexos do Cliente"
+                          onClick={() => handleOpenDocuments(client)}
+                          className="h-8 w-8 text-sage-deep hover:bg-blush"
+                        >
+                          <FileText className="h-4 w-4" />
                         </Button>
 
                         {client.status !== "archived" ? (
@@ -1110,6 +1127,15 @@ export default function AdminClients() {
           clientName={consentsClient.name}
           isOpen={isConsentsOpen}
           onOpenChange={setIsConsentsOpen}
+        />
+      )}
+      {/* Modal de Documentos do Cliente Integrado */}
+      {documentsClient && (
+        <AdminClientDocuments
+          clientId={documentsClient.id}
+          clientName={documentsClient.name}
+          isOpen={isDocumentsOpen}
+          onOpenChange={setIsDocumentsOpen}
         />
       )}
     </div>
