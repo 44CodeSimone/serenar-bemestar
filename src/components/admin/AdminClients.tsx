@@ -18,11 +18,13 @@ import {
   FileText,
   ClipboardList,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
 import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import AdminClientDashboard from "@/components/admin/AdminClientDashboard";
+import AdminClientConsents from "@/components/admin/AdminClientConsents";
 import {
   listClientsFn,
   getClientByIdFn,
@@ -217,6 +219,8 @@ export default function AdminClients() {
   const [anamnesisClient, setAnamnesisClient] = useState<{ id: string; name: string } | null>(null);
   const [isSessionsOpen, setIsSessionsOpen] = useState(false);
   const [sessionsClient, setSessionsClient] = useState<{ id: string; name: string } | null>(null);
+  const [isConsentsOpen, setIsConsentsOpen] = useState(false);
+  const [consentsClient, setConsentsClient] = useState<{ id: string; name: string } | null>(null);
 
   const handleOpenAnamnesis = (client: { id: string; full_name: string }) => {
     setAnamnesisClient({ id: client.id, name: client.full_name });
@@ -226,6 +230,11 @@ export default function AdminClients() {
   const handleOpenSessions = (client: { id: string; full_name: string }) => {
     setSessionsClient({ id: client.id, name: client.full_name });
     setIsSessionsOpen(true);
+  };
+
+  const handleOpenConsents = (client: { id: string; full_name: string }) => {
+    setConsentsClient({ id: client.id, name: client.full_name });
+    setIsConsentsOpen(true);
   };
 
   // Formulário e registros selecionados
@@ -652,6 +661,15 @@ export default function AdminClients() {
                           className="h-8 w-8 text-sage-deep hover:bg-blush"
                         >
                           <Activity className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Consentimentos LGPD do Cliente"
+                          onClick={() => handleOpenConsents(client)}
+                          className="h-8 w-8 text-sage-deep hover:bg-blush"
+                        >
+                          <ShieldCheck className="h-4 w-4" />
                         </Button>
 
                         {client.status !== "archived" ? (
@@ -1083,6 +1101,15 @@ export default function AdminClients() {
           clientName={sessionsClient.name}
           isOpen={isSessionsOpen}
           onOpenChange={setIsSessionsOpen}
+        />
+      )}
+      {/* Modal de Consentimentos LGPD Integrado */}
+      {consentsClient && (
+        <AdminClientConsents
+          clientId={consentsClient.id}
+          clientName={consentsClient.name}
+          isOpen={isConsentsOpen}
+          onOpenChange={setIsConsentsOpen}
         />
       )}
     </div>
