@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
 import AdminClientSessions from "@/components/admin/AdminClientSessions";
+import AdminClientDashboard from "@/components/admin/AdminClientDashboard";
 import {
   listClientsFn,
   getClientByIdFn,
@@ -628,7 +629,7 @@ export default function AdminClients() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Visualizar Detalhes"
+                          title="Resumo"
                           onClick={() => handleOpenDetail(client)}
                           className="h-8 w-8 text-sage-deep hover:bg-blush"
                         >
@@ -996,100 +997,16 @@ export default function AdminClients() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal: Visualizar Detalhes do Cliente */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <div className="flex items-center justify-between pr-4">
-              <DialogTitle className="font-serif text-2xl text-sage-deep">
-                Ficha do Cliente
-              </DialogTitle>
-              {selectedClient && <ClientStatusBadge status={selectedClient.status} />}
-            </div>
-            <DialogDescription>
-              Dados cadastrais registrados no CRM Serenar.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedClient && (
-            <div className="space-y-4 py-2 text-sm">
-              <div className="p-4 rounded-2xl bg-cream/40 border border-border/80 space-y-2">
-                <p className="font-serif text-xl font-semibold text-sage-deep">{selectedClient.full_name}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
-                  <p><strong className="text-foreground">CPF:</strong> {formatCpf(selectedClient.cpf)}</p>
-                  <p><strong className="text-foreground">Nascimento:</strong> {formatDateDisplay(selectedClient.birth_date)}</p>
-                  <p><strong className="text-foreground">Mãe:</strong> {selectedClient.mother_name || "-"}</p>
-                  <p><strong className="text-foreground">Origem:</strong> {formatSourceLabel(selectedClient.source)}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 border border-border rounded-xl space-y-1">
-                  <p className="font-semibold text-sage-deep flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5" /> Contato Principal
-                  </p>
-                  <p>Telefone: {formatPhone(selectedClient.phone)}</p>
-                  <p>WhatsApp: {formatPhone(selectedClient.whatsapp)}</p>
-                  <p>E-mail: {selectedClient.email || "-"}</p>
-                </div>
-
-                <div className="p-3 border border-border rounded-xl space-y-1">
-                  <p className="font-semibold text-sage-deep flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" /> Endereço & Ocupação
-                  </p>
-                  <p>Cidade: {selectedClient.city || "-"}</p>
-                  <p>Profissão: {selectedClient.profession || "-"}</p>
-                </div>
-              </div>
-
-              {selectedClient.notes && (
-                <div className="p-3 border border-border rounded-xl bg-background space-y-1 text-xs">
-                  <p className="font-semibold text-sage-deep flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5" /> Observações Internas
-                  </p>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{selectedClient.notes}</p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border">
-                <span>Criado em: {formatDateDisplay(selectedClient.created_at)}</span>
-                <span>Atualizado em: {formatDateDisplay(selectedClient.updated_at)}</span>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Button
-                onClick={() => {
-                  if (selectedClient) {
-                    setIsDetailOpen(false);
-                    handleOpenAnamnesis(selectedClient);
-                  }
-                }}
-                className="btn-serena gap-1.5 text-xs flex-1 sm:flex-initial"
-              >
-                <ClipboardList className="h-4 w-4" /> Anamnese
-              </Button>
-              <Button
-                onClick={() => {
-                  if (selectedClient) {
-                    setIsDetailOpen(false);
-                    handleOpenSessions(selectedClient);
-                  }
-                }}
-                variant="outline"
-                className="gap-1.5 text-xs border-sage-deep/30 text-sage-deep hover:bg-cream flex-1 sm:flex-initial"
-              >
-                <Activity className="h-4 w-4" /> Atendimentos
-              </Button>
-            </div>
-            <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal: Dashboard / Ficha Consolidada do Cliente */}
+      {selectedClient && (
+        <AdminClientDashboard
+          client={selectedClient}
+          isOpen={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+          onOpenAnamnesis={() => handleOpenAnamnesis(selectedClient)}
+          onOpenSessions={() => handleOpenSessions(selectedClient)}
+        />
+      )}
 
       {/* AlertDialog: Arquivamento */}
       <AlertDialog open={isArchiveAlertOpen} onOpenChange={setIsArchiveAlertOpen}>
