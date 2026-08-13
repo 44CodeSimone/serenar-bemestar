@@ -1,5 +1,8 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { SERVICES } from "./services";
+import * as consentsRepo from "./consents.repository";
 
 const SITE_KNOWLEDGE = {
   name: "Serenar",
@@ -10,6 +13,13 @@ const SITE_KNOWLEDGE = {
   instagram: "@serenar_massoterapiaebemestar",
   hours: "Segunda a Sexta 9h às 20h, Sábados 9h às 16h.",
 } as const;
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidUuid(id?: string | null): boolean {
+  if (!id || typeof id !== "string") return false;
+  return UUID_REGEX.test(id.trim());
+}
 
 function buildSystemPrompt(userContext?: string) {
   const serviceList = SERVICES.map(
@@ -62,34 +72,147 @@ function sanitizeForPrompt(input: string, maxLen: number): string {
   );
 }
 
-export const serenaChat = createServerFn({ method: "POST" })
-  .validator((data: { messages: ChatMessage[]; userContext?: string }) => {
-    if (!data || typeof data !== "object") throw new Error("payload inválido");
-    if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
-    if (data.messages.length === 0) throw new Error("messages vazio");
-    if (data.messages.length > MAX_MESSAGES) throw new Error("muitas mensagens");
-    const cleanMessages: ChatMessage[] = data.messages.map((m) => {
-      if (!m || (m.role !== "user" && m.role !== "assistant")) {
-        throw new Error("role inválido");
+/**
+ * Sanitiza o contexto do cliente utilizando uma abordagem de STRICT WHITELIST (Allow-List).
+ * Rejeita por padrão (Deny All) qualquer propriedade não listada.
+ * Constrói e retorna uma nova string contendo APENAS as propriedades explicitamente autorizadas:
+ * - firstName
+ * - preferredTreatmentStyle
+ * - preferredAroma
+ * - communicationPreference
+ */
+function sanitizePersonalizedContext(input?: unknown): string | undefined {
+  if (!input) return undefined;
+
+  let parsed: Record<string, unknown> | null = null;
+
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const obj = JSON.parse(trimmed);
+        if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
+          parsed = obj as Record<string, unknown>;
+        }
+      } catch {
+        parsed = null;
       }
-      if (typeof m.content !== "string") throw new Error("content inválido");
-      return {
-        role: m.role,
-        content: sanitizeForPrompt(m.content, MAX_MESSAGE_CHARS),
-      };
-    });
-    const userContext =
-      typeof data.userContext === "string" && data.userContext.length > 0
-        ? sanitizeForPrompt(data.userContext, MAX_USER_CONTEXT_CHARS)
-        : undefined;
-    return { messages: cleanMessages, userContext };
-  })
-  .handler(async ({ data }) => {
+    }
+  } else if (typeof input === "object" && input !== null && !Array.isArray(input)) {
+    parsed = input as Record<string, unknown>;
+  }
+
+  if (!parsed) {
+    return undefined;
+  }
+
+  const parts: string[] = [];
+
+  if (typeof parsed.firstName === "string" && parsed.firstName.trim().length > 0) {
+    const clean = sanitizeForPrompt(parsed.firstName, 100);
+    if (clean) {
+      parts.push(`Nome: ${clean}`);
+    }
+  }
+
+  if (typeof parsed.preferredTreatmentStyle === "string" && parsed.preferredTreatmentStyle.trim().length > 0) {
+    const clean = sanitizeForPrompt(parsed.preferredTreatmentStyle, 100);
+    if (clean) {
+      parts.push(`Estilo de Atendimento: ${clean}`);
+    }
+  }
+
+  if (typeof parsed.preferredAroma === "string" && parsed.preferredAroma.trim().length > 0) {
+    const clean = sanitizeForPrompt(parsed.preferredAroma, 100);
+    if (clean) {
+      parts.push(`Aroma Preferido: ${clean}`);
+    }
+  }
+
+  if (typeof parsed.communicationPreference === "string" && parsed.communicationPreference.trim().length > 0) {
+    const clean = sanitizeForPrompt(parsed.communicationPreference, 100);
+    if (clean) {
+      parts.push(`Preferência de Comunicação: ${clean}`);
+    }
+  }
+
+  if (parts.length === 0) {
+    return undefined;
+  }
+
+  return parts.join("; ");
+}
+
+export const serenaChat = createServerFn({ method: "POST" })
+  .validator(
+    (data: { messages: ChatMessage[]; userContext?: string; clientId?: string }) => {
+      if (!data || typeof data !== "object") throw new Error("payload inválido");
+      if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
+      if (data.messages.length === 0) throw new Error("messages vazio");
+      if (data.messages.length > MAX_MESSAGES) throw new Error("muitas mensagens");
+
+      const cleanMessages: ChatMessage[] = data.messages.map((m) => {
+        if (!m || (m.role !== "user" && m.role !== "assistant")) {
+          throw new Error("role inválido");
+        }
+        if (typeof m.content !== "string") throw new Error("content inválido");
+        return {
+          role: m.role,
+          content: sanitizeForPrompt(m.content, MAX_MESSAGE_CHARS),
+        };
+      });
+
+      const userContext =
+        typeof data.userContext === "string" && data.userContext.length > 0
+          ? sanitizeForPrompt(data.userContext, MAX_USER_CONTEXT_CHARS)
+          : undefined;
+
+      const clientId =
+        typeof data.clientId === "string" && isValidUuid(data.clientId)
+          ? data.clientId.trim()
+          : undefined;
+
+      return { messages: cleanMessages, userContext, clientId };
+    },
+  )
+  .handler(async ({ context, data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
 
+    let effectiveUserContext: string | undefined = undefined;
+
+    if (data.clientId) {
+      const SUPABASE_URL = process.env.SUPABASE_URL;
+      const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+
+      const supabaseClient =
+        (context as { supabase?: ReturnType<typeof createClient<Database>> })?.supabase ||
+        (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+          ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+          : undefined);
+
+      if (supabaseClient) {
+        try {
+          const hasAiMemoryConsent = await consentsRepo.hasActiveConsentType(
+            supabaseClient,
+            data.clientId,
+            "ai_memory",
+          );
+
+          if (hasAiMemoryConsent) {
+            // Scenario B: Active ai_memory consent -> Use sanitized context only
+            effectiveUserContext = sanitizePersonalizedContext(data.userContext);
+          }
+          // Scenario A: No active ai_memory consent -> effectiveUserContext stays undefined
+        } catch {
+          // Failure on consent verification defaults to Scenario A (no personalization)
+          effectiveUserContext = undefined;
+        }
+      }
+    }
+
     const messages = [
-      { role: "system", content: buildSystemPrompt(data.userContext) },
+      { role: "system", content: buildSystemPrompt(effectiveUserContext) },
       ...data.messages.slice(-16),
     ];
 

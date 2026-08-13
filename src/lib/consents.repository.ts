@@ -96,3 +96,28 @@ export async function revokeClientConsent(
 
   return data;
 }
+
+/**
+ * Verifica se um cliente possui consentimento ativo para uma finalidade específica (ex: 'ai_memory').
+ * Condição de ativo: granted = true AND revoked_at IS NULL.
+ */
+export async function hasActiveConsentType(
+  client: SupabaseClient<Database>,
+  clientId: string,
+  consentType: string,
+): Promise<boolean> {
+  const { data, error } = await client
+    .from("client_consents")
+    .select("id")
+    .eq("client_id", clientId)
+    .eq("consent_type", consentType)
+    .eq("granted", true)
+    .is("revoked_at", null)
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data?.length ?? 0) > 0;
+}
