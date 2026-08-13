@@ -33,9 +33,8 @@ type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
 export type AdminCalendarAppointment = Pick<
   AppointmentRow,
-  "id" | "full_name" | "phone" | "email" | "service" | "status"
+  "id" | "calendar_slot_id" | "client_id" | "full_name" | "phone" | "email" | "service" | "status"
 > & {
-  calendar_slot_id: string;
   crmStatus?: "no_client" | "ready_for_session" | "session_created";
   crmClient?: { id: string; full_name: string } | null;
 };
@@ -217,6 +216,7 @@ export async function listPublicCalendarSlots(
 /**
  * Returns administrative calendar slots in chronological order, including
  * the active appointment linked to each slot and its resolved CRM workflow status.
+ * Resolution is 100% batch-oriented (zero per-item N+1 queries).
  */
 export async function listAdminCalendarSlots(
   client: SupabaseClient<Database>,
@@ -240,9 +240,10 @@ export async function listAdminCalendarSlots(
 
   const slotIds = calendarSlots.map((slot) => slot.id);
 
+  // 1. Batch query appointments for all slots (1 query)
   const { data: appointments, error: appointmentsError } = await client
     .from("appointments")
-    .select("id,calendar_slot_id,full_name,phone,email,service,status")
+    .select("id,calendar_slot_id,client_id,full_name,phone,email,service,status")
     .in("calendar_slot_id", slotIds)
     .in("status", ["pending", "confirmed", "completed"]);
 
@@ -253,12 +254,74 @@ export async function listAdminCalendarSlots(
   const apptList = appointments ?? [];
   const apptIds = apptList.map((a) => a.id);
 
-  // Busca sessoes clinicas vinculadas a esses agendamentos
-  const { data: linkedSessions } = apptIds.length > 0
-    ? await client.from("client_sessions").select("appointment_id").in("appointment_id", apptIds)
-    : { data: [] };
+  // 2. Batch query linked clinical sessions for all appointments (1 query)
+  const { data: linkedSessions } =
+    apptIds.length > 0
+      ? await client.from("client_sessions").select("appointment_id").in("appointment_id", apptIds)
+      : { data: [] };
 
   const sessionApptIdSet = new Set((linkedSessions ?? []).map((s) => s.appointment_id));
+
+  // 3. Collect client_ids and fallback contact info for batch client resolution
+  const explicitClientIds = Array.from(
+    new Set(apptList.map((a) => a.client_id).filter((id): id is string => Boolean(id))),
+  );
+
+  const fallbackAppts = apptList.filter((a) => !a.client_id);
+  const cleanPhones = Array.from(
+    new Set(
+      fallbackAppts
+        .map((a) => a.phone?.replace(/\D/g, ""))
+        .filter((p): p is string => Boolean(p && p.length >= 8)),
+    ),
+  );
+  const cleanEmails = Array.from(
+    new Set(
+      fallbackAppts
+        .map((a) => a.email?.trim().toLowerCase())
+        .filter((e): e is string => Boolean(e && e.length > 3)),
+    ),
+  );
+
+  // 4. Batch query clients by explicit IDs (1 query)
+  const clientMap = new Map<string, { id: string; full_name: string }>();
+  if (explicitClientIds.length > 0) {
+    const { data: expClients } = await client
+      .from("clients")
+      .select("id,full_name")
+      .in("id", explicitClientIds);
+
+    for (const c of expClients ?? []) {
+      clientMap.set(c.id, { id: c.id, full_name: c.full_name });
+    }
+  }
+
+  // 5. Batch query fallback clients for appointments where client_id is NULL (1 batch query)
+  const fallbackClients: Array<{ id: string; full_name: string; phone: string; email: string | null }> = [];
+  if (cleanPhones.length > 0 || cleanEmails.length > 0) {
+    let query = client
+      .from("clients")
+      .select("id,full_name,phone,email")
+      .neq("status", "archived")
+      .is("deleted_at", null);
+
+    if (cleanPhones.length > 0 && cleanEmails.length > 0) {
+      query = query.or(
+        `phone.in.(${cleanPhones.join(",")}),email.in.(${cleanEmails.map((e) => `"${e}"`).join(",")})`,
+      );
+    } else if (cleanPhones.length > 0) {
+      query = query.in("phone", cleanPhones);
+    } else {
+      query = query.in("email", cleanEmails);
+    }
+
+    const { data: fbData } = await query;
+    if (fbData) {
+      fallbackClients.push(...fbData);
+    }
+  }
+
+  // 6. Enrich appointments in memory strictly without first-match wins or ambiguities (0 per-item queries)
   const appointmentBySlot = new Map<string, AdminCalendarAppointment>();
 
   for (const appointment of apptList) {
@@ -266,18 +329,56 @@ export async function listAdminCalendarSlots(
       continue;
     }
 
-    // Resolve cliente no CRM por contato
-    const crmClient = await findClientByAppointmentContact(
-      client,
-      appointment.phone,
-      appointment.email,
-    );
-
-    let crmStatus: "no_client" | "ready_for_session" | "session_created" = "no_client";
     let crmClientData: { id: string; full_name: string } | null = null;
 
-    if (crmClient) {
-      crmClientData = { id: crmClient.id, full_name: crmClient.full_name };
+    if (appointment.client_id) {
+      crmClientData = clientMap.get(appointment.client_id) ?? null;
+    }
+
+    if (!crmClientData) {
+      const p = appointment.phone?.replace(/\D/g, "") ?? "";
+      const e = appointment.email?.trim().toLowerCase() ?? "";
+
+      const phoneMatches =
+        p.length >= 8
+          ? fallbackClients.filter((c) => c.phone.replace(/\D/g, "").includes(p))
+          : [];
+      const emailMatches =
+        e.length > 3
+          ? fallbackClients.filter((c) => c.email?.trim().toLowerCase() === e)
+          : [];
+
+      let fbMatch: { id: string; full_name: string } | null = null;
+
+      if (p.length >= 8 && e.length > 3) {
+        // Both fields present: BOTH must resolve to the exact SAME unique client
+        if (
+          phoneMatches.length === 1 &&
+          emailMatches.length === 1 &&
+          phoneMatches[0].id === emailMatches[0].id
+        ) {
+          fbMatch = phoneMatches[0];
+        }
+      } else if (p.length >= 8 && e.length <= 3) {
+        // Only phone present on appointment
+        if (phoneMatches.length === 1) {
+          fbMatch = phoneMatches[0];
+        }
+      } else if (e.length > 3 && p.length < 8) {
+        // Only email present on appointment
+        if (emailMatches.length === 1) {
+          fbMatch = emailMatches[0];
+        }
+      }
+
+      if (fbMatch) {
+        crmClientData = { id: fbMatch.id, full_name: fbMatch.full_name };
+      }
+    }
+
+    let crmStatus: "no_client" | "ready_for_session" | "session_created" = "no_client";
+
+    if (crmClientData) {
       if (sessionApptIdSet.has(appointment.id) || appointment.status === "completed") {
         crmStatus = "session_created";
       } else {
@@ -288,6 +389,7 @@ export async function listAdminCalendarSlots(
     appointmentBySlot.set(appointment.calendar_slot_id, {
       id: appointment.id,
       calendar_slot_id: appointment.calendar_slot_id,
+      client_id: appointment.client_id,
       full_name: appointment.full_name,
       phone: appointment.phone,
       email: appointment.email,

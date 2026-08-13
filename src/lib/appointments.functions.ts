@@ -1,32 +1,42 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import * as appointmentsRepo from "@/lib/appointments.repository";
-import * as sessionsRepo from "@/lib/client-sessions.repository";
 import type {
   AppointmentRecord,
   AppointmentStatus,
+  ChangeAppointmentStatusParams,
   ChangeAppointmentStatusResult,
 } from "@/lib/appointments.repository";
-import type { ClientSessionRow, ClientSessionInsert } from "@/lib/client-sessions.repository";
+import type { ClientSessionInsert, ClientSessionRow } from "@/lib/client-sessions.repository";
+import { createClientSession } from "@/lib/client-sessions.repository";
+import { getClientById, type ClientRecord } from "@/lib/clients.repository";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isValidUuid(id?: string | null): boolean {
-  if (!id || typeof id !== "string") return false;
-  return UUID_REGEX.test(id.trim());
+function isValidUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 }
 
-export interface ConvertAppointmentToSessionInput {
+export type ChangeAppointmentStatusInput = {
+  appointmentId: string;
+  newStatus: AppointmentStatus;
+};
+
+export type UpdateAppointmentInternalNotesInput = {
+  appointmentId: string;
+  internalNotes: string;
+};
+
+export type ConvertAppointmentToSessionInput = {
   appointmentId: string;
   serviceId?: string | null;
   clientReport?: string | null;
   recommendations?: string | null;
   sessionStartedAt?: string | null;
   status?: string | null;
-}
+};
 
 /**
- * Server Function: Lista todos os agendamentos cadastrados (mais recentes primeiro).
+ * Server Function: Lista todos os agendamentos cadastrados.
+ * Exige autenticação de operador/admin via middleware.
  */
 export const listAppointmentsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -34,83 +44,73 @@ export const listAppointmentsFn = createServerFn({ method: "GET" })
     try {
       return await appointmentsRepo.listAppointments(context.supabase);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
+      console.error("[listAppointmentsFn] Error listing appointments:", error);
       throw new Error("Erro ao carregar a lista de agendamentos.");
     }
   });
 
 /**
- * Server Function: Obtém os detalhes de um agendamento específico por ID.
+ * Server Function: Detalhes de um agendamento específico por ID.
+ * Exige autenticação de operador/admin via middleware.
  */
 export const getAppointmentByIdFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown): { appointmentId: string } => {
     if (typeof input !== "object" || input === null) {
-      throw new Error("Parâmetros inválidos.");
+      throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
     const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
-
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
-
     return { appointmentId };
   })
-  .handler(async ({ context, data }): Promise<AppointmentRecord> => {
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context, data }): Promise<AppointmentRecord | null> => {
     try {
-      const appointment = await appointmentsRepo.getAppointmentById(
-        context.supabase,
-        data.appointmentId,
-      );
-      if (!appointment) {
-        throw new Error("Agendamento não encontrado.");
-      }
-      return appointment;
+      return await appointmentsRepo.getAppointmentById(context.supabase, data.appointmentId);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
+      console.error("[getAppointmentByIdFn] Error fetching appointment:", error);
       throw new Error("Erro ao buscar detalhes do agendamento.");
     }
   });
 
 /**
- * Server Function: Altera o status de um agendamento (confirmed, cancelled, completed).
+ * Server Function: Altera o status de um agendamento via RPC change_appointment_status.
+ * Exige autenticação de operador/admin via middleware.
  */
 export const changeAppointmentStatusFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
-    (input: unknown): { appointmentId: string; newStatus: AppointmentStatus } => {
-      if (typeof input !== "object" || input === null) {
-        throw new Error("Payload inválido.");
-      }
-      const params = input as Record<string, unknown>;
-      const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
-      const newStatus = typeof params.newStatus === "string" ? params.newStatus.trim() : "";
+  .validator((input: unknown): ChangeAppointmentStatusInput => {
+    if (typeof input !== "object" || input === null) {
+      throw new Error("Payload de alteração de status inválido.");
+    }
+    const params = input as Record<string, unknown>;
 
-      if (!isValidUuid(appointmentId)) {
-        throw new Error("ID do agendamento inválido.");
-      }
+    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    if (!isValidUuid(appointmentId)) {
+      throw new Error("ID do agendamento inválido.");
+    }
 
-      if (newStatus !== "confirmed" && newStatus !== "cancelled" && newStatus !== "completed") {
-        throw new Error("Novo status de agendamento inválido.");
-      }
+    const validStatuses: AppointmentStatus[] = ["confirmed", "cancelled", "completed"];
+    const newStatus = params.newStatus as AppointmentStatus;
+    if (!validStatuses.includes(newStatus)) {
+      throw new Error("Status de agendamento inválido. Use: confirmed, cancelled ou completed.");
+    }
 
-      return { appointmentId, newStatus };
-    },
-  )
+    return { appointmentId, newStatus };
+  })
   .handler(async ({ context, data }): Promise<ChangeAppointmentStatusResult> => {
     try {
-      return await appointmentsRepo.changeAppointmentStatus(context.supabase, {
+      const payload: ChangeAppointmentStatusParams = {
         appointmentId: data.appointmentId,
         newStatus: data.newStatus,
-      });
+      };
+      return await appointmentsRepo.changeAppointmentStatus(context.supabase, payload);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
+      console.error("[changeAppointmentStatusFn] Error changing appointment status:", error);
+      if (error instanceof Error && error.message) {
+        throw error;
       }
       throw new Error("Erro ao alterar o status do agendamento.");
     }
@@ -118,19 +118,24 @@ export const changeAppointmentStatusFn = createServerFn({ method: "POST" })
 
 /**
  * Server Function: Atualiza as notas internas de um agendamento.
+ * Exige autenticação de operador/admin via middleware.
  */
 export const updateAppointmentInternalNotesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: unknown): { appointmentId: string; internalNotes: string } => {
+  .validator((input: unknown): UpdateAppointmentInternalNotesInput => {
     if (typeof input !== "object" || input === null) {
-      throw new Error("Payload inválido.");
+      throw new Error("Payload de notas internas inválido.");
     }
     const params = input as Record<string, unknown>;
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
-    const internalNotes = typeof params.internalNotes === "string" ? params.internalNotes.trim() : "";
 
+    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
+    }
+
+    const internalNotes = typeof params.internalNotes === "string" ? params.internalNotes.trim() : "";
+    if (internalNotes.length > 2000) {
+      throw new Error("As notas internas devem ter no máximo 2000 caracteres.");
     }
 
     return { appointmentId, internalNotes };
@@ -144,8 +149,9 @@ export const updateAppointmentInternalNotesFn = createServerFn({ method: "POST" 
       );
       return { success: true };
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
+      console.error("[updateAppointmentInternalNotesFn] Error updating internal notes:", error);
+      if (error instanceof Error && error.message) {
+        throw error;
       }
       throw new Error("Erro ao atualizar as notas internas do agendamento.");
     }
@@ -153,7 +159,8 @@ export const updateAppointmentInternalNotesFn = createServerFn({ method: "POST" 
 
 /**
  * Server Function: Converte um agendamento em uma Sessão Clínica no CRM.
- * Resolve o cliente pelo contato (telefone/e-mail) via findClientByAppointmentContact.
+ * Prioridade 1: Utiliza appointment.client_id se preenchido.
+ * Prioridade 2: Recorre a findClientByAppointmentContact apenas se client_id for NULL.
  * Se não existir cliente no CRM, retorna erro de validação amigável. Nunca cria clientes automaticamente.
  */
 export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
@@ -214,16 +221,25 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
         throw new Error("Agendamento não encontrado.");
       }
 
-      // 2. Resolve o cliente no CRM usando telefone / e-mail do agendamento
-      const crmClient = await appointmentsRepo.findClientByAppointmentContact(
-        context.supabase,
-        appointment.phone,
-        appointment.email,
-      );
+      // 2. Resolve o cliente no CRM:
+      // Priority 1: Utiliza appointment.client_id se preenchido
+      // Priority 2: Fallback por contato se client_id for NULL
+      let crmClient: ClientRecord | null = null;
+      if (appointment.client_id) {
+        crmClient = await getClientById(context.supabase, appointment.client_id);
+      }
+
+      if (!crmClient) {
+        crmClient = await appointmentsRepo.findClientByAppointmentContact(
+          context.supabase,
+          appointment.phone,
+          appointment.email,
+        );
+      }
 
       if (!crmClient) {
         throw new Error(
-          "Nenhum cliente cadastrado no CRM foi localizado com este telefone ou e-mail. Por favor, cadastre o cliente no CRM antes de converter o agendamento em sessão.",
+          "Nenhum cliente cadastrado no CRM foi localizado para este agendamento. Por favor, cadastre o cliente no CRM antes de converter o agendamento em sessão.",
         );
       }
 
@@ -250,34 +266,29 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
         professional_user_id: context.user.id,
         session_started_at: sessionStartIso,
         status: finalStatus,
-        client_report: data.clientReport ?? appointment.notes ?? null,
-        professional_summary: `Sessão clínica gerada a partir do agendamento de ${appointment.service}.`,
+        client_report: data.clientReport ?? null,
         recommendations: data.recommendations ?? null,
       };
 
-      // 5. Reutiliza o repositório existente de client_sessions
-      const createdSession = await sessionsRepo.createClientSession(
-        context.supabase,
-        sessionPayload,
-      );
+      // 5. Cria a sessão clínica no repositório de client_sessions
+      const newSession = await createClientSession(context.supabase, sessionPayload, context.user.id);
 
-      // 6. Atualiza o agendamento para completed se ainda não estiver concluído
-      if (appointment.status !== "completed" && finalStatus === "completed") {
-        try {
-          await appointmentsRepo.changeAppointmentStatus(context.supabase, {
-            appointmentId: appointment.id,
-            newStatus: "completed",
-          });
-        } catch {
-          // Ignora falha de RPC se a transição não for permitida diretamente
-        }
+      // 6. Atualiza o status do agendamento para completed via RPC
+      try {
+        await appointmentsRepo.changeAppointmentStatus(context.supabase, {
+          appointmentId: appointment.id,
+          newStatus: "completed",
+        });
+      } catch (rpcError) {
+        console.warn("[convertAppointmentToSessionFn] Status update warning:", rpcError);
       }
 
-      return createdSession;
+      return newSession;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
+      console.error("[convertAppointmentToSessionFn] Conversion error:", error);
+      if (error instanceof Error && error.message) {
+        throw error;
       }
-      throw new Error("Erro ao converter agendamento em sessão clínica.");
+      throw new Error("Erro ao converter agendamento em Sessão Clínica.");
     }
   });
