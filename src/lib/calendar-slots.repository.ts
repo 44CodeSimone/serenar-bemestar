@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createProtectedPrebooking } from "@/lib/prebooking.functions";
+import { findClientByAppointmentContact } from "@/lib/appointments.repository";
 
 export type CalendarSlotRow = Database["public"]["Tables"]["calendar_slots"]["Row"];
 export type CalendarSlotInsert = Database["public"]["Tables"]["calendar_slots"]["Insert"];
@@ -32,9 +33,11 @@ type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
 export type AdminCalendarAppointment = Pick<
   AppointmentRow,
-  "id" | "full_name" | "service" | "status"
+  "id" | "full_name" | "phone" | "email" | "service" | "status"
 > & {
   calendar_slot_id: string;
+  crmStatus?: "no_client" | "ready_for_session" | "session_created";
+  crmClient?: { id: string; full_name: string } | null;
 };
 
 export type AdminCalendarSlot = Pick<
@@ -213,7 +216,7 @@ export async function listPublicCalendarSlots(
 
 /**
  * Returns administrative calendar slots in chronological order, including
- * the active appointment linked to each slot when one exists.
+ * the active appointment linked to each slot and its resolved CRM workflow status.
  */
 export async function listAdminCalendarSlots(
   client: SupabaseClient<Database>,
@@ -239,7 +242,7 @@ export async function listAdminCalendarSlots(
 
   const { data: appointments, error: appointmentsError } = await client
     .from("appointments")
-    .select("id,calendar_slot_id,full_name,service,status")
+    .select("id,calendar_slot_id,full_name,phone,email,service,status")
     .in("calendar_slot_id", slotIds)
     .in("status", ["pending", "confirmed", "completed"]);
 
@@ -247,19 +250,51 @@ export async function listAdminCalendarSlots(
     throw appointmentsError;
   }
 
+  const apptList = appointments ?? [];
+  const apptIds = apptList.map((a) => a.id);
+
+  // Busca sessoes clinicas vinculadas a esses agendamentos
+  const { data: linkedSessions } = apptIds.length > 0
+    ? await client.from("client_sessions").select("appointment_id").in("appointment_id", apptIds)
+    : { data: [] };
+
+  const sessionApptIdSet = new Set((linkedSessions ?? []).map((s) => s.appointment_id));
   const appointmentBySlot = new Map<string, AdminCalendarAppointment>();
 
-  for (const appointment of appointments ?? []) {
+  for (const appointment of apptList) {
     if (!appointment.calendar_slot_id) {
       continue;
+    }
+
+    // Resolve cliente no CRM por contato
+    const crmClient = await findClientByAppointmentContact(
+      client,
+      appointment.phone,
+      appointment.email,
+    );
+
+    let crmStatus: "no_client" | "ready_for_session" | "session_created" = "no_client";
+    let crmClientData: { id: string; full_name: string } | null = null;
+
+    if (crmClient) {
+      crmClientData = { id: crmClient.id, full_name: crmClient.full_name };
+      if (sessionApptIdSet.has(appointment.id) || appointment.status === "completed") {
+        crmStatus = "session_created";
+      } else {
+        crmStatus = "ready_for_session";
+      }
     }
 
     appointmentBySlot.set(appointment.calendar_slot_id, {
       id: appointment.id,
       calendar_slot_id: appointment.calendar_slot_id,
       full_name: appointment.full_name,
+      phone: appointment.phone,
+      email: appointment.email,
       service: appointment.service,
       status: appointment.status,
+      crmStatus,
+      crmClient: crmClientData,
     });
   }
 

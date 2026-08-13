@@ -16,7 +16,12 @@ import {
   Search,
   Trash2,
   X,
+  UserX,
+  UserPlus,
+  Sparkles,
+  Activity,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   listAdminCalendarSlotsFn,
   createCalendarSlotFn,
@@ -26,7 +31,11 @@ import {
   releaseCalendarSlotFn,
   deleteCalendarSlotFn,
 } from "@/lib/calendar-slots.functions";
-import type { AdminCalendarSlot } from "@/lib/calendar-slots.repository";
+import type { AdminCalendarAppointment, AdminCalendarSlot } from "@/lib/calendar-slots.repository";
+import { convertAppointmentToSessionFn } from "@/lib/appointments.functions";
+import AdminClientSessions from "@/components/admin/AdminClientSessions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const GOOGLE_CALENDAR_EMBED_URL =
   "https://calendar.google.com/calendar/embed?src=a84618791dd3fab9dcf13b2139591283a18dadefdb01d55cc65b5bfe5ef3b2c4%40group.calendar.google.com&ctz=America%2FSao_Paulo";
@@ -105,6 +114,7 @@ export default function AdminAgenda() {
   const blockSlot = useServerFn(blockCalendarSlotFn);
   const releaseSlot = useServerFn(releaseCalendarSlotFn);
   const deleteSlot = useServerFn(deleteCalendarSlotFn);
+  const convertToSession = useServerFn(convertAppointmentToSessionFn);
 
   // Estados locais
   const [slots, setSlots] = useState<AdminCalendarSlot[]>([]);
@@ -113,6 +123,7 @@ export default function AdminAgenda() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [convertingId, setConvertingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [googleCalendarLoaded, setGoogleCalendarLoaded] = useState(false);
@@ -122,6 +133,10 @@ export default function AdminAgenda() {
   const [search, setSearch] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const minimumDate = getSaoPauloDate();
+
+  // Estado do Modal de Sessões do Cliente
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [sessionsClient, setSessionsClient] = useState<{ id: string; name: string } | null>(null);
 
   const indicators = useMemo(
     () => ({
@@ -320,6 +335,33 @@ export default function AdminAgenda() {
       slot.id,
       () => deleteSlot({ data: { calendarSlotId: slot.id } }),
       "Horário excluído do site.",
+    );
+  }
+
+  // Action handers para o Workflow CRM (Status A, B e C)
+  async function handleConvertToSession(appointment: AdminCalendarAppointment) {
+    setConvertingId(appointment.id);
+    try {
+      await convertToSession({ data: { appointmentId: appointment.id } });
+      toast.success("Sessão Clínica criada com sucesso no CRM!");
+      await loadSlots(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao converter agendamento em sessão.";
+      toast.error(msg);
+    } finally {
+      setConvertingId(null);
+    }
+  }
+
+  function handleOpenSessions(crmClient: { id: string; full_name: string }) {
+    setSessionsClient({ id: crmClient.id, name: crmClient.full_name });
+    setIsSessionsOpen(true);
+  }
+
+  function handleCreateClientNotice(appointment: AdminCalendarAppointment) {
+    toast.info(
+      `Para converter este agendamento, cadastre o cliente no CRM (Aba Clientes). Dados: ${appointment.full_name} (${appointment.phone || "sem telefone"}).`,
+      { duration: 6000 },
     );
   }
 
@@ -675,6 +717,63 @@ export default function AdminAgenda() {
                     {slot.notes ? (
                       <p className="mt-1 text-xs text-muted-foreground">{slot.notes}</p>
                     ) : null}
+
+                    {/* Seção de Badges e Ações do Workflow CRM para Horários Reservados (Status A, B e C) */}
+                    {slot.appointment && (
+                      <div className="mt-3 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-cream/30 p-3 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          {slot.appointment.crmStatus === "no_client" ? (
+                            <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium">
+                              <UserX className="h-3.5 w-3.5 text-amber-600" /> Cliente não cadastrado
+                            </Badge>
+                          ) : slot.appointment.crmStatus === "session_created" ? (
+                            <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] gap-1 font-medium">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Sessão criada
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium">
+                              <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Pronto para Sessão
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div>
+                          {slot.appointment.crmStatus === "no_client" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCreateClientNotice(slot.appointment!)}
+                              className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 h-8 font-medium"
+                            >
+                              <UserPlus className="h-3.5 w-3.5" /> Cadastrar Cliente
+                            </Button>
+                          ) : slot.appointment.crmStatus === "session_created" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenSessions(slot.appointment!.crmClient!)}
+                              className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
+                            >
+                              <Eye className="h-3.5 w-3.5" /> Abrir Sessão
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => void handleConvertToSession(slot.appointment!)}
+                              disabled={convertingId === slot.appointment.id}
+                              className="btn-serena text-xs gap-1.5 h-8 font-medium"
+                            >
+                              {convertingId === slot.appointment.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Activity className="h-3.5 w-3.5" />
+                              )}
+                              Converter em Sessão
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2 lg:justify-end">
                     {busy ? (
@@ -765,6 +864,16 @@ export default function AdminAgenda() {
             );
           })}
         </div>
+      )}
+
+      {/* Modal de Sessões do Cliente Integrado */}
+      {sessionsClient && (
+        <AdminClientSessions
+          clientId={sessionsClient.id}
+          clientName={sessionsClient.name}
+          isOpen={isSessionsOpen}
+          onOpenChange={setIsSessionsOpen}
+        />
       )}
     </div>
   );
