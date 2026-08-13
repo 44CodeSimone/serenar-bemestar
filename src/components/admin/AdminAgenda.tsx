@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   AlertCircle,
   Ban,
@@ -17,15 +18,15 @@ import {
   X,
 } from "lucide-react";
 import {
-  blockCalendarSlot,
-  createCalendarSlot,
-  deleteCalendarSlot,
-  listAdminCalendarSlots,
-  releaseCalendarSlot,
-  toggleCalendarSlotPublished,
-  updateCalendarSlot,
-  type AdminCalendarSlot,
-} from "@/lib/calendar-slots.repository";
+  listAdminCalendarSlotsFn,
+  createCalendarSlotFn,
+  updateCalendarSlotFn,
+  toggleCalendarSlotPublishedFn,
+  blockCalendarSlotFn,
+  releaseCalendarSlotFn,
+  deleteCalendarSlotFn,
+} from "@/lib/calendar-slots.functions";
+import type { AdminCalendarSlot } from "@/lib/calendar-slots.repository";
 
 const GOOGLE_CALENDAR_EMBED_URL =
   "https://calendar.google.com/calendar/embed?src=a84618791dd3fab9dcf13b2139591283a18dadefdb01d55cc65b5bfe5ef3b2c4%40group.calendar.google.com&ctz=America%2FSao_Paulo";
@@ -96,6 +97,16 @@ const statusText: Record<AdminCalendarSlot["status"], string> = {
 };
 
 export default function AdminAgenda() {
+  // Server Functions via useServerFn
+  const fetchSlots = useServerFn(listAdminCalendarSlotsFn);
+  const createSlot = useServerFn(createCalendarSlotFn);
+  const updateSlot = useServerFn(updateCalendarSlotFn);
+  const publishSlot = useServerFn(toggleCalendarSlotPublishedFn);
+  const blockSlot = useServerFn(blockCalendarSlotFn);
+  const releaseSlot = useServerFn(releaseCalendarSlotFn);
+  const deleteSlot = useServerFn(deleteCalendarSlotFn);
+
+  // Estados locais
   const [slots, setSlots] = useState<AdminCalendarSlot[]>([]);
   const [form, setForm] = useState<SlotForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -174,7 +185,7 @@ export default function AdminAgenda() {
     setError(null);
 
     try {
-      setSlots(await listAdminCalendarSlots());
+      setSlots(await fetchSlots());
     } catch (loadError) {
       setError(errorMessage(loadError, "Não foi possível carregar os horários."));
     } finally {
@@ -232,21 +243,31 @@ export default function AdminAgenda() {
 
     setSaving(true);
 
-    const values = {
-      slot_date: form.slotDate,
-      start_time: form.startTime,
-      end_time: form.endTime,
-      professional_name: form.professionalName.trim() || null,
-      notes: form.notes.trim() || null,
-      published: form.published,
-    };
-
     try {
       if (editingId) {
-        await updateCalendarSlot(editingId, values);
+        await updateSlot({
+          data: {
+            calendarSlotId: editingId,
+            slotDate: form.slotDate,
+            startTime: form.startTime,
+            endTime: form.endTime,
+            professionalName: form.professionalName.trim() || null,
+            notes: form.notes.trim() || null,
+            published: form.published,
+          },
+        });
         setSuccess("Horário atualizado com sucesso.");
       } else {
-        await createCalendarSlot(values);
+        await createSlot({
+          data: {
+            slotDate: form.slotDate,
+            startTime: form.startTime,
+            endTime: form.endTime,
+            professionalName: form.professionalName.trim() || null,
+            notes: form.notes.trim() || null,
+            published: form.published,
+          },
+        });
         setSuccess("Horário criado com sucesso.");
       }
 
@@ -295,7 +316,11 @@ export default function AdminAgenda() {
       return;
     }
 
-    await runAction(slot.id, () => deleteCalendarSlot(slot.id), "Horário excluído do site.");
+    await runAction(
+      slot.id,
+      () => deleteSlot({ data: { calendarSlotId: slot.id } }),
+      "Horário excluído do site.",
+    );
   }
 
   return (
@@ -348,111 +373,90 @@ export default function AdminAgenda() {
           {!googleCalendarLoaded ? (
             <div className="absolute inset-0 grid place-items-center bg-cream/60">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-sage-deep" />
                 Carregando Google Calendar…
               </div>
             </div>
           ) : null}
           <iframe
             src={GOOGLE_CALENDAR_EMBED_URL}
-            title="Google Calendar da Serenar"
-            width="100%"
-            frameBorder="0"
-            scrolling="no"
-            loading="lazy"
-            referrerPolicy="strict-origin-when-cross-origin"
+            title="Agenda pública Serenar no Google Calendar"
             onLoad={() => setGoogleCalendarLoaded(true)}
-            className="block min-h-[560px] w-full md:min-h-[680px]"
+            className="h-[560px] w-full border-0"
           />
         </div>
       </section>
 
-      <div className="mb-5">
-        <h2 className="font-serif text-3xl text-sage-deep">Horários disponíveis no site</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Depois de conferir o Google Calendar, publique aqui apenas os horários livres que as
-          clientes poderão solicitar. Esta lista não é uma segunda agenda.
-        </p>
-      </div>
-
-      <section aria-label="Resumo dos horários" className="mb-6">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
-          {[
-            ["Total", indicators.total],
-            ["Disponíveis", indicators.available],
-            ["Reservados", indicators.reserved],
-            ["Bloqueados", indicators.blocked],
-            ["Ocultos", indicators.hidden],
-            ["Pendentes", indicators.pending],
-            ["Confirmados", indicators.confirmed],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="mt-1 font-serif text-3xl text-sage-deep">{value}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          “Oculto” indica publicação e pode também estar bloqueado.
-        </p>
+      <section
+        aria-label="Resumo dos horários"
+        className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7"
+      >
+        {[
+          ["Total", indicators.total],
+          ["Disponíveis", indicators.available],
+          ["Reservados", indicators.reserved],
+          ["Bloqueados", indicators.blocked],
+          ["Ocultos", indicators.hidden],
+          ["Pedidos pendentes", indicators.pending],
+          ["Confirmados", indicators.confirmed],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="mt-1 font-serif text-3xl text-sage-deep">{value}</p>
+          </div>
+        ))}
       </section>
 
       {error ? (
         <div
           role="alert"
-          className="mb-5 flex gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+          className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
         >
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
-            <p className="font-medium">Não foi possível concluir a operação.</p>
-            <p className="mt-1">{error}</p>
-          </div>
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{error}</p>
         </div>
       ) : null}
 
       {success ? (
         <div
           role="status"
-          className="mb-5 flex gap-3 rounded-2xl border border-sage/30 bg-sage/10 p-4 text-sm text-sage-deep"
+          className="mb-6 flex items-start gap-3 rounded-2xl border border-sage/30 bg-sage/10 p-4 text-sm text-sage-deep"
         >
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <p>{success}</p>
         </div>
       ) : null}
 
       <form
         ref={formRef}
-        onSubmit={submit}
-        className="mb-8 scroll-mt-6 rounded-2xl border border-border bg-card p-5 shadow-soft"
+        onSubmit={(event) => void submit(event)}
+        className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-soft"
       >
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-serif text-2xl text-sage-deep">
-              {editingId ? "Editar horário" : "Novo horário"}
+              {editingId ? "Editar horário" : "Disponibilizar novo horário"}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Novos horários começam ocultos. Depois de conferir os dados, publique-os para que
-              apareçam no site.
+            <p className="text-xs text-muted-foreground">
+              {editingId
+                ? "Altere as informações do horário selecionado."
+                : "Cadastre um novo horário para exibição no site."}
             </p>
           </div>
           {editingId ? (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" /> Cancelar edição
+            <button type="button" onClick={resetForm} className="btn-serena-outline text-xs">
+              Cancelar edição
             </button>
           ) : null}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-sage-deep">Data</span>
+            <span className="font-medium text-sage-deep">Data *</span>
             <input
               type="date"
               required
-              min={minimumDate}
+              min={editingId ? undefined : minimumDate}
               value={form.slotDate}
               onChange={(event) =>
                 setForm((current) => ({ ...current, slotDate: event.target.value }))
@@ -461,7 +465,7 @@ export default function AdminAgenda() {
             />
           </label>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-sage-deep">Início</span>
+            <span className="font-medium text-sage-deep">Horário inicial *</span>
             <input
               type="time"
               required
@@ -473,7 +477,7 @@ export default function AdminAgenda() {
             />
           </label>
           <label className="space-y-1.5 text-sm">
-            <span className="font-medium text-sage-deep">Término</span>
+            <span className="font-medium text-sage-deep">Horário final *</span>
             <input
               type="time"
               required
@@ -484,18 +488,15 @@ export default function AdminAgenda() {
               className="w-full rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-sage"
             />
           </label>
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-sage-deep">Profissional</span>
             <input
-              maxLength={200}
+              maxLength={100}
               value={form.professionalName}
               onChange={(event) =>
                 setForm((current) => ({ ...current, professionalName: event.target.value }))
               }
-              placeholder="Opcional"
+              placeholder="Ex.: Dra. Serena"
               className="w-full rounded-xl border border-border bg-background px-3 py-2 outline-none focus:border-sage"
             />
           </label>
@@ -686,7 +687,10 @@ export default function AdminAgenda() {
                             onClick={() =>
                               void runAction(
                                 slot.id,
-                                () => toggleCalendarSlotPublished(slot.id, !slot.published),
+                                () =>
+                                  publishSlot({
+                                    data: { calendarSlotId: slot.id, published: !slot.published },
+                                  }),
                                 slot.published
                                   ? "Horário ocultado do site."
                                   : "Horário publicado no site.",
@@ -708,7 +712,7 @@ export default function AdminAgenda() {
                             onClick={() =>
                               void runAction(
                                 slot.id,
-                                () => blockCalendarSlot(slot.id),
+                                () => blockSlot({ data: { calendarSlotId: slot.id } }),
                                 "Horário bloqueado.",
                               )
                             }
@@ -724,7 +728,7 @@ export default function AdminAgenda() {
                             onClick={() =>
                               void runAction(
                                 slot.id,
-                                () => releaseCalendarSlot(slot.id),
+                                () => releaseSlot({ data: { calendarSlotId: slot.id } }),
                                 "Horário liberado.",
                               )
                             }

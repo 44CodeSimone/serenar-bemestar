@@ -1,14 +1,11 @@
-// src/lib/calendar-slots.repository.ts
-import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createProtectedPrebooking } from "@/lib/prebooking.functions";
 
-/**
- * Public calendar slot row type from the generated Supabase typings.
- */
-type CalendarSlotRow = Database["public"]["Tables"]["calendar_slots"]["Row"];
-type CalendarSlotInsert = Database["public"]["Tables"]["calendar_slots"]["Insert"];
-type CalendarSlotUpdate = Database["public"]["Tables"]["calendar_slots"]["Update"];
+export type CalendarSlotRow = Database["public"]["Tables"]["calendar_slots"]["Row"];
+export type CalendarSlotInsert = Database["public"]["Tables"]["calendar_slots"]["Insert"];
+export type CalendarSlotUpdate = Database["public"]["Tables"]["calendar_slots"]["Update"];
+
 type MutableCalendarSlot = Pick<
   CalendarSlotRow,
   "slot_date" | "start_time" | "end_time" | "professional_name" | "status"
@@ -31,19 +28,28 @@ export type UpdateCalendarSlotParams = Omit<
   | "status"
 >;
 
-async function getAuthenticatedUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
+type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
-  if (error) {
-    throw error;
-  }
+export type AdminCalendarAppointment = Pick<
+  AppointmentRow,
+  "id" | "full_name" | "service" | "status"
+> & {
+  calendar_slot_id: string;
+};
 
-  if (!data.user) {
-    throw new Error("Usuário não autenticado.");
-  }
-
-  return data.user.id;
-}
+export type AdminCalendarSlot = Pick<
+  CalendarSlotRow,
+  | "id"
+  | "slot_date"
+  | "start_time"
+  | "end_time"
+  | "status"
+  | "published"
+  | "professional_name"
+  | "notes"
+> & {
+  appointment: AdminCalendarAppointment | null;
+};
 
 function getSaoPauloDateTime(): { date: string; time: string } {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -117,8 +123,11 @@ function normalizeProfessionalName(value: string | null | undefined): string | n
   return normalized === "" ? null : normalized;
 }
 
-async function getMutableCalendarSlot(calendarSlotId: string): Promise<MutableCalendarSlot> {
-  const { data, error } = await supabase
+async function getMutableCalendarSlot(
+  client: SupabaseClient<Database>,
+  calendarSlotId: string,
+): Promise<MutableCalendarSlot> {
+  const { data, error } = await client
     .from("calendar_slots")
     .select("slot_date,start_time,end_time,professional_name,status")
     .eq("id", calendarSlotId)
@@ -141,13 +150,14 @@ async function getMutableCalendarSlot(calendarSlotId: string): Promise<MutableCa
 }
 
 async function ensureNoSlotConflict(
+  client: SupabaseClient<Database>,
   slotDate: string,
   startTime: string,
   endTime: string,
   professionalName: string | null,
   ignoredSlotId?: string,
 ): Promise<void> {
-  let query = supabase
+  let query = client
     .from("calendar_slots")
     .select("id")
     .eq("slot_date", slotDate)
@@ -176,26 +186,13 @@ async function ensureNoSlotConflict(
 
 /**
  * Returns a list of publicly available calendar slots.
- *
- * The query selects only the fields required for the public UI:
- *   - id
- *   - slot_date
- *   - start_time
- *   - end_time
- *
- * Filters applied:
- *   - published = true
- *   - status = "open"
- *   - deleted_at IS NULL (handled implicitly by the RLS policy)
- *
- * Results are ordered by slot_date ascending, then start_time ascending.
  */
-export async function listPublicCalendarSlots(): Promise<
-  Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>
-> {
+export async function listPublicCalendarSlots(
+  client: SupabaseClient<Database>,
+): Promise<Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>> {
   const { date: today, time: currentTime } = getSaoPauloDateTime();
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("calendar_slots")
     .select("id,slot_date,start_time,end_time")
     .eq("published", true)
@@ -206,44 +203,22 @@ export async function listPublicCalendarSlots(): Promise<
     .order("start_time", { ascending: true });
 
   if (error) {
-    console.error("Failed to load public calendar slots:", error);
-    return [];
+    throw error;
   }
 
-  return (data ?? []).filter(
+  return ((data ?? []).filter(
     (slot) => slot.slot_date > today || slot.start_time > currentTime,
-  ) as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
+  ) as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>);
 }
-
-type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
-
-export type AdminCalendarAppointment = Pick<
-  AppointmentRow,
-  "id" | "full_name" | "service" | "status"
-> & {
-  calendar_slot_id: string;
-};
-
-export type AdminCalendarSlot = Pick<
-  CalendarSlotRow,
-  | "id"
-  | "slot_date"
-  | "start_time"
-  | "end_time"
-  | "status"
-  | "published"
-  | "professional_name"
-  | "notes"
-> & {
-  appointment: AdminCalendarAppointment | null;
-};
 
 /**
  * Returns administrative calendar slots in chronological order, including
  * the active appointment linked to each slot when one exists.
  */
-export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
-  const { data: slots, error: slotsError } = await supabase
+export async function listAdminCalendarSlots(
+  client: SupabaseClient<Database>,
+): Promise<AdminCalendarSlot[]> {
+  const { data: slots, error: slotsError } = await client
     .from("calendar_slots")
     .select("id,slot_date,start_time,end_time,status,published,professional_name,notes")
     .is("deleted_at", null)
@@ -262,7 +237,7 @@ export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
 
   const slotIds = calendarSlots.map((slot) => slot.id);
 
-  const { data: appointments, error: appointmentsError } = await supabase
+  const { data: appointments, error: appointmentsError } = await client
     .from("appointments")
     .select("id,calendar_slot_id,full_name,service,status")
     .in("calendar_slot_id", slotIds)
@@ -294,26 +269,30 @@ export async function listAdminCalendarSlots(): Promise<AdminCalendarSlot[]> {
   }));
 }
 
+/**
+ * Cadastra um novo horário na agenda.
+ */
 export async function createCalendarSlot(
+  client: SupabaseClient<Database>,
   params: CreateCalendarSlotParams,
+  userId?: string,
 ): Promise<CalendarSlotRow> {
   validateSlotDateTime(params.slot_date, params.start_time, params.end_time);
   const professionalName = normalizeProfessionalName(params.professional_name);
   await ensureNoSlotConflict(
+    client,
     params.slot_date,
     params.start_time,
     params.end_time,
     professionalName,
   );
 
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("calendar_slots")
     .insert({
       ...params,
       professional_name: professionalName,
-      created_by: userId,
-      updated_by: userId,
+      ...(userId ? { created_by: userId, updated_by: userId } : {}),
     })
     .select()
     .single();
@@ -325,11 +304,16 @@ export async function createCalendarSlot(
   return data;
 }
 
+/**
+ * Atualiza as informações de um horário existente na agenda.
+ */
 export async function updateCalendarSlot(
+  client: SupabaseClient<Database>,
   calendarSlotId: string,
   params: UpdateCalendarSlotParams,
+  userId?: string,
 ): Promise<CalendarSlotRow> {
-  const currentSlot = await getMutableCalendarSlot(calendarSlotId);
+  const currentSlot = await getMutableCalendarSlot(client, calendarSlotId);
   const slotDate = params.slot_date ?? currentSlot.slot_date;
   const startTime = params.start_time ?? currentSlot.start_time;
   const endTime = params.end_time ?? currentSlot.end_time;
@@ -339,10 +323,9 @@ export async function updateCalendarSlot(
       : currentSlot.professional_name;
 
   validateSlotDateTime(slotDate, startTime, endTime);
-  await ensureNoSlotConflict(slotDate, startTime, endTime, professionalName, calendarSlotId);
+  await ensureNoSlotConflict(client, slotDate, startTime, endTime, professionalName, calendarSlotId);
 
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("calendar_slots")
     .update({
       ...params,
@@ -351,7 +334,7 @@ export async function updateCalendarSlot(
         : {}),
       ...(typeof params.end_time === "string" ? { end_time: normalizeTime(params.end_time) } : {}),
       ...("professional_name" in params ? { professional_name: professionalName } : {}),
-      updated_by: userId,
+      ...(userId ? { updated_by: userId } : {}),
     })
     .eq("id", calendarSlotId)
     .neq("status", "reserved")
@@ -366,15 +349,19 @@ export async function updateCalendarSlot(
   return data;
 }
 
+/**
+ * Altera o status de publicação (visibilidade pública no site).
+ */
 export async function toggleCalendarSlotPublished(
+  client: SupabaseClient<Database>,
   calendarSlotId: string,
   published: boolean,
+  userId?: string,
 ): Promise<CalendarSlotRow> {
-  await getMutableCalendarSlot(calendarSlotId);
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+  await getMutableCalendarSlot(client, calendarSlotId);
+  const { data, error } = await client
     .from("calendar_slots")
-    .update({ published, updated_by: userId })
+    .update({ published, ...(userId ? { updated_by: userId } : {}) })
     .eq("id", calendarSlotId)
     .neq("status", "reserved")
     .is("deleted_at", null)
@@ -388,11 +375,17 @@ export async function toggleCalendarSlotPublished(
   return data;
 }
 
-export async function blockCalendarSlot(calendarSlotId: string): Promise<CalendarSlotRow> {
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+/**
+ * Bloqueia administrativamente um horário disponível.
+ */
+export async function blockCalendarSlot(
+  client: SupabaseClient<Database>,
+  calendarSlotId: string,
+  userId?: string,
+): Promise<CalendarSlotRow> {
+  const { data, error } = await client
     .from("calendar_slots")
-    .update({ status: "blocked", reserved_at: null, updated_by: userId })
+    .update({ status: "blocked", reserved_at: null, ...(userId ? { updated_by: userId } : {}) })
     .eq("id", calendarSlotId)
     .eq("status", "open")
     .is("deleted_at", null)
@@ -406,11 +399,17 @@ export async function blockCalendarSlot(calendarSlotId: string): Promise<Calenda
   return data;
 }
 
-export async function releaseCalendarSlot(calendarSlotId: string): Promise<CalendarSlotRow> {
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+/**
+ * Libera um horário bloqueado de volta para o estado disponível.
+ */
+export async function releaseCalendarSlot(
+  client: SupabaseClient<Database>,
+  calendarSlotId: string,
+  userId?: string,
+): Promise<CalendarSlotRow> {
+  const { data, error } = await client
     .from("calendar_slots")
-    .update({ status: "open", reserved_at: null, updated_by: userId })
+    .update({ status: "open", reserved_at: null, ...(userId ? { updated_by: userId } : {}) })
     .eq("id", calendarSlotId)
     .eq("status", "blocked")
     .is("deleted_at", null)
@@ -424,9 +423,16 @@ export async function releaseCalendarSlot(calendarSlotId: string): Promise<Calen
   return data;
 }
 
-export async function deleteCalendarSlot(calendarSlotId: string): Promise<void> {
+/**
+ * Exclui logicamente (soft delete) um horário da agenda.
+ */
+export async function deleteCalendarSlot(
+  client: SupabaseClient<Database>,
+  calendarSlotId: string,
+  userId?: string,
+): Promise<void> {
   try {
-    await getMutableCalendarSlot(calendarSlotId);
+    await getMutableCalendarSlot(client, calendarSlotId);
   } catch (error) {
     if (error instanceof Error && error.message.includes("agendamento ativo")) {
       throw new Error("Este horário possui agendamento ativo e não pode ser excluído.");
@@ -435,13 +441,12 @@ export async function deleteCalendarSlot(calendarSlotId: string): Promise<void> 
     throw error;
   }
 
-  const userId = await getAuthenticatedUserId();
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("calendar_slots")
     .update({
       deleted_at: new Date().toISOString(),
       published: false,
-      updated_by: userId,
+      ...(userId ? { updated_by: userId } : {}),
     })
     .eq("id", calendarSlotId)
     .neq("status", "reserved")

@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { Check, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { listPublicServices, type PublicService } from "@/lib/services.repository";
-import { listPublicCalendarSlots, createPrebooking } from "@/lib/calendar-slots.repository";
+import { createPrebooking } from "@/lib/calendar-slots.repository";
+import { listPublicCalendarSlotsFn } from "@/lib/calendar-slots.functions";
 import { SITE } from "@/lib/site-config";
 import { createSeoHead } from "@/lib/seo";
 import {
@@ -58,10 +60,12 @@ function Agendamento() {
   const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const turnstileWidgetRef = useRef<TurnstileWidgetHandle>(null);
 
+  const fetchPublicSlots = useServerFn(listPublicCalendarSlotsFn);
+
   /* ── Load services and calendar slots ──────────────── */
   const [services, setServices] = useState<PublicService[]>([]);
   const [calendarSlots, setCalendarSlots] = useState<
-    Awaited<ReturnType<typeof listPublicCalendarSlots>>
+    Awaited<ReturnType<typeof fetchPublicSlots>>
   >([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
@@ -73,7 +77,7 @@ function Agendamento() {
       try {
         const [servicesData, slotsData] = await Promise.all([
           listPublicServices(),
-          listPublicCalendarSlots(),
+          fetchPublicSlots(),
         ]);
         if (!cancelled) {
           setServices(servicesData);
@@ -201,7 +205,7 @@ function Agendamento() {
 
       if (message.includes("Horário indisponível")) {
         try {
-          const refreshedSlots = await listPublicCalendarSlots();
+          const refreshedSlots = await fetchPublicSlots();
           setCalendarSlots(refreshedSlots);
         } catch (refreshError) {
           console.error("Failed to refresh calendar slots:", refreshError);
