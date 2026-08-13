@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   CheckCircle2,
   ExternalLink,
@@ -8,15 +9,30 @@ import {
   MessageCircle,
   Search,
   X,
+  UserX,
+  UserPlus,
+  Sparkles,
+  Activity,
+  Eye,
+  AlertTriangle,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
-  changeAppointmentStatus,
-  listAppointments,
-  updateAppointmentInternalNotes,
-  type AppointmentRecord,
-  type AppointmentStatus,
+  listAppointmentsFn,
+  changeAppointmentStatusFn,
+  updateAppointmentInternalNotesFn,
+  convertAppointmentToSessionFn,
+} from "@/lib/appointments.functions";
+import type {
+  AppointmentRecord,
+  AppointmentStatus,
 } from "@/lib/appointments.repository";
+import { listClientsFn } from "@/lib/clients.functions";
+import type { ClientRecord } from "@/lib/clients.repository";
+import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import { SITE } from "@/lib/site-config";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const GOOGLE_CALENDAR_OPEN_URL =
   "https://calendar.google.com/calendar/u/0/r?cid=YTg0NjE4NzkxZGQzZmFiOWRjZjEzYjIxMzk1OTEyODNhMThkYWRlZmRiMDFkNTVjYzY1YjViZmU1ZWYzYjJjNEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&es=3&pli=1";
@@ -136,16 +152,31 @@ function compareAppointments(left: AppointmentRecord, right: AppointmentRecord):
 }
 
 export default function AdminAppointments() {
+  // Server Functions via useServerFn
+  const fetchAppointments = useServerFn(listAppointmentsFn);
+  const changeStatus = useServerFn(changeAppointmentStatusFn);
+  const updateNotes = useServerFn(updateAppointmentInternalNotesFn);
+  const convertToSession = useServerFn(convertAppointmentToSessionFn);
+  const fetchClients = useServerFn(listClientsFn);
+
+  // Estados
   const [items, setItems] = useState<AppointmentRecord[]>([]);
+  const [crmClients, setCrmClients] = useState<ClientRecord[]>([]);
+  const [convertedAppointments, setConvertedAppointments] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("todos");
   const [search, setSearch] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [convertingId, setConvertingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [noteStates, setNoteStates] = useState<Record<string, NoteSaveState>>({});
   const noteDraftsRef = useRef<Record<string, string>>({});
+
+  // Estado do Modal de Sessões do Cliente
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [sessionsClient, setSessionsClient] = useState<{ id: string; name: string } | null>(null);
 
   const indicators = useMemo(
     () => ({
@@ -186,11 +217,16 @@ export default function AdminAppointments() {
     setError(null);
 
     try {
-      const appointments = await listAppointments();
+      const [appointments, clientsRes] = await Promise.all([
+        fetchAppointments(),
+        fetchClients({ data: { pageSize: 500, includeArchived: false } }).catch(() => ({ data: [] })),
+      ]);
+
       const drafts = Object.fromEntries(
         appointments.map((appointment) => [appointment.id, appointment.internal_notes ?? ""]),
       );
       setItems(appointments);
+      setCrmClients(clientsRes.data || []);
       setNoteDrafts(drafts);
       noteDraftsRef.current = drafts;
     } catch {
@@ -233,9 +269,11 @@ export default function AdminAppointments() {
     setSuccess(null);
 
     try {
-      const result = await changeAppointmentStatus({
-        appointmentId: appointment.id,
-        newStatus: status,
+      const result = await changeStatus({
+        data: {
+          appointmentId: appointment.id,
+          newStatus: status,
+        },
       });
       setItems((currentItems) =>
         currentItems.map((item) =>
@@ -273,7 +311,12 @@ export default function AdminAppointments() {
     setNoteStates((currentStates) => ({ ...currentStates, [appointment.id]: "saving" }));
 
     try {
-      await updateAppointmentInternalNotes(appointment.id, draft);
+      await updateNotes({
+        data: {
+          appointmentId: appointment.id,
+          internalNotes: draft,
+        },
+      });
       setItems((currentItems) =>
         currentItems.map((item) =>
           item.id === appointment.id ? { ...item, internal_notes: draft } : item,
@@ -286,6 +329,59 @@ export default function AdminAppointments() {
     } catch {
       setNoteStates((currentStates) => ({ ...currentStates, [appointment.id]: "error" }));
     }
+  }
+
+  // Resolução do cliente no CRM por telefone ou e-mail
+  function resolveCrmClient(appointment: AppointmentRecord): ClientRecord | null {
+    const cleanPhone = appointment.phone.replace(/\D/g, "");
+    const cleanEmail = appointment.email?.trim().toLowerCase() ?? "";
+
+    if (cleanPhone.length >= 8) {
+      const match = crmClients.find((c) => c.phone.replace(/\D/g, "").includes(cleanPhone));
+      if (match) return match;
+    }
+
+    if (cleanEmail.length > 3) {
+      const match = crmClients.find((c) => c.email?.trim().toLowerCase() === cleanEmail);
+      if (match) return match;
+    }
+
+    return null;
+  }
+
+  // Handler de conversão do agendamento em Sessão Clínica
+  async function handleConvertToSession(appointment: AppointmentRecord) {
+    setConvertingId(appointment.id);
+    try {
+      await convertToSession({
+        data: {
+          appointmentId: appointment.id,
+        },
+      });
+
+      toast.success("Sessão Clínica criada com sucesso no CRM!");
+      setConvertedAppointments((prev) => ({ ...prev, [appointment.id]: true }));
+      await load();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao converter agendamento em sessão.";
+      toast.error(msg);
+    } finally {
+      setConvertingId(null);
+    }
+  }
+
+  // Abrir modal de sessões do cliente
+  function handleOpenClientSessions(client: ClientRecord) {
+    setSessionsClient({ id: client.id, name: client.full_name });
+    setIsSessionsOpen(true);
+  }
+
+  // Prompt para aviso de cliente não cadastrado
+  function handleCreateClientNotice(appointment: AppointmentRecord) {
+    toast.info(
+      `Para converter este agendamento, por favor cadastre o cliente no CRM (Aba Clientes). Dados: ${appointment.full_name} (${appointment.phone}).`,
+      { duration: 6000 },
+    );
   }
 
   return (
@@ -310,7 +406,7 @@ export default function AdminAppointments() {
         <p className="font-medium">O Google Calendar é a agenda oficial da equipe.</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Após confirmar um pedido no Serenar, registre manualmente o compromisso no Google
-          Calendar.
+          Calendar e converta o agendamento em Sessão Clínica no CRM.
         </p>
       </div>
 
@@ -419,6 +515,18 @@ export default function AdminAppointments() {
             const noteState = noteStates[appointment.id] ?? "idle";
             const processing = pendingId === appointment.id;
 
+            // Determinação do Estado de Workflow CRM (Status A, B ou C)
+            const matchedClient = resolveCrmClient(appointment);
+            const isSessionCreated =
+              Boolean(convertedAppointments[appointment.id]) || appointment.status === "completed";
+
+            const crmWorkflowStatus: "no_client" | "ready_for_session" | "session_created" =
+              !matchedClient
+                ? "no_client"
+                : isSessionCreated
+                  ? "session_created"
+                  : "ready_for_session";
+
             return (
               <article
                 key={appointment.id}
@@ -525,11 +633,77 @@ export default function AdminAppointments() {
                     ) : null}
                   </div>
                 </div>
+
+                {/* Seção de Integração de Workflow CRM (Status A, B ou C) */}
+                <div className="mt-4 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-cream/30 p-3 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    {crmWorkflowStatus === "no_client" ? (
+                      <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium">
+                        <UserX className="h-3.5 w-3.5 text-amber-600" /> CRM Client Required (Cliente Não Cadastrado)
+                      </Badge>
+                    ) : crmWorkflowStatus === "session_created" ? (
+                      <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] gap-1 font-medium">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Clinical Session Created (Sessão Criada)
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium">
+                        <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Ready for Session (Pronto p/ Sessão)
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div>
+                    {crmWorkflowStatus === "no_client" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCreateClientNotice(appointment)}
+                        className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 h-8 font-medium"
+                      >
+                        <UserPlus className="h-3.5 w-3.5" /> Create Client (Cadastrar Cliente)
+                      </Button>
+                    ) : crmWorkflowStatus === "session_created" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleOpenClientSessions(matchedClient)}
+                        className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Open Session (Ver Sessão Clínica)
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => void handleConvertToSession(appointment)}
+                        disabled={convertingId === appointment.id}
+                        className="btn-serena text-xs gap-1.5 h-8 font-medium"
+                      >
+                        {convertingId === appointment.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Activity className="h-3.5 w-3.5" />
+                        )}
+                        Convert to Clinical Session
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </article>
             );
           })}
         </div>
       )}
+
+      {/* Modal de Sessões do Cliente Integrado */}
+      {sessionsClient && (
+        <AdminClientSessions
+          clientId={sessionsClient.id}
+          clientName={sessionsClient.name}
+          isOpen={isSessionsOpen}
+          onOpenChange={setIsSessionsOpen}
+        />
+      )}
+
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
         Contato do espaço: {SITE.whatsapp.display}
       </p>
