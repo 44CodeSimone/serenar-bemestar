@@ -371,17 +371,24 @@ export default function AdminAppointments() {
   }
 
   // Abrir modal de sessões do cliente
-  function handleOpenClientSessions(client: ClientRecord) {
+  function handleOpenClientSessions(client?: ClientRecord | null) {
+    if (!client) {
+      toast.warning("Nenhum cliente cadastrado no CRM está associado a este agendamento.");
+      return;
+    }
     setSessionsClient({ id: client.id, name: client.full_name });
     setIsSessionsOpen(true);
   }
 
-  // Prompt para aviso de cliente não cadastrado
+  // Navegar para o fluxo oficial de cadastro de cliente no CRM com pré-preenchimento
   function handleCreateClientNotice(appointment: AppointmentRecord) {
-    toast.info(
-      `Para converter este agendamento, por favor cadastre o cliente no CRM (Aba Clientes). Dados: ${appointment.full_name} (${appointment.phone}).`,
-      { duration: 6000 },
-    );
+    const params = new URLSearchParams({
+      create: "true",
+      name: appointment.full_name,
+      phone: appointment.phone ?? "",
+      email: appointment.email ?? "",
+    });
+    window.location.href = `/admin/clientes?${params.toString()}`;
   }
 
   return (

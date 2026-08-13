@@ -133,7 +133,11 @@ export const createCalendarSlotFn = createServerFn({ method: "POST" })
         published: data.published,
       };
 
-      return await repo.createCalendarSlot(context.supabase, payload, context.user.id);
+      return await repo.createCalendarSlot(
+        context.supabase,
+        payload,
+        context.user?.id ?? context.userId,
+      );
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
@@ -215,7 +219,7 @@ export const updateCalendarSlotFn = createServerFn({ method: "POST" })
         context.supabase,
         data.calendarSlotId,
         payload,
-        context.user.id,
+        context.user?.id ?? context.userId,
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -250,7 +254,7 @@ export const toggleCalendarSlotPublishedFn = createServerFn({ method: "POST" })
         context.supabase,
         data.calendarSlotId,
         data.published,
-        context.user.id,
+        context.user?.id ?? context.userId,
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -280,7 +284,11 @@ export const blockCalendarSlotFn = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<CalendarSlotRow> => {
     try {
-      return await repo.blockCalendarSlot(context.supabase, data.calendarSlotId, context.user.id);
+      return await repo.blockCalendarSlot(
+        context.supabase,
+        data.calendarSlotId,
+        context.user?.id ?? context.userId,
+      );
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
@@ -309,7 +317,11 @@ export const releaseCalendarSlotFn = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<CalendarSlotRow> => {
     try {
-      return await repo.releaseCalendarSlot(context.supabase, data.calendarSlotId, context.user.id);
+      return await repo.releaseCalendarSlot(
+        context.supabase,
+        data.calendarSlotId,
+        context.user?.id ?? context.userId,
+      );
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
@@ -338,7 +350,11 @@ export const deleteCalendarSlotFn = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<{ success: boolean }> => {
     try {
-      await repo.deleteCalendarSlot(context.supabase, data.calendarSlotId, context.user.id);
+      await repo.deleteCalendarSlot(
+        context.supabase,
+        data.calendarSlotId,
+        context.user?.id ?? context.userId,
+      );
       return { success: true };
     } catch (error) {
       if (error instanceof Error) {

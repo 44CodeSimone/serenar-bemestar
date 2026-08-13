@@ -263,7 +263,7 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
         client_id: crmClient.id,
         appointment_id: appointment.id,
         service_id: data.serviceId ?? null,
-        professional_user_id: context.user.id,
+        professional_user_id: context.user?.id ?? context.userId,
         session_started_at: sessionStartIso,
         status: finalStatus,
         client_report: data.clientReport ?? null,
@@ -271,7 +271,11 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
       };
 
       // 5. Cria a sessão clínica no repositório de client_sessions
-      const newSession = await createClientSession(context.supabase, sessionPayload, context.user.id);
+      const newSession = await createClientSession(
+        context.supabase,
+        sessionPayload,
+        context.user?.id ?? context.userId,
+      );
 
       // 6. Atualiza o status do agendamento para completed via RPC
       try {

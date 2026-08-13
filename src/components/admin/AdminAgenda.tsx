@@ -353,16 +353,23 @@ export default function AdminAgenda() {
     }
   }
 
-  function handleOpenSessions(crmClient: { id: string; full_name: string }) {
+  function handleOpenSessions(crmClient?: { id: string; full_name: string } | null) {
+    if (!crmClient) {
+      toast.warning("Nenhum cliente cadastrado no CRM está associado a este agendamento.");
+      return;
+    }
     setSessionsClient({ id: crmClient.id, name: crmClient.full_name });
     setIsSessionsOpen(true);
   }
 
   function handleCreateClientNotice(appointment: AdminCalendarAppointment) {
-    toast.info(
-      `Para converter este agendamento, cadastre o cliente no CRM (Aba Clientes). Dados: ${appointment.full_name} (${appointment.phone || "sem telefone"}).`,
-      { duration: 6000 },
-    );
+    const params = new URLSearchParams({
+      create: "true",
+      name: appointment.full_name,
+      phone: appointment.phone ?? "",
+      email: appointment.email ?? "",
+    });
+    window.location.href = `/admin/clientes?${params.toString()}`;
   }
 
   return (
@@ -751,7 +758,7 @@ export default function AdminAgenda() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleOpenSessions(slot.appointment!.crmClient!)}
+                              onClick={() => handleOpenSessions(slot.appointment?.crmClient)}
                               className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
                             >
                               <Eye className="h-3.5 w-3.5" /> Abrir Sessão

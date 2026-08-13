@@ -257,6 +257,23 @@ export default function AdminClients() {
   const [actionLoading, setActionLoading] = useState(false);
   const [suspectedDuplicates, setSuspectedDuplicates] = useState<ClientRecord[]>([]);
 
+  // Suporte a pré-preenchimento via navegação externa (ex: Agendamentos / Agenda)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("create") === "true") {
+        setFormData({
+          ...EMPTY_FORM,
+          full_name: params.get("name") ?? "",
+          phone: params.get("phone") ?? "",
+          email: params.get("email") ?? "",
+        });
+        setIsCreateOpen(true);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []);
+
   // Debounce na busca
   useEffect(() => {
     const handler = setTimeout(() => {
