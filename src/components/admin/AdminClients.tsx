@@ -17,9 +17,11 @@ import {
   MapPin,
   FileText,
   ClipboardList,
+  Activity,
 } from "lucide-react";
 import { toast } from "sonner";
 import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
+import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import {
   listClientsFn,
   getClientByIdFn,
@@ -212,10 +214,17 @@ export default function AdminClients() {
   const [isDuplicateConfirmOpen, setIsDuplicateConfirmOpen] = useState(false);
   const [isAnamnesisOpen, setIsAnamnesisOpen] = useState(false);
   const [anamnesisClient, setAnamnesisClient] = useState<{ id: string; name: string } | null>(null);
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [sessionsClient, setSessionsClient] = useState<{ id: string; name: string } | null>(null);
 
   const handleOpenAnamnesis = (client: { id: string; full_name: string }) => {
     setAnamnesisClient({ id: client.id, name: client.full_name });
     setIsAnamnesisOpen(true);
+  };
+
+  const handleOpenSessions = (client: { id: string; full_name: string }) => {
+    setSessionsClient({ id: client.id, name: client.full_name });
+    setIsSessionsOpen(true);
   };
 
   // Formulário e registros selecionados
@@ -634,6 +643,15 @@ export default function AdminClients() {
                         >
                           <ClipboardList className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Atendimentos do Cliente"
+                          onClick={() => handleOpenSessions(client)}
+                          className="h-8 w-8 text-sage-deep hover:bg-blush"
+                        >
+                          <Activity className="h-4 w-4" />
+                        </Button>
 
                         {client.status !== "archived" ? (
                           <>
@@ -1040,18 +1058,32 @@ export default function AdminClients() {
             </div>
           )}
 
-          <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
-            <Button
-              onClick={() => {
-                if (selectedClient) {
-                  setIsDetailOpen(false);
-                  handleOpenAnamnesis(selectedClient);
-                }
-              }}
-              className="btn-serena gap-2 text-xs"
-            >
-              <ClipboardList className="h-4 w-4" /> Anamnese
-            </Button>
+          <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                onClick={() => {
+                  if (selectedClient) {
+                    setIsDetailOpen(false);
+                    handleOpenAnamnesis(selectedClient);
+                  }
+                }}
+                className="btn-serena gap-1.5 text-xs flex-1 sm:flex-initial"
+              >
+                <ClipboardList className="h-4 w-4" /> Anamnese
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedClient) {
+                    setIsDetailOpen(false);
+                    handleOpenSessions(selectedClient);
+                  }
+                }}
+                variant="outline"
+                className="gap-1.5 text-xs border-sage-deep/30 text-sage-deep hover:bg-cream flex-1 sm:flex-initial"
+              >
+                <Activity className="h-4 w-4" /> Atendimentos
+              </Button>
+            </div>
             <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
               Fechar
             </Button>
@@ -1125,6 +1157,15 @@ export default function AdminClients() {
           clientName={anamnesisClient.name}
           isOpen={isAnamnesisOpen}
           onOpenChange={setIsAnamnesisOpen}
+        />
+      )}
+      {/* Modal de Sessões Clínicas / Atendimentos Integrado */}
+      {sessionsClient && (
+        <AdminClientSessions
+          clientId={sessionsClient.id}
+          clientName={sessionsClient.name}
+          isOpen={isSessionsOpen}
+          onOpenChange={setIsSessionsOpen}
         />
       )}
     </div>
