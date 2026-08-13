@@ -74,6 +74,131 @@ export type Database = {
         }
         Relationships: []
       }
+      anamnesis_answers: {
+        Row: {
+          anamnesis_id: string
+          answer: Json
+          created_at: string
+          id: string
+          question_id: string
+          updated_at: string
+        }
+        Insert: {
+          anamnesis_id: string
+          answer: Json
+          created_at?: string
+          id?: string
+          question_id: string
+          updated_at?: string
+        }
+        Update: {
+          anamnesis_id?: string
+          answer?: Json
+          created_at?: string
+          id?: string
+          question_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_answers_anamnesis_id_fkey"
+            columns: ["anamnesis_id"]
+            isOneToOne: false
+            referencedRelation: "client_anamneses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "anamnesis_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anamnesis_questions: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_order: number
+          field_type: string
+          help_text: string | null
+          id: string
+          label: string
+          options: Json | null
+          question_key: string
+          required: boolean
+          template_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          field_type: string
+          help_text?: string | null
+          id?: string
+          label: string
+          options?: Json | null
+          question_key: string
+          required?: boolean
+          template_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          field_type?: string
+          help_text?: string | null
+          id?: string
+          label?: string
+          options?: Json | null
+          question_key?: string
+          required?: boolean
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_questions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "anamnesis_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anamnesis_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          retired_at: string | null
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          retired_at?: string | null
+          version?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          retired_at?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           calendar_slot_id: string | null
@@ -275,6 +400,70 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      client_anamneses: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          filled_by: string
+          guardian_id: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          filled_by: string
+          guardian_id?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          filled_by?: string
+          guardian_id?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_anamneses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_anamneses_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_anamneses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "anamnesis_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_consents: {
         Row: {
@@ -499,6 +688,79 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_sessions: {
+        Row: {
+          appointment_id: string | null
+          client_id: string
+          client_report: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          professional_summary: string | null
+          professional_user_id: string
+          recommendations: string | null
+          service_id: string | null
+          session_ended_at: string | null
+          session_started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id: string
+          client_report?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          professional_summary?: string | null
+          professional_user_id: string
+          recommendations?: string | null
+          service_id?: string | null
+          session_ended_at?: string | null
+          session_started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string
+          client_report?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          professional_summary?: string | null
+          professional_user_id?: string
+          recommendations?: string | null
+          service_id?: string | null
+          session_ended_at?: string | null
+          session_started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_sessions_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]
@@ -789,6 +1051,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      session_notes: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          note_type: string
+          session_id: string
+          supersedes_note_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          note_type: string
+          session_id: string
+          supersedes_note_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note_type?: string
+          session_id?: string
+          supersedes_note_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_notes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "client_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_notes_supersedes_note_id_fkey"
+            columns: ["supersedes_note_id"]
+            isOneToOne: false
+            referencedRelation: "session_notes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_images: {
         Row: {
