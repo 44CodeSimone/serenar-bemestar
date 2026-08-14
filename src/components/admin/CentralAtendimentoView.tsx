@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -25,6 +25,8 @@ import {
   PlayCircle,
   CheckCircle,
   XCircle,
+  Send,
+  Bot,
 } from "lucide-react";
 import {
   getAppointmentByIdFn,
@@ -35,14 +37,26 @@ import type { AppointmentRecord } from "@/lib/appointments.repository";
 import type { ClientRecord } from "@/lib/clients.repository";
 import { listClientSessionsFn } from "@/lib/client-sessions.functions";
 import type { ClientSessionRow } from "@/lib/client-sessions.repository";
+import { serenaChat } from "@/lib/serena.functions";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+
+// Módulos Clínicos Reutilizados
+import AdminClientSessions from "@/components/admin/AdminClientSessions";
+import AdminClientAnamnesis from "@/components/admin/AdminClientAnamnesis";
+import AdminClientDocuments from "@/components/admin/AdminClientDocuments";
+import AdminClientConsents from "@/components/admin/AdminClientConsents";
 
 interface CentralAtendimentoViewProps {
   appointmentId: string;
 }
+
+type SerenaMsg = { role: "user" | "assistant"; content: string };
 
 export default function CentralAtendimentoView({ appointmentId }: CentralAtendimentoViewProps) {
   const navigate = useNavigate();
@@ -52,6 +66,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
   const resolveClient = useServerFn(resolveAppointmentClientFn);
   const fetchSessions = useServerFn(listClientSessionsFn);
   const convertSession = useServerFn(convertAppointmentToSessionFn);
+  const fetchSerenaChat = useServerFn(serenaChat);
 
   // States
   const [appointment, setAppointment] = useState<AppointmentRecord | null>(null);
@@ -60,6 +75,21 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Estados dos Modais Clínicos Integrados
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [isAnamnesisOpen, setIsAnamnesisOpen] = useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [isConsentsOpen, setIsConsentsOpen] = useState(false);
+
+  // Estado da Abas Clínicas Inline
+  const [activeTab, setActiveTab] = useState("sessions");
+
+  // Estado do Copilot AI Serena
+  const [serenaMessages, setSerenaMessages] = useState<SerenaMsg[]>([]);
+  const [serenaInput, setSerenaInput] = useState("");
+  const [serenaLoading, setSerenaLoading] = useState(false);
+  const chatListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -94,6 +124,15 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         } else {
           setSession(null);
         }
+
+        // Mensagem inicial contextualizada da Serena Copilot
+        const patientName = resolvedClient?.full_name ?? apptData.full_name;
+        setSerenaMessages([
+          {
+            role: "assistant",
+            content: `Olá! Sou a Serena Copilot. Estou acompanhando o atendimento de **${patientName}** (${apptData.service}). Como posso auxiliar na conduta clínica hoje?`,
+          },
+        ]);
       } catch (err) {
         console.error("[CentralAtendimentoView] Error loading data:", err);
         setError("Erro ao carregar o contexto completo do atendimento.");
@@ -104,6 +143,12 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
     void loadData();
   }, [appointmentId, fetchAppointment, resolveClient, fetchSessions]);
+
+  useEffect(() => {
+    if (chatListRef.current) {
+      chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
+    }
+  }, [serenaMessages]);
 
   // Resolução do CRM Status
   const crmStatus: "no_client" | "ready_for_session" | "session_created" = !client
@@ -121,6 +166,26 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
           `Olá ${client?.full_name ?? appointment?.full_name ?? ""}, tudo bem? Entramos em contato a respeito do seu agendamento no Serenar Bem-Estar.`,
         )}`
       : null;
+
+  // Envio de mensagem para a Serena Copilot
+  const handleSendSerenaMessage = async (textToSend?: string) => {
+    const text = (textToSend ?? serenaInput).trim();
+    if (!text || serenaLoading) return;
+
+    const newMessages: SerenaMsg[] = [...serenaMessages, { role: "user", content: text }];
+    setSerenaMessages(newMessages);
+    setSerenaInput("");
+    setSerenaLoading(true);
+
+    try {
+      const res = await fetchSerenaChat({ data: { messages: newMessages } });
+      setSerenaMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
+    } catch (err) {
+      toast.error("Erro ao comunicar com a Serena Copilot.");
+    } finally {
+      setSerenaLoading(false);
+    }
+  };
 
   // Ação recomendada do Next Action Card
   const handleNextAction = async () => {
@@ -147,7 +212,6 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
           },
         });
         toast.success("Sessão Clínica iniciada e agendamento concluído com sucesso!");
-        // Recarrega os dados locais
         const updatedAppt = await fetchAppointment({ data: { appointmentId: appointment.id } });
         if (updatedAppt) setAppointment(updatedAppt);
         if (client) {
@@ -165,7 +229,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
     if (crmStatus === "session_created") {
       if (client) {
-        void navigate({ to: "/admin/clientes", search: { search: client.full_name } });
+        setIsSessionsOpen(true);
       } else {
         toast.info("Sessão já registrada no prontuário do paciente.");
       }
@@ -177,7 +241,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
       <div className="grid min-h-[65vh] place-items-center p-8">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <Loader2 className="h-8 w-8 animate-spin text-sage-deep" />
-          <p className="text-sm font-medium">Carregando Central do Atendimento…</p>
+          <p className="text-sm font-medium">Carregando Workspace Clínico…</p>
         </div>
       </div>
     );
@@ -206,16 +270,12 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
     );
   }
 
-  // 1. WORKFLOW PROGRESS STEPS
+  // WORKFLOW PROGRESS STEPS
   const isCancelled = appointment.status === "cancelled";
   const isCompleted = appointment.status === "completed" || Boolean(session);
 
   const steps = [
-    {
-      id: "agendamento",
-      label: "Agendamento",
-      status: isCancelled ? "cancelled" : "completed",
-    },
+    { id: "agendamento", label: "Agendamento", status: isCancelled ? "cancelled" : "completed" },
     {
       id: "cliente",
       label: "Cliente CRM",
@@ -238,21 +298,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             ? "current"
             : "pending",
     },
-    {
-      id: "anamnese",
-      label: "Anamnese",
-      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
-    },
-    {
-      id: "documentos",
-      label: "Docs / LGPD",
-      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
-    },
-    {
-      id: "concluido",
-      label: "Concluído",
-      status: isCancelled ? "cancelled" : isCompleted ? "completed" : "pending",
-    },
+    { id: "anamnese", label: "Anamnese", status: isCancelled ? "cancelled" : client ? "completed" : "pending" },
+    { id: "documentos", label: "Docs / LGPD", status: isCancelled ? "cancelled" : client ? "completed" : "pending" },
+    { id: "concluido", label: "Concluído", status: isCancelled ? "cancelled" : isCompleted ? "completed" : "pending" },
   ];
 
   return (
@@ -331,7 +379,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </CardContent>
       </Card>
 
-      {/* 3. NEXT ACTION CARD (CARD DE AÇÃO PRIMÁRIA RECOMENDADA) */}
+      {/* 3. NEXT ACTION CARD */}
       <Card
         className={`shadow-soft border-2 transition-all ${
           isCancelled
@@ -407,7 +455,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4" /> Ver Sessão Clínica / Prontuário <ChevronRight className="h-4 w-4" />
+                    <CheckCircle2 className="h-4 w-4" /> Gerenciar Sessão no Prontuário <ChevronRight className="h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -552,65 +600,243 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </Card>
       </div>
 
-      {/* 5. MÓDULOS CLÍNICOS INTEGRADOS (CARDS PLACEHOLDER REUTILIZADOS) */}
-      <div className="space-y-4">
-        <h2 className="font-serif text-xl text-sage-deep flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gold" /> Módulos Clínicos Integrados
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* PLACEHOLDER 1: CLINICAL SESSIONS */}
-          <Card className="border-dashed border-border bg-card/60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-serif text-sage-deep flex items-center gap-2">
-                <Activity className="h-4 w-4 text-sage" /> Sessão Clínica
+      {/* 5. UNIFIED CLINICAL WORKSPACE & AI SERENA COPILOT (GRID 2 COLUNAS) */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* COLUNA ESQUERDA: WORKSPACE CLÍNICO EM ABAS (8 COLS) */}
+        <div className="lg:col-span-8 space-y-4">
+          <Card className="shadow-soft border-border">
+            <CardHeader className="pb-3 border-b border-border/40 bg-card">
+              <CardTitle className="text-xl font-serif text-sage-deep flex items-center gap-2">
+                <FileText className="h-5 w-5 text-gold" /> Módulos Clínicos do Prontuário
               </CardTitle>
+              <CardDescription className="text-xs">
+                Gestão integrada de sessões, anamnese, documentos e termos LGPD
+              </CardDescription>
             </CardHeader>
-            <CardContent className="text-xs text-muted-foreground space-y-2">
-              <p className="font-medium text-foreground/80">Coming from existing module: client-sessions</p>
-              <p>Formulário de relato do paciente, conduta e recomendações da sessão.</p>
+            <CardContent className="pt-4">
+              {client ? (
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-4">
+                    <TabsTrigger value="sessions" className="text-xs gap-1.5">
+                      <Activity className="h-3.5 w-3.5" /> Sessões
+                    </TabsTrigger>
+                    <TabsTrigger value="anamnesis" className="text-xs gap-1.5">
+                      <ClipboardList className="h-3.5 w-3.5" /> Anamnese
+                    </TabsTrigger>
+                    <TabsTrigger value="documents" className="text-xs gap-1.5">
+                      <FolderOpen className="h-3.5 w-3.5" /> Documentos
+                    </TabsTrigger>
+                    <TabsTrigger value="lgpd" className="text-xs gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5" /> LGPD
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* ABA 1: SESSÕES CLÍNICAS */}
+                  <TabsContent value="sessions" className="space-y-3">
+                    <div className="bg-sage/5 p-4 rounded-xl border border-sage/20 flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-medium text-sage-deep">Histórico de Sessões Clínicas</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {session
+                            ? "Sessão clínica vinculada a este atendimento encontrada."
+                            : "Nenhuma sessão criada para este agendamento específico ainda."}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsSessionsOpen(true)}
+                        className="gap-1.5 bg-sage-deep hover:bg-sage-deep/90 text-white text-xs"
+                      >
+                        <Activity className="h-3.5 w-3.5" /> Abrir Prontuário Completo
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  {/* ABA 2: ANAMNESE */}
+                  <TabsContent value="anamnesis" className="space-y-3">
+                    <div className="bg-gold/5 p-4 rounded-xl border border-gold/20 flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-medium text-sage-deep">Ficha de Anamnese do Paciente</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Questionários de saúde, histórico e dados fisiológicos preenchidos.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsAnamnesisOpen(true)}
+                        className="gap-1.5 bg-gold hover:bg-gold/90 text-white text-xs"
+                      >
+                        <ClipboardList className="h-3.5 w-3.5" /> Ver / Preencher Anamnese
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  {/* ABA 3: DOCUMENTOS */}
+                  <TabsContent value="documents" className="space-y-3">
+                    <div className="bg-sky-50 p-4 rounded-xl border border-sky-200 flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-medium text-sky-900">Documentos e Anexos Clínicos</h4>
+                        <p className="text-xs text-sky-700 mt-0.5">
+                          Upload de exames, laudos e termos digitalizados anexados ao cliente.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsDocumentsOpen(true)}
+                        className="gap-1.5 bg-sky-700 hover:bg-sky-800 text-white text-xs"
+                      >
+                        <FolderOpen className="h-3.5 w-3.5" /> Gerenciar Anexos
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  {/* ABA 4: LGPD */}
+                  <TabsContent value="lgpd" className="space-y-3">
+                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 flex justify-between items-center">
+                      <div>
+                        <h4 className="text-sm font-medium text-emerald-900">Consentimentos LGPD</h4>
+                        <p className="text-xs text-emerald-700 mt-0.5">
+                          Termos de privacidade e aceites de tratamento de dados registrados.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsConsentsOpen(true)}
+                        className="gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5" /> Termos de Consentimento
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <div className="p-8 text-center bg-muted/20 rounded-xl border border-dashed border-border space-y-3">
+                  <UserX className="h-10 w-10 mx-auto text-amber-600/70" />
+                  <h3 className="font-serif text-lg text-sage-deep">Cliente Não Vinculado no CRM</h3>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                    Para acessar prontuários, fichas de anamnese, anexos de documentos e termos LGPD, cadastre o paciente no CRM através do Next Action Card.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={handleNextAction}
+                    className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" /> Cadastrar Cliente no CRM Agora
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
+        </div>
 
-          {/* PLACEHOLDER 2: ANAMNESIS */}
-          <Card className="border-dashed border-border bg-card/60">
-            <CardHeader className="pb-2">
+        {/* COLUNA DIREITA: AI SERENA COPILOT (4 COLS) */}
+        <div className="lg:col-span-4 space-y-4">
+          <Card className="shadow-soft border-sage/30 bg-card flex flex-col h-[520px]">
+            <CardHeader className="pb-3 border-b border-border/40 bg-sage/10">
               <CardTitle className="text-base font-serif text-sage-deep flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-gold" /> Ficha de Anamnese
+                <Bot className="h-5 w-5 text-gold animate-bounce" /> Serena AI Copilot
               </CardTitle>
+              <CardDescription className="text-xs text-foreground/70">
+                Assistente clínica contextualizada para o atendimento de{" "}
+                <span className="font-medium text-sage-deep">{client?.full_name ?? appointment.full_name}</span>
+              </CardDescription>
             </CardHeader>
-            <CardContent className="text-xs text-muted-foreground space-y-2">
-              <p className="font-medium text-foreground/80">Coming from existing module: anamnesis</p>
-              <p>Questionários preenchidos, dados de saúde e histórico clínico.</p>
-            </CardContent>
-          </Card>
+            <CardContent className="p-3 flex-1 flex flex-col justify-between overflow-hidden">
+              {/* HISTÓRICO DE MENSAGENS */}
+              <div ref={chatListRef} className="space-y-3 overflow-y-auto pr-1 flex-1 text-xs mb-3">
+                {serenaMessages.map((m, i) => (
+                  <div
+                    key={i}
+                    className={`p-3 rounded-xl max-w-[90%] leading-relaxed ${
+                      m.role === "user"
+                        ? "bg-sage-deep text-white ml-auto"
+                        : "bg-muted/50 border border-border/50 text-foreground"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                ))}
+                {serenaLoading && (
+                  <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-xl text-xs text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-sage-deep" />
+                    <span>Serena pensando…</span>
+                  </div>
+                )}
+              </div>
 
-          {/* PLACEHOLDER 3: DOCUMENTS */}
-          <Card className="border-dashed border-border bg-card/60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-serif text-sage-deep flex items-center gap-2">
-                <FolderOpen className="h-4 w-4 text-sky-600" /> Documentos & Anexos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs text-muted-foreground space-y-2">
-              <p className="font-medium text-foreground/80">Coming from existing module: documents</p>
-              <p>Upload e gestão de exames, laudos e termos anexados ao prontuário.</p>
-            </CardContent>
-          </Card>
+              {/* SUGESTÕES RÁPIDAS */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSendSerenaMessage(
+                      `Sugerir conduta pós-atendimento para a sessão de ${appointment.service}`,
+                    )
+                  }
+                  className="text-[11px] bg-sage/10 hover:bg-sage/20 text-sage-deep border border-sage/20 px-2 py-1 rounded-md transition-colors text-left"
+                >
+                  💡 Conduta para {appointment.service}
+                </button>
+              </div>
 
-          {/* PLACEHOLDER 4: LGPD */}
-          <Card className="border-dashed border-border bg-card/60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-serif text-sage-deep flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-600" /> Consentimento LGPD
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs text-muted-foreground space-y-2">
-              <p className="font-medium text-foreground/80">Coming from existing module: lgpd</p>
-              <p>Registro de termos de privacidade e aceites de consentimento do paciente.</p>
+              {/* FORMULÁRIO DE ENVIO */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void handleSendSerenaMessage();
+                }}
+                className="flex items-center gap-1.5 pt-2 border-t border-border/40"
+              >
+                <Input
+                  value={serenaInput}
+                  onChange={(e) => setSerenaInput(e.target.value)}
+                  placeholder="Perguntar à Serena Copilot…"
+                  className="text-xs h-9"
+                  disabled={serenaLoading}
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={serenaLoading || !serenaInput.trim()}
+                  className="h-9 w-9 p-0 shrink-0 bg-sage-deep hover:bg-sage-deep/90 text-white"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* RENDERIZAÇÃO DOS MODAIS CLÍNICOS AUTORITATIVOS QUANDO O CLIENTE EXISTIR */}
+      {client && (
+        <>
+          <AdminClientSessions
+            clientId={client.id}
+            clientName={client.full_name}
+            isOpen={isSessionsOpen}
+            onOpenChange={setIsSessionsOpen}
+          />
+          <AdminClientAnamnesis
+            clientId={client.id}
+            clientName={client.full_name}
+            isOpen={isAnamnesisOpen}
+            onOpenChange={setIsAnamnesisOpen}
+          />
+          <AdminClientDocuments
+            clientId={client.id}
+            clientName={client.full_name}
+            isOpen={isDocumentsOpen}
+            onOpenChange={setIsDocumentsOpen}
+          />
+          <AdminClientConsents
+            clientId={client.id}
+            clientName={client.full_name}
+            isOpen={isConsentsOpen}
+            onOpenChange={setIsConsentsOpen}
+          />
+        </>
+      )}
     </div>
   );
 }
