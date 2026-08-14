@@ -39,6 +39,7 @@ import { Route as AuthenticatedAdminClientesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminBlogRouteImport } from './routes/_authenticated/admin/blog'
 import { Route as AuthenticatedAdminAgendamentosRouteImport } from './routes/_authenticated/admin/agendamentos'
 import { Route as AuthenticatedAdminAgendaRouteImport } from './routes/_authenticated/admin/agenda'
+import { Route as AuthenticatedAdminAtendimentoAppointmentIdRouteImport } from './routes/_authenticated/admin/atendimento/$appointmentId'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
@@ -199,6 +200,12 @@ const AuthenticatedAdminAgendaRoute =
     path: '/agenda',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAtendimentoAppointmentIdRoute =
+  AuthenticatedAdminAtendimentoAppointmentIdRouteImport.update({
+    id: '/atendimento/$appointmentId',
+    path: '/atendimento/$appointmentId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
   '/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/atendimento/$appointmentId': typeof AuthenticatedAdminAtendimentoAppointmentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -260,6 +268,7 @@ export interface FileRoutesByTo {
   '/admin/servicos': typeof AuthenticatedAdminServicosRoute
   '/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/atendimento/$appointmentId': typeof AuthenticatedAdminAtendimentoAppointmentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -293,6 +302,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/servicos': typeof AuthenticatedAdminServicosRoute
   '/_authenticated/admin/whatsapp': typeof AuthenticatedAdminWhatsappRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/atendimento/$appointmentId': typeof AuthenticatedAdminAtendimentoAppointmentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/admin/servicos'
     | '/admin/whatsapp'
     | '/admin/'
+    | '/admin/atendimento/$appointmentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/servicos'
     | '/admin/whatsapp'
     | '/admin'
+    | '/admin/atendimento/$appointmentId'
   id:
     | '__root__'
     | '/'
@@ -388,6 +400,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/servicos'
     | '/_authenticated/admin/whatsapp'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/atendimento/$appointmentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -617,6 +630,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAgendaRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/atendimento/$appointmentId': {
+      id: '/_authenticated/admin/atendimento/$appointmentId'
+      path: '/atendimento/$appointmentId'
+      fullPath: '/admin/atendimento/$appointmentId'
+      preLoaderRoute: typeof AuthenticatedAdminAtendimentoAppointmentIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
@@ -636,6 +656,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminServicosRoute: typeof AuthenticatedAdminServicosRoute
   AuthenticatedAdminWhatsappRoute: typeof AuthenticatedAdminWhatsappRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminAtendimentoAppointmentIdRoute: typeof AuthenticatedAdminAtendimentoAppointmentIdRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
@@ -655,6 +676,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminServicosRoute: AuthenticatedAdminServicosRoute,
     AuthenticatedAdminWhatsappRoute: AuthenticatedAdminWhatsappRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+    AuthenticatedAdminAtendimentoAppointmentIdRoute:
+      AuthenticatedAdminAtendimentoAppointmentIdRoute,
   }
 
 const AuthenticatedAdminRouteRouteWithChildren =

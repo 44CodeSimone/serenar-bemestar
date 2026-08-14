@@ -296,3 +296,43 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
       throw new Error("Erro ao converter agendamento em Sessão Clínica.");
     }
   });
+
+/**
+ * Server Function: Resolve o cliente do CRM para um determinado agendamento.
+ * 1. Utiliza appointment.client_id se preenchido.
+ * 2. Recorre a findClientByAppointmentContact (servidor) se client_id for NULL.
+ * Nunca carrega a lista completa de clientes.
+ */
+export const resolveAppointmentClientFn = createServerFn({ method: "GET" })
+  .validator((input: unknown): { appointmentId: string } => {
+    if (typeof input !== "object" || input === null) {
+      throw new Error("Payload inválido.");
+    }
+    const params = input as Record<string, unknown>;
+    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    if (!isValidUuid(appointmentId)) {
+      throw new Error("ID do agendamento inválido.");
+    }
+    return { appointmentId };
+  })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context, data }): Promise<ClientRecord | null> => {
+    try {
+      const appointment = await appointmentsRepo.getAppointmentById(context.supabase, data.appointmentId);
+      if (!appointment) return null;
+
+      if (appointment.client_id) {
+        const client = await getClientById(context.supabase, appointment.client_id);
+        if (client) return client;
+      }
+
+      return await appointmentsRepo.findClientByAppointmentContact(
+        context.supabase,
+        appointment.phone,
+        appointment.email,
+      );
+    } catch (error) {
+      console.error("[resolveAppointmentClientFn] Error resolving client:", error);
+      throw new Error("Erro ao resolver cliente do agendamento.");
+    }
+  });
