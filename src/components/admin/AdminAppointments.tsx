@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
   ExternalLink,
@@ -660,39 +661,51 @@ export default function AdminAppointments() {
                   </div>
 
                   <div>
-                    {crmWorkflowStatus === "no_client" ? (
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {crmWorkflowStatus === "no_client" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCreateClientNotice(appointment)}
+                          className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 h-8 font-medium"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" /> Create Client (Cadastrar Cliente)
+                        </Button>
+                      ) : crmWorkflowStatus === "session_created" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenClientSessions(matchedClient)}
+                          className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Open Session (Ver Sessão Clínica)
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => void handleConvertToSession(appointment)}
+                          disabled={convertingId === appointment.id}
+                          className="btn-serena text-xs gap-1.5 h-8 font-medium"
+                        >
+                          {convertingId === appointment.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Activity className="h-3.5 w-3.5" />
+                          )}
+                          Convert to Session (Converter em Sessão)
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleCreateClientNotice(appointment)}
-                        className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 h-8 font-medium"
+                        asChild
+                        className="text-xs border-sage-deep/30 text-sage-deep hover:bg-sage/10 gap-1.5 h-8 font-medium"
                       >
-                        <UserPlus className="h-3.5 w-3.5" /> Create Client (Cadastrar Cliente)
+                        <Link to="/admin/atendimento/$appointmentId" params={{ appointmentId: appointment.id }}>
+                          <Sparkles className="h-3.5 w-3.5 text-gold" /> Abrir Central
+                        </Link>
                       </Button>
-                    ) : crmWorkflowStatus === "session_created" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenClientSessions(matchedClient)}
-                        className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
-                      >
-                        <Eye className="h-3.5 w-3.5" /> Open Session (Ver Sessão Clínica)
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => void handleConvertToSession(appointment)}
-                        disabled={convertingId === appointment.id}
-                        className="btn-serena text-xs gap-1.5 h-8 font-medium"
-                      >
-                        {convertingId === appointment.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Activity className="h-3.5 w-3.5" />
-                        )}
-                        Convert to Clinical Session
-                      </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               </article>

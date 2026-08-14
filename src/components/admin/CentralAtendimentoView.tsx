@@ -27,6 +27,9 @@ import {
   XCircle,
   Send,
   Bot,
+  ListFilter,
+  History,
+  AlertTriangle,
 } from "lucide-react";
 import {
   getAppointmentByIdFn,
@@ -250,10 +253,15 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
   if (error || !appointment) {
     return (
       <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-6">
-        <div>
+        <div className="flex items-center gap-2">
           <Button variant="ghost" asChild className="gap-2">
             <Link to="/admin/agenda">
               <ArrowLeft className="h-4 w-4" /> Voltar para a Agenda
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild className="gap-2">
+            <Link to="/admin/agendamentos">
+              <ListFilter className="h-4 w-4" /> Ver Agendamentos
             </Link>
           </Button>
         </div>
@@ -305,15 +313,27 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-      {/* 1. HEADER DA CENTRAL */}
+      {/* 1. HEADER DA CENTRAL COM ATALHOS RÁPIDOS */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-6">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Button variant="outline" size="sm" asChild className="gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
               <Link to="/admin/agenda">
                 <ArrowLeft className="h-3.5 w-3.5" /> Agenda
               </Link>
             </Button>
+            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
+              <Link to="/admin/agendamentos">
+                <ListFilter className="h-3.5 w-3.5" /> Agendamentos
+              </Link>
+            </Button>
+            {client && (
+              <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs border-sage-deep/30 text-sage-deep">
+                <Link to="/admin/clientes" search={{ search: client.full_name }}>
+                  <ExternalLink className="h-3.5 w-3.5" /> Cliente no CRM
+                </Link>
+              </Button>
+            )}
             <Badge variant="secondary" className="bg-sage/15 text-sage-deep font-medium">
               Central do Atendimento
             </Badge>
@@ -332,7 +352,59 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </div>
       </div>
 
-      {/* 2. WORKFLOW PROGRESS BAR */}
+      {/* 2. PENDING INDICATORS (INDICADORES DE PENDÊNCIAS OPERACIONAIS) */}
+      <div className="flex flex-wrap gap-2 items-center bg-card p-3.5 rounded-xl border border-border/80 shadow-soft">
+        <span className="text-xs font-serif text-sage-deep font-medium mr-2 flex items-center gap-1">
+          <ListFilter className="h-3.5 w-3.5 text-gold" /> Status de Conformidade Operacional:
+        </span>
+        {!client ? (
+          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Cliente Não Cadastrado
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Cliente Vinculado
+          </Badge>
+        )}
+
+        {!session && !isCompleted ? (
+          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+            <Clock className="h-3.5 w-3.5 text-amber-600" /> Sessão Pendente
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Sessão Registrada
+          </Badge>
+        )}
+
+        {!client ? (
+          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+            <ClipboardList className="h-3.5 w-3.5 text-amber-600" /> Anamnese Pendente
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Anamnese Habilitada
+          </Badge>
+        )}
+
+        {!client ? (
+          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-600" /> LGPD Pendente
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> LGPD Concedido
+          </Badge>
+        )}
+
+        {isCompleted && (
+          <Badge className="bg-emerald-700 text-white text-xs gap-1">
+            <CheckCircle className="h-3.5 w-3.5" /> Atendimento Concluído
+          </Badge>
+        )}
+      </div>
+
+      {/* 3. WORKFLOW PROGRESS BAR */}
       <Card className="shadow-soft border-border bg-card">
         <CardHeader className="pb-3 border-b border-border/40">
           <CardTitle className="text-sm font-serif text-sage-deep uppercase tracking-wider flex items-center gap-2">
@@ -379,7 +451,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </CardContent>
       </Card>
 
-      {/* 3. NEXT ACTION CARD */}
+      {/* 4. NEXT ACTION CARD (CARD DE AÇÃO PRIMÁRIA RECOMENDADA) */}
       <Card
         className={`shadow-soft border-2 transition-all ${
           isCancelled
@@ -464,7 +536,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </CardContent>
       </Card>
 
-      {/* 4. SUMÁRIO DO PACIENTE E AGENDAMENTO (2 COLUNAS RESPONSIVAS) */}
+      {/* 5. SUMÁRIO DO PACIENTE E AGENDAMENTO (2 COLUNAS RESPONSIVAS) */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* PATIENT SUMMARY */}
         <Card className="shadow-soft border-border">
@@ -600,7 +672,90 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
         </Card>
       </div>
 
-      {/* 5. UNIFIED CLINICAL WORKSPACE & AI SERENA COPILOT (GRID 2 COLUNAS) */}
+      {/* 6. LIGHTWEIGHT TIMELINE SUMMARY (LINHA DO TEMPO OPERACIONAL) */}
+      <Card className="shadow-soft border-border bg-card">
+        <CardHeader className="pb-3 border-b border-border/40">
+          <CardTitle className="text-base font-serif text-sage-deep flex items-center gap-2">
+            <History className="h-4 w-4 text-gold" /> Linha do Tempo do Atendimento
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Resumo dos marcos operacionais do pré-booking até o encerramento da sessão
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="relative border-l-2 border-sage/20 ml-4 space-y-6">
+            {/* MARCO 1: SOLICITAÇÃO */}
+            <div className="relative pl-6">
+              <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-sage-deep flex items-center justify-center text-[10px] text-white font-bold">
+                1
+              </div>
+              <h4 className="text-xs font-medium text-sage-deep">Solicitação de Pré-Agendamento</h4>
+              <p className="text-xs text-muted-foreground">
+                Data solicitada: {appointment.preferred_date ?? "A combinar"} ({appointment.preferred_time ?? "Sem horário fixo"}) · Serviço: {appointment.service}
+              </p>
+            </div>
+
+            {/* MARCO 2: CLIENTE CRM */}
+            <div className="relative pl-6">
+              <div
+                className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  client ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"
+                }`}
+              >
+                2
+              </div>
+              <h4 className="text-xs font-medium text-sage-deep">Vínculo com Cadastro do CRM</h4>
+              <p className="text-xs text-muted-foreground">
+                {client
+                  ? `Cliente registrado no CRM: ${client.full_name} (${client.phone})`
+                  : "Cliente ainda não cadastrado no CRM (Ação necessária no Next Action Card)."}
+              </p>
+            </div>
+
+            {/* MARCO 3: SESSÃO CLÍNICA */}
+            <div className="relative pl-6">
+              <div
+                className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  session ? "bg-emerald-600 text-white" : "bg-muted-foreground/40 text-white"
+                }`}
+              >
+                3
+              </div>
+              <h4 className="text-xs font-medium text-sage-deep">Sessão Clínica Prontuário</h4>
+              <p className="text-xs text-muted-foreground">
+                {session
+                  ? `Sessão clínica registrada em ${new Date(session.session_started_at).toLocaleDateString("pt-BR")}`
+                  : "Aguardando início / conversão em sessão clínica."}
+              </p>
+            </div>
+
+            {/* MARCO 4: ENCERRAMENTO */}
+            <div className="relative pl-6">
+              <div
+                className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  isCancelled
+                    ? "bg-destructive text-white"
+                    : isCompleted
+                      ? "bg-emerald-700 text-white"
+                      : "bg-muted-foreground/30 text-muted-foreground"
+                }`}
+              >
+                4
+              </div>
+              <h4 className="text-xs font-medium text-sage-deep">Conclusão do Atendimento</h4>
+              <p className="text-xs text-muted-foreground">
+                {isCancelled
+                  ? "Agendamento cancelado administrativamente."
+                  : isCompleted
+                    ? "Atendimento e sessão clínica concluídos com sucesso."
+                    : "Atendimento em andamento no workspace operacional."}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 7. UNIFIED CLINICAL WORKSPACE & AI SERENA COPILOT (GRID 2 COLUNAS) */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* COLUNA ESQUERDA: WORKSPACE CLÍNICO EM ABAS (8 COLS) */}
         <div className="lg:col-span-8 space-y-4">

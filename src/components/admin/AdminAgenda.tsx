@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import {
   AlertCircle,
   Ban,
@@ -778,6 +779,16 @@ export default function AdminAgenda() {
                               Converter em Sessão
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            asChild
+                            className="text-xs border-sage-deep/30 text-sage-deep hover:bg-sage/10 gap-1.5 h-8 font-medium ml-2"
+                          >
+                            <Link to="/admin/atendimento/$appointmentId" params={{ appointmentId: slot.appointment.id }}>
+                              <Sparkles className="h-3.5 w-3.5 text-gold" /> Abrir Central
+                            </Link>
+                          </Button>
                         </div>
                       </div>
                     )}
