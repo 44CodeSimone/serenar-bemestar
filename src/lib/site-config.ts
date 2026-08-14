@@ -9,7 +9,7 @@ export const SITE = {
   whatsapp: {
     raw: "+5549998177652",
     display: "WhatsApp",
-    link: "https://wa.me/5549998177652?text=Ol%C3%A1%20Mariah%21%20Conversei%20com%20a%20Seren%C3%A1%20no%20site%20e%20gostaria%20de%20receber%20uma%20orienta%C3%A7%C3%A3o.",
+    link: "https://wa.me/5549998177652?text=Ol%C3%A1%20Mariah%21%20Conversei%20com%20a%20Serenar%20no%20site%20e%20gostaria%20de%20receber%20uma%20orienta%C3%A7%C3%A3o.",
   },
   instagram: {
     handle: "@serenar_massoterapiaebemestar",
