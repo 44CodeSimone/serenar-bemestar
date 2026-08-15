@@ -31,6 +31,7 @@ import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import { SITE } from "@/lib/site-config";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { normalizeBrazilianPhone, sameBrazilianPhone } from "@/lib/phone";
 
 const GOOGLE_CALENDAR_OPEN_URL =
   "https://calendar.google.com/calendar/u/0/r?cid=YTg0NjE4NzkxZGQzZmFiOWRjZjEzYjIxMzk1OTEyODNhMThkYWRlZmRiMDFkNTVjYzY1YjViZmU1ZWYzYjJjNEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&es=3&pli=1";
@@ -65,18 +66,6 @@ function formatAppointmentDate(value: string | null): string {
   }
 
   return `${match[3]}/${match[2]}/${match[1]}`;
-}
-
-function normalizeBrazilianPhone(value: string): string | null {
-  const digits = value.replace(/\D/g, "");
-  const normalized =
-    digits.length === 10 || digits.length === 11
-      ? `55${digits}`
-      : digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
-        ? digits
-        : "";
-
-  return /^55\d{10,11}$/.test(normalized) ? normalized : null;
 }
 
 function buildClientWhatsappUrl(appointment: AppointmentRecord): string | null {
@@ -334,11 +323,12 @@ export default function AdminAppointments() {
 
   // Resolução do cliente no CRM por telefone ou e-mail
   function resolveCrmClient(appointment: AppointmentRecord): ClientRecord | null {
-    const cleanPhone = appointment.phone.replace(/\D/g, "");
     const cleanEmail = appointment.email?.trim().toLowerCase() ?? "";
 
-    if (cleanPhone.length >= 8) {
-      const match = crmClients.find((c) => c.phone.replace(/\D/g, "").includes(cleanPhone));
+    if (normalizeBrazilianPhone(appointment.phone)) {
+      const match = crmClients.find((client) =>
+        sameBrazilianPhone(client.phone, appointment.phone),
+      );
       if (match) return match;
     }
 
@@ -522,6 +512,7 @@ export default function AdminAppointments() {
             const whatsappUrl = buildClientWhatsappUrl(appointment);
             const noteState = noteStates[appointment.id] ?? "idle";
             const processing = pendingId === appointment.id;
+            const isCancelled = appointment.status === "cancelled";
 
             // Determinação do Estado de Workflow CRM (Status A, B ou C)
             const matchedClient = resolveCrmClient(appointment);
@@ -645,40 +636,45 @@ export default function AdminAppointments() {
                 {/* Seção de Integração de Workflow CRM (Status A, B ou C) */}
                 <div className="mt-4 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-cream/30 p-3 rounded-xl">
                   <div className="flex items-center gap-2">
-                    {crmWorkflowStatus === "no_client" ? (
+                    {isCancelled ? (
+                      <Badge
+                        variant="outline"
+                        className="border-slate-300 bg-slate-100 text-slate-700 text-[11px] gap-1 font-medium"
+                      >
+                        <UserX className="h-3.5 w-3.5" /> Cancelado — histórico preservado
+                      </Badge>
+                    ) : crmWorkflowStatus === "no_client" ? (
                       <Badge
                         variant="outline"
                         className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium"
                       >
-                        <UserX className="h-3.5 w-3.5 text-amber-600" /> CRM Client Required
-                        (Cliente Não Cadastrado)
+                        <UserX className="h-3.5 w-3.5 text-amber-600" /> Cliente não cadastrado no
+                        CRM (Cliente Não Cadastrado)
                       </Badge>
                     ) : crmWorkflowStatus === "session_created" ? (
                       <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] gap-1 font-medium">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Clinical Session Created (Sessão
-                        Criada)
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Sessão clínica criada
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
                         className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Ready for Session (Pronto
-                        p/ Sessão)
+                        <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Pronto para sessão
                       </Badge>
                     )}
                   </div>
 
                   <div>
                     <div className="flex flex-wrap gap-2 items-center">
-                      {crmWorkflowStatus === "no_client" ? (
+                      {isCancelled ? null : crmWorkflowStatus === "no_client" ? (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleCreateClientNotice(appointment)}
                           className="text-xs border-amber-300 text-amber-900 hover:bg-amber-100 gap-1.5 h-8 font-medium"
                         >
-                          <UserPlus className="h-3.5 w-3.5" /> Create Client (Cadastrar Cliente)
+                          <UserPlus className="h-3.5 w-3.5" /> Cadastrar cliente
                         </Button>
                       ) : crmWorkflowStatus === "session_created" ? (
                         <Button
@@ -687,7 +683,7 @@ export default function AdminAppointments() {
                           onClick={() => handleOpenClientSessions(matchedClient)}
                           className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-50 gap-1.5 h-8 font-medium"
                         >
-                          <Eye className="h-3.5 w-3.5" /> Open Session (Ver Sessão Clínica)
+                          <Eye className="h-3.5 w-3.5" /> Ver sessão clínica
                         </Button>
                       ) : (
                         <Button
@@ -701,7 +697,7 @@ export default function AdminAppointments() {
                           ) : (
                             <Activity className="h-3.5 w-3.5" />
                           )}
-                          Convert to Session (Converter em Sessão)
+                          Converter em sessão
                         </Button>
                       )}
                       <Button

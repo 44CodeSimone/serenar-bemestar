@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { ClientRecord } from "@/lib/clients.repository";
+import { normalizeBrazilianPhone } from "@/lib/phone";
 
 export type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 export type AppointmentInsert = Database["public"]["Tables"]["appointments"]["Insert"];
@@ -115,21 +116,22 @@ export async function findClientByAppointmentContact(
   phone?: string | null,
   email?: string | null,
 ): Promise<ClientRecord | null> {
-  const cleanPhone = phone?.replace(/\D/g, "") ?? "";
+  const cleanPhone = normalizeBrazilianPhone(phone);
   const cleanEmail = email?.trim().toLowerCase() ?? "";
 
   // 1. Busca por telefone
-  if (cleanPhone.length >= 8) {
-    const { data: phoneMatch, error: phoneErr } = await client
+  if (cleanPhone) {
+    const { data: candidates, error: phoneErr } = await client
       .from("clients")
       .select("*")
-      .ilike("phone", `%${cleanPhone}%`)
       .neq("status", "archived")
-      .limit(1)
-      .maybeSingle();
+      .is("deleted_at", null);
 
-    if (!phoneErr && phoneMatch) {
-      return phoneMatch;
+    if (!phoneErr) {
+      const phoneMatches = (candidates ?? []).filter(
+        (candidate) => normalizeBrazilianPhone(candidate.phone) === cleanPhone,
+      );
+      if (phoneMatches.length === 1) return phoneMatches[0];
     }
   }
 
