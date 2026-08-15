@@ -186,7 +186,7 @@ export const serenaChat = createServerFn({ method: "POST" })
       const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
       const supabaseClient =
-        (context as { supabase?: ReturnType<typeof createClient<Database>> })?.supabase ||
+        (context as unknown as { supabase?: ReturnType<typeof createClient<Database>> })?.supabase ||
         (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
           ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
           : undefined);

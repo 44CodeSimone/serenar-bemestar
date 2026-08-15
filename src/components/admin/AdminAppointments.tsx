@@ -286,6 +286,7 @@ export default function AdminAppointments() {
         confirmed: "Pedido confirmado. Registre agora este compromisso no Google Calendar.",
         cancelled: "Pedido cancelado e horário liberado conforme a disponibilidade publicada.",
         completed: "Atendimento marcado como concluído.",
+        pending: "Pedido movido para pendente.",
       };
       setSuccess(successMessages[status]);
     } catch {

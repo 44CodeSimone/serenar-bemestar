@@ -17,7 +17,7 @@ function isValidUuid(id: string): boolean {
 
 export type ChangeAppointmentStatusInput = {
   appointmentId: string;
-  newStatus: AppointmentStatus;
+  newStatus: Exclude<AppointmentStatus, "pending">;
 };
 
 export type UpdateAppointmentInternalNotesInput = {
@@ -92,8 +92,12 @@ export const changeAppointmentStatusFn = createServerFn({ method: "POST" })
       throw new Error("ID do agendamento inválido.");
     }
 
-    const validStatuses: AppointmentStatus[] = ["confirmed", "cancelled", "completed"];
-    const newStatus = params.newStatus as AppointmentStatus;
+    const validStatuses: Array<Exclude<AppointmentStatus, "pending">> = [
+      "confirmed",
+      "cancelled",
+      "completed",
+    ];
+    const newStatus = params.newStatus as Exclude<AppointmentStatus, "pending">;
     if (!validStatuses.includes(newStatus)) {
       throw new Error("Status de agendamento inválido. Use: confirmed, cancelled ou completed.");
     }
@@ -274,7 +278,6 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
       const newSession = await createClientSession(
         context.supabase,
         sessionPayload,
-        context.user?.id ?? context.userId,
       );
 
       // 6. Atualiza o status do agendamento para completed via RPC

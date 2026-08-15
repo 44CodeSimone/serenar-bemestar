@@ -392,7 +392,7 @@ export function AdminClientAnamnesis({
         return (
           <Input
             type="number"
-            value={typeof rawVal === "number" ? rawVal : rawVal === 0 ? 0 : rawVal ?? ""}
+            value={typeof rawVal === "number" ? rawVal : (rawVal as string | undefined) ?? ""}
             onChange={(e) =>
               handleAnswerChange(
                 q.id,
