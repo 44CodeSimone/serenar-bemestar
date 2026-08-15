@@ -750,13 +750,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "client_sessions_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "my_appointments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "client_sessions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -1367,94 +1360,7 @@ export type Database = {
       }
     }
     Views: {
-      my_appointments: {
-        Row: {
-          calendar_slot_id: string | null
-          cancelled_at: string | null
-          client_id: string | null
-          confirmed_at: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          notes: string | null
-          phone: string | null
-          preferred_date: string | null
-          preferred_time: string | null
-          service: string | null
-          service_id: string | null
-          source: string | null
-          status: string | null
-          submitted_at: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          calendar_slot_id?: string | null
-          cancelled_at?: string | null
-          client_id?: string | null
-          confirmed_at?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          notes?: string | null
-          phone?: string | null
-          preferred_date?: string | null
-          preferred_time?: string | null
-          service?: string | null
-          service_id?: string | null
-          source?: string | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          calendar_slot_id?: string | null
-          cancelled_at?: string | null
-          client_id?: string | null
-          confirmed_at?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          notes?: string | null
-          phone?: string | null
-          preferred_date?: string | null
-          preferred_time?: string | null
-          service?: string | null
-          service_id?: string | null
-          source?: string | null
-          status?: string | null
-          submitted_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_appointments_calendar_slot"
-            columns: ["calendar_slot_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_slots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       change_appointment_status: {
@@ -1480,6 +1386,25 @@ export type Database = {
           appointment_id: string
           appointment_status: string
           slot_id: string
+          submitted_at: string
+        }[]
+      }
+      get_my_appointments: {
+        Args: never
+        Returns: {
+          calendar_slot_id: string
+          cancelled_at: string
+          confirmed_at: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string
+          phone: string
+          preferred_date: string
+          preferred_time: string
+          service: string
+          status: string
           submitted_at: string
         }[]
       }
