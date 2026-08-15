@@ -1389,6 +1389,25 @@ export type Database = {
           submitted_at: string
         }[]
       }
+      get_my_appointments: {
+        Args: never
+        Returns: {
+          calendar_slot_id: string
+          cancelled_at: string
+          confirmed_at: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string
+          phone: string
+          preferred_date: string
+          preferred_time: string
+          service: string
+          status: string
+          submitted_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

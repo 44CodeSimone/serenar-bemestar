@@ -68,7 +68,8 @@ export const listAdminCalendarSlotsFn = createServerFn({ method: "GET" })
 export const listPublicCalendarSlotsFn = createServerFn({ method: "GET" }).handler(
   async ({ context }): Promise<Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>> => {
     try {
-      return await repo.listPublicCalendarSlots(context.supabase);
+      const ctx = context as unknown as { supabase: Parameters<typeof repo.listPublicCalendarSlots>[0] };
+      return await repo.listPublicCalendarSlots(ctx.supabase);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
