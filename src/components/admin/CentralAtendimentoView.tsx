@@ -41,6 +41,9 @@ import type { ClientRecord } from "@/lib/clients.repository";
 import { listClientSessionsFn } from "@/lib/client-sessions.functions";
 import type { ClientSessionRow } from "@/lib/client-sessions.repository";
 import { serenaChat } from "@/lib/serena.functions";
+import { listClientAnamnesesFn } from "@/lib/anamnesis.functions";
+import { getActiveConsentsFn } from "@/lib/lgpd.functions";
+import { normalizeBrazilianPhone } from "@/lib/phone";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +73,8 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
   const fetchSessions = useServerFn(listClientSessionsFn);
   const convertSession = useServerFn(convertAppointmentToSessionFn);
   const fetchSerenaChat = useServerFn(serenaChat);
+  const fetchAnamneses = useServerFn(listClientAnamnesesFn);
+  const fetchActiveConsents = useServerFn(getActiveConsentsFn);
 
   // States
   const [appointment, setAppointment] = useState<AppointmentRecord | null>(null);
@@ -78,6 +83,8 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasAnamnesis, setHasAnamnesis] = useState(false);
+  const [hasLgpdConsent, setHasLgpdConsent] = useState(false);
 
   // Estados dos Modais Clínicos Integrados
   const [isSessionsOpen, setIsSessionsOpen] = useState(false);
@@ -121,13 +128,19 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
         // 3. Carrega as sessões clínicas se o cliente for resolvido
         if (resolvedClient) {
-          const sessions = await fetchSessions({ data: { clientId: resolvedClient.id } }).catch(
-            () => [],
-          );
+          const [sessions, anamneses, consents] = await Promise.all([
+            fetchSessions({ data: { clientId: resolvedClient.id } }).catch(() => []),
+            fetchAnamneses({ data: { clientId: resolvedClient.id } }).catch(() => []),
+            fetchActiveConsents({ data: { clientId: resolvedClient.id } }).catch(() => []),
+          ]);
           const matchedSession = sessions.find((s) => s.appointment_id === apptData.id) ?? null;
           setSession(matchedSession);
+          setHasAnamnesis(anamneses.length > 0);
+          setHasLgpdConsent(consents.length > 0);
         } else {
           setSession(null);
+          setHasAnamnesis(false);
+          setHasLgpdConsent(false);
         }
 
         // Mensagem inicial contextualizada da Serena Copilot
@@ -147,7 +160,14 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
     }
 
     void loadData();
-  }, [appointmentId, fetchAppointment, resolveClient, fetchSessions]);
+  }, [
+    appointmentId,
+    fetchAppointment,
+    resolveClient,
+    fetchSessions,
+    fetchAnamneses,
+    fetchActiveConsents,
+  ]);
 
   useEffect(() => {
     if (chatListRef.current) {
@@ -164,13 +184,12 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
   // Formatação do link do WhatsApp
   const rawPhone = client?.phone ?? appointment?.phone ?? "";
-  const cleanPhoneDigits = rawPhone.replace(/\D/g, "");
-  const whatsappUrl =
-    cleanPhoneDigits.length >= 10
-      ? `https://wa.me/55${cleanPhoneDigits}?text=${encodeURIComponent(
-          `Olá ${client?.full_name ?? appointment?.full_name ?? ""}, tudo bem? Entramos em contato a respeito do seu agendamento no Serenar Bem-Estar.`,
-        )}`
-      : null;
+  const cleanPhoneDigits = normalizeBrazilianPhone(rawPhone);
+  const whatsappUrl = cleanPhoneDigits
+    ? `https://wa.me/${cleanPhoneDigits}?text=${encodeURIComponent(
+        `Olá ${client?.full_name ?? appointment?.full_name ?? ""}, tudo bem? Entramos em contato a respeito do seu agendamento no Serenar Bem-Estar.`,
+      )}`
+    : null;
 
   // Envio de mensagem para a Serena Copilot
   const handleSendSerenaMessage = async (textToSend?: string) => {
@@ -313,12 +332,24 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
     {
       id: "anamnese",
       label: "Anamnese",
-      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
+      status: isCancelled
+        ? "cancelled"
+        : hasAnamnesis
+          ? "completed"
+          : client
+            ? "current"
+            : "pending",
     },
     {
       id: "documentos",
       label: "Docs / LGPD",
-      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
+      status: isCancelled
+        ? "cancelled"
+        : hasLgpdConsent
+          ? "completed"
+          : client
+            ? "current"
+            : "pending",
     },
     {
       id: "concluido",
@@ -413,7 +444,7 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
           </Badge>
         )}
 
-        {!client ? (
+        {!hasAnamnesis ? (
           <Badge
             variant="outline"
             className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"
@@ -425,11 +456,11 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             variant="outline"
             className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1"
           >
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Anamnese Habilitada
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Anamnese Registrada
           </Badge>
         )}
 
-        {!client ? (
+        {!hasLgpdConsent ? (
           <Badge
             variant="outline"
             className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"

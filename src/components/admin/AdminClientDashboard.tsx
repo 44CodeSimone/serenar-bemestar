@@ -61,6 +61,8 @@ function formatPhone(phone?: string | null): string {
 
 function formatDateDisplay(dateStr?: string | null): string {
   if (!dateStr) return "-";
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString("pt-BR", {
