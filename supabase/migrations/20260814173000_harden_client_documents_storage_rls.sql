@@ -1,14 +1,11 @@
 -- Migration: Harden Storage RLS for client-documents private bucket
 -- Ensures least-privilege access for administrative/staff users
 
--- 1. Enable RLS on storage.objects if not already enabled
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
--- 2. Drop existing policies on client-documents if any exist to ensure clean state
+-- 1. Drop existing policies on client-documents if any exist to ensure clean state
 DROP POLICY IF EXISTS "Staff read client-documents" ON storage.objects;
 DROP POLICY IF EXISTS "Staff upload client-documents" ON storage.objects;
 
--- 3. SELECT policy: Authorized staff can read objects and generate signed URLs for client-documents bucket
+-- 2. SELECT policy: Authorized staff can read objects and generate signed URLs for client-documents bucket
 CREATE POLICY "Staff read client-documents"
 ON storage.objects
 FOR SELECT
@@ -18,7 +15,7 @@ USING (
     AND public.is_staff(auth.uid())
 );
 
--- 4. INSERT policy: Authorized staff can upload objects to client-documents bucket
+-- 3. INSERT policy: Authorized staff can upload objects to client-documents bucket
 CREATE POLICY "Staff upload client-documents"
 ON storage.objects
 FOR INSERT
