@@ -5,12 +5,7 @@ import type { ClientDocumentRow } from "@/lib/documents.repository";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_MIME_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-] as const;
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
 
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
 
@@ -65,22 +60,20 @@ export interface SignedUrlResult {
  */
 export const listClientDocumentsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(
-    (input: unknown): { clientId: string; includeArchived?: boolean } => {
-      if (typeof input !== "object" || input === null) {
-        throw new Error("Parâmetros de consulta inválidos.");
-      }
-      const params = input as Record<string, unknown>;
-      const clientId = typeof params.clientId === "string" ? params.clientId.trim() : "";
-      const includeArchived = Boolean(params.includeArchived);
+  .validator((input: unknown): { clientId: string; includeArchived?: boolean } => {
+    if (typeof input !== "object" || input === null) {
+      throw new Error("Parâmetros de consulta inválidos.");
+    }
+    const params = input as Record<string, unknown>;
+    const clientId = typeof params.clientId === "string" ? params.clientId.trim() : "";
+    const includeArchived = Boolean(params.includeArchived);
 
-      if (!isValidUuid(clientId)) {
-        throw new Error("ID do cliente inválido.");
-      }
+    if (!isValidUuid(clientId)) {
+      throw new Error("ID do cliente inválido.");
+    }
 
-      return { clientId, includeArchived };
-    },
-  )
+    return { clientId, includeArchived };
+  })
   .handler(async ({ context, data }): Promise<ClientDocumentRow[]> => {
     try {
       return await docsRepo.listClientDocuments(
@@ -117,12 +110,14 @@ export const uploadClientDocumentFn = createServerFn({ method: "POST" })
       throw new Error("Tipo de documento não informado.");
     }
 
-    const originalFilename = typeof params.originalFilename === "string" ? params.originalFilename.trim() : "";
+    const originalFilename =
+      typeof params.originalFilename === "string" ? params.originalFilename.trim() : "";
     if (!originalFilename) {
       throw new Error("Nome do arquivo original não informado.");
     }
 
-    const mimeType = typeof params.mimeType === "string" ? params.mimeType.trim().toLowerCase() : "";
+    const mimeType =
+      typeof params.mimeType === "string" ? params.mimeType.trim().toLowerCase() : "";
     if (!ALLOWED_MIME_TYPES.includes(mimeType as AllowedMimeType)) {
       throw new Error(
         `Tipo de arquivo não permitido (${mimeType}). Formatos aceitos: PDF, JPEG, PNG e WEBP.`,

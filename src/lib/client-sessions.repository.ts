@@ -24,11 +24,12 @@ export interface ClientSessionWithDetails extends ClientSessionRow {
  */
 export async function listClientSessions(
   supabase: SupabaseClient<Database>,
-  clientId: string
+  clientId: string,
 ): Promise<ClientSessionWithDetails[]> {
   const { data, error } = await supabase
     .from("client_sessions")
-    .select(`
+    .select(
+      `
       *,
       service:services (
         id,
@@ -38,7 +39,8 @@ export async function listClientSessions(
         id,
         preferred_date
       )
-    `)
+    `,
+    )
     .eq("client_id", clientId)
     .order("session_started_at", { ascending: false });
 
@@ -54,11 +56,12 @@ export async function listClientSessions(
  */
 export async function getClientSessionById(
   supabase: SupabaseClient<Database>,
-  sessionId: string
+  sessionId: string,
 ): Promise<ClientSessionWithDetails | null> {
   const { data, error } = await supabase
     .from("client_sessions")
-    .select(`
+    .select(
+      `
       *,
       service:services (
         id,
@@ -68,7 +71,8 @@ export async function getClientSessionById(
         id,
         preferred_date
       )
-    `)
+    `,
+    )
     .eq("id", sessionId)
     .maybeSingle();
 
@@ -84,13 +88,9 @@ export async function getClientSessionById(
  */
 export async function createClientSession(
   supabase: SupabaseClient<Database>,
-  payload: ClientSessionInsert
+  payload: ClientSessionInsert,
 ): Promise<ClientSessionRow> {
-  const { data, error } = await supabase
-    .from("client_sessions")
-    .insert(payload)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("client_sessions").insert(payload).select().single();
 
   if (error) {
     throw new Error(`Erro ao criar sessão clínica: ${error.message}`);
@@ -105,7 +105,7 @@ export async function createClientSession(
 export async function updateClientSession(
   supabase: SupabaseClient<Database>,
   sessionId: string,
-  payload: ClientSessionUpdate
+  payload: ClientSessionUpdate,
 ): Promise<ClientSessionRow> {
   const updateData: ClientSessionUpdate = {
     ...payload,
@@ -131,13 +131,9 @@ export async function updateClientSession(
  */
 export async function insertSessionNote(
   supabase: SupabaseClient<Database>,
-  payload: SessionNoteInsert
+  payload: SessionNoteInsert,
 ): Promise<SessionNoteRow> {
-  const { data, error } = await supabase
-    .from("session_notes")
-    .insert(payload)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("session_notes").insert(payload).select().single();
 
   if (error) {
     throw new Error(`Erro ao registrar nota de evolução: ${error.message}`);
@@ -151,7 +147,7 @@ export async function insertSessionNote(
  */
 export async function listSessionNotes(
   supabase: SupabaseClient<Database>,
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionNoteRow[]> {
   const { data, error } = await supabase
     .from("session_notes")

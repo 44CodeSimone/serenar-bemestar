@@ -121,7 +121,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
 
         // 3. Carrega as sessões clínicas se o cliente for resolvido
         if (resolvedClient) {
-          const sessions = await fetchSessions({ data: { clientId: resolvedClient.id } }).catch(() => []);
+          const sessions = await fetchSessions({ data: { clientId: resolvedClient.id } }).catch(
+            () => [],
+          );
           const matchedSession = sessions.find((s) => s.appointment_id === apptData.id) ?? null;
           setSession(matchedSession);
         } else {
@@ -270,7 +272,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             <AlertCircle className="h-8 w-8 shrink-0 text-destructive" />
             <div>
               <h2 className="font-serif text-xl font-medium">Atendimento Não Localizado</h2>
-              <p className="mt-1 text-sm">{error ?? "O identificador solicitado é inválido ou não existe."}</p>
+              <p className="mt-1 text-sm">
+                {error ?? "O identificador solicitado é inválido ou não existe."}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -306,9 +310,21 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             ? "current"
             : "pending",
     },
-    { id: "anamnese", label: "Anamnese", status: isCancelled ? "cancelled" : client ? "completed" : "pending" },
-    { id: "documentos", label: "Docs / LGPD", status: isCancelled ? "cancelled" : client ? "completed" : "pending" },
-    { id: "concluido", label: "Concluído", status: isCancelled ? "cancelled" : isCompleted ? "completed" : "pending" },
+    {
+      id: "anamnese",
+      label: "Anamnese",
+      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
+    },
+    {
+      id: "documentos",
+      label: "Docs / LGPD",
+      status: isCancelled ? "cancelled" : client ? "completed" : "pending",
+    },
+    {
+      id: "concluido",
+      label: "Concluído",
+      status: isCancelled ? "cancelled" : isCompleted ? "completed" : "pending",
+    },
   ];
 
   return (
@@ -328,7 +344,12 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               </Link>
             </Button>
             {client && (
-              <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs border-sage-deep/30 text-sage-deep">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="gap-1.5 text-xs border-sage-deep/30 text-sage-deep"
+              >
                 <Link to="/admin/clientes" search={{ search: client.full_name }}>
                   <ExternalLink className="h-3.5 w-3.5" /> Cliente no CRM
                 </Link>
@@ -347,7 +368,10 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             Atendimento · {appointment.full_name}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Serviço: <span className="font-medium text-foreground uppercase tracking-wider">{appointment.service}</span>
+            Serviço:{" "}
+            <span className="font-medium text-foreground uppercase tracking-wider">
+              {appointment.service}
+            </span>
           </p>
         </div>
       </div>
@@ -358,41 +382,65 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
           <ListFilter className="h-3.5 w-3.5 text-gold" /> Status de Conformidade Operacional:
         </span>
         {!client ? (
-          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"
+          >
             <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Cliente Não Cadastrado
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1"
+          >
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Cliente Vinculado
           </Badge>
         )}
 
         {!session && !isCompleted ? (
-          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"
+          >
             <Clock className="h-3.5 w-3.5 text-amber-600" /> Sessão Pendente
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1"
+          >
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Sessão Registrada
           </Badge>
         )}
 
         {!client ? (
-          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"
+          >
             <ClipboardList className="h-3.5 w-3.5 text-amber-600" /> Anamnese Pendente
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1"
+          >
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Anamnese Habilitada
           </Badge>
         )}
 
         {!client ? (
-          <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-amber-400 bg-amber-50 text-amber-900 text-xs gap-1"
+          >
             <ShieldCheck className="h-3.5 w-3.5 text-amber-600" /> LGPD Pendente
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1">
+          <Badge
+            variant="outline"
+            className="border-emerald-300 bg-emerald-50 text-emerald-900 text-xs gap-1"
+          >
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> LGPD Concedido
           </Badge>
         )}
@@ -519,15 +567,18 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   </>
                 ) : crmStatus === "no_client" ? (
                   <>
-                    <UserPlus className="h-4 w-4" /> Cadastrar Cliente no CRM <ChevronRight className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4" /> Cadastrar Cliente no CRM{" "}
+                    <ChevronRight className="h-4 w-4" />
                   </>
                 ) : crmStatus === "ready_for_session" ? (
                   <>
-                    <PlayCircle className="h-4 w-4" /> Iniciar / Converter em Sessão Clínica <ChevronRight className="h-4 w-4" />
+                    <PlayCircle className="h-4 w-4" /> Iniciar / Converter em Sessão Clínica{" "}
+                    <ChevronRight className="h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4" /> Gerenciar Sessão no Prontuário <ChevronRight className="h-4 w-4" />
+                    <CheckCircle2 className="h-4 w-4" /> Gerenciar Sessão no Prontuário{" "}
+                    <ChevronRight className="h-4 w-4" />
                   </>
                 )}
               </Button>
@@ -545,7 +596,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               <CardTitle className="text-lg font-serif text-sage-deep flex items-center gap-2">
                 <User className="h-5 w-5 text-gold" /> Sumário do Paciente
               </CardTitle>
-              <CardDescription className="text-xs">Informações cadastrais e contatos</CardDescription>
+              <CardDescription className="text-xs">
+                Informações cadastrais e contatos
+              </CardDescription>
             </div>
             {client && (
               <Badge variant="outline" className="border-sage/40 text-sage-deep text-xs font-mono">
@@ -556,13 +609,17 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
           <CardContent className="pt-4 space-y-3 text-sm">
             <div className="flex justify-between items-center py-1 border-b border-border/30">
               <span className="text-muted-foreground">Nome Completo:</span>
-              <span className="font-medium text-foreground">{client?.full_name ?? appointment.full_name}</span>
+              <span className="font-medium text-foreground">
+                {client?.full_name ?? appointment.full_name}
+              </span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-border/30">
               <span className="text-muted-foreground flex items-center gap-1.5">
                 <Phone className="h-3.5 w-3.5" /> Telefone:
               </span>
-              <span className="font-mono text-foreground">{client?.phone ?? appointment.phone}</span>
+              <span className="font-mono text-foreground">
+                {client?.phone ?? appointment.phone}
+              </span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-border/30">
               <span className="text-muted-foreground flex items-center gap-1.5">
@@ -621,7 +678,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
             <CardTitle className="text-lg font-serif text-sage-deep flex items-center gap-2">
               <Calendar className="h-5 w-5 text-gold" /> Detalhes do Agendamento
             </CardTitle>
-            <CardDescription className="text-xs">Parâmetros do atendimento agendado</CardDescription>
+            <CardDescription className="text-xs">
+              Parâmetros do atendimento agendado
+            </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 space-y-3 text-sm">
             <div className="flex justify-between items-center py-1 border-b border-border/30">
@@ -663,7 +722,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               </div>
             )}
             <div className="py-1">
-              <span className="text-muted-foreground block mb-1 text-xs font-medium">Notas Internas:</span>
+              <span className="text-muted-foreground block mb-1 text-xs font-medium">
+                Notas Internas:
+              </span>
               <p className="text-xs bg-muted/40 p-2.5 rounded border border-border/40 text-foreground/80 italic">
                 {appointment.internal_notes ?? "Nenhuma observação interna."}
               </p>
@@ -691,7 +752,8 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               </div>
               <h4 className="text-xs font-medium text-sage-deep">Solicitação de Pré-Agendamento</h4>
               <p className="text-xs text-muted-foreground">
-                Data solicitada: {appointment.preferred_date ?? "A combinar"} ({appointment.preferred_time ?? "Sem horário fixo"}) · Serviço: {appointment.service}
+                Data solicitada: {appointment.preferred_date ?? "A combinar"} (
+                {appointment.preferred_time ?? "Sem horário fixo"}) · Serviço: {appointment.service}
               </p>
             </div>
 
@@ -790,7 +852,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   <TabsContent value="sessions" className="space-y-3">
                     <div className="bg-sage/5 p-4 rounded-xl border border-sage/20 flex justify-between items-center">
                       <div>
-                        <h4 className="text-sm font-medium text-sage-deep">Histórico de Sessões Clínicas</h4>
+                        <h4 className="text-sm font-medium text-sage-deep">
+                          Histórico de Sessões Clínicas
+                        </h4>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {session
                             ? "Sessão clínica vinculada a este atendimento encontrada."
@@ -811,7 +875,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   <TabsContent value="anamnesis" className="space-y-3">
                     <div className="bg-gold/5 p-4 rounded-xl border border-gold/20 flex justify-between items-center">
                       <div>
-                        <h4 className="text-sm font-medium text-sage-deep">Ficha de Anamnese do Paciente</h4>
+                        <h4 className="text-sm font-medium text-sage-deep">
+                          Ficha de Anamnese do Paciente
+                        </h4>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Questionários de saúde, histórico e dados fisiológicos preenchidos.
                         </p>
@@ -830,7 +896,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   <TabsContent value="documents" className="space-y-3">
                     <div className="bg-sky-50 p-4 rounded-xl border border-sky-200 flex justify-between items-center">
                       <div>
-                        <h4 className="text-sm font-medium text-sky-900">Documentos e Anexos Clínicos</h4>
+                        <h4 className="text-sm font-medium text-sky-900">
+                          Documentos e Anexos Clínicos
+                        </h4>
                         <p className="text-xs text-sky-700 mt-0.5">
                           Upload de exames, laudos e termos digitalizados anexados ao cliente.
                         </p>
@@ -849,7 +917,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
                   <TabsContent value="lgpd" className="space-y-3">
                     <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 flex justify-between items-center">
                       <div>
-                        <h4 className="text-sm font-medium text-emerald-900">Consentimentos LGPD</h4>
+                        <h4 className="text-sm font-medium text-emerald-900">
+                          Consentimentos LGPD
+                        </h4>
                         <p className="text-xs text-emerald-700 mt-0.5">
                           Termos de privacidade e aceites de tratamento de dados registrados.
                         </p>
@@ -867,9 +937,12 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               ) : (
                 <div className="p-8 text-center bg-muted/20 rounded-xl border border-dashed border-border space-y-3">
                   <UserX className="h-10 w-10 mx-auto text-amber-600/70" />
-                  <h3 className="font-serif text-lg text-sage-deep">Cliente Não Vinculado no CRM</h3>
+                  <h3 className="font-serif text-lg text-sage-deep">
+                    Cliente Não Vinculado no CRM
+                  </h3>
                   <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                    Para acessar prontuários, fichas de anamnese, anexos de documentos e termos LGPD, cadastre o paciente no CRM através do Next Action Card.
+                    Para acessar prontuários, fichas de anamnese, anexos de documentos e termos
+                    LGPD, cadastre o paciente no CRM através do Next Action Card.
                   </p>
                   <Button
                     size="sm"
@@ -893,7 +966,9 @@ export default function CentralAtendimentoView({ appointmentId }: CentralAtendim
               </CardTitle>
               <CardDescription className="text-xs text-foreground/70">
                 Assistente clínica contextualizada para o atendimento de{" "}
-                <span className="font-medium text-sage-deep">{client?.full_name ?? appointment.full_name}</span>
+                <span className="font-medium text-sage-deep">
+                  {client?.full_name ?? appointment.full_name}
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent className="p-3 flex-1 flex flex-col justify-between overflow-hidden">

@@ -15,10 +15,7 @@ export async function listClientDocuments(
   clientId: string,
   includeArchived = false,
 ): Promise<ClientDocumentRow[]> {
-  let query = client
-    .from("client_documents")
-    .select("*")
-    .eq("client_id", clientId);
+  let query = client.from("client_documents").select("*").eq("client_id", clientId);
 
   if (!includeArchived) {
     query = query.is("archived_at", null);
@@ -60,11 +57,7 @@ export async function createClientDocument(
   client: SupabaseClient<Database>,
   payload: ClientDocumentInsert,
 ): Promise<ClientDocumentRow> {
-  const { data, error } = await client
-    .from("client_documents")
-    .insert(payload)
-    .select()
-    .single();
+  const { data, error } = await client.from("client_documents").insert(payload).select().single();
 
   if (error) {
     throw error;

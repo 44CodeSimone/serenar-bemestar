@@ -66,9 +66,13 @@ export const listAdminCalendarSlotsFn = createServerFn({ method: "GET" })
  * Server Function (GET): Retorna a listagem pública de horários disponíveis para o site.
  */
 export const listPublicCalendarSlotsFn = createServerFn({ method: "GET" }).handler(
-  async ({ context }): Promise<Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>> => {
+  async ({
+    context,
+  }): Promise<Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>> => {
     try {
-      const ctx = context as unknown as { supabase: Parameters<typeof repo.listPublicCalendarSlots>[0] };
+      const ctx = context as unknown as {
+        supabase: Parameters<typeof repo.listPublicCalendarSlots>[0];
+      };
       return await repo.listPublicCalendarSlots(ctx.supabase);
     } catch (error) {
       if (error instanceof Error) {
@@ -110,7 +114,9 @@ export const createCalendarSlotFn = createServerFn({ method: "POST" })
         : null;
 
     const notes =
-      typeof params.notes === "string" && params.notes.trim().length > 0 ? params.notes.trim() : null;
+      typeof params.notes === "string" && params.notes.trim().length > 0
+        ? params.notes.trim()
+        : null;
 
     const published = typeof params.published === "boolean" ? params.published : false;
 
@@ -158,7 +164,8 @@ export const updateCalendarSlotFn = createServerFn({ method: "POST" })
     }
     const params = input as Record<string, unknown>;
 
-    const calendarSlotId = typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
+    const calendarSlotId =
+      typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
     if (!isValidUuid(calendarSlotId)) {
       throw new Error("ID do horário inválido.");
     }
@@ -240,7 +247,8 @@ export const toggleCalendarSlotPublishedFn = createServerFn({ method: "POST" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const calendarSlotId = typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
+    const calendarSlotId =
+      typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
     const published = Boolean(params.published);
 
     if (!isValidUuid(calendarSlotId)) {
@@ -275,7 +283,8 @@ export const blockCalendarSlotFn = createServerFn({ method: "POST" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const calendarSlotId = typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
+    const calendarSlotId =
+      typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
 
     if (!isValidUuid(calendarSlotId)) {
       throw new Error("ID do horário inválido.");
@@ -308,7 +317,8 @@ export const releaseCalendarSlotFn = createServerFn({ method: "POST" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const calendarSlotId = typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
+    const calendarSlotId =
+      typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
 
     if (!isValidUuid(calendarSlotId)) {
       throw new Error("ID do horário inválido.");
@@ -341,7 +351,8 @@ export const deleteCalendarSlotFn = createServerFn({ method: "POST" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const calendarSlotId = typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
+    const calendarSlotId =
+      typeof params.calendarSlotId === "string" ? params.calendarSlotId.trim() : "";
 
     if (!isValidUuid(calendarSlotId)) {
       throw new Error("ID do horário inválido.");

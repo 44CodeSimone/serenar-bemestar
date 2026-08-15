@@ -731,15 +731,22 @@ export default function AdminAgenda() {
                       <div className="mt-3 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-cream/30 p-3 rounded-xl">
                         <div className="flex items-center gap-2">
                           {slot.appointment.crmStatus === "no_client" ? (
-                            <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium">
-                              <UserX className="h-3.5 w-3.5 text-amber-600" /> Cliente não cadastrado
+                            <Badge
+                              variant="outline"
+                              className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium"
+                            >
+                              <UserX className="h-3.5 w-3.5 text-amber-600" /> Cliente não
+                              cadastrado
                             </Badge>
                           ) : slot.appointment.crmStatus === "session_created" ? (
                             <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] gap-1 font-medium">
                               <CheckCircle2 className="h-3.5 w-3.5" /> Sessão criada
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium">
+                            <Badge
+                              variant="outline"
+                              className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium"
+                            >
                               <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Pronto para Sessão
                             </Badge>
                           )}
@@ -785,7 +792,10 @@ export default function AdminAgenda() {
                             asChild
                             className="text-xs border-sage-deep/30 text-sage-deep hover:bg-sage/10 gap-1.5 h-8 font-medium ml-2"
                           >
-                            <Link to="/admin/atendimento/$appointmentId" params={{ appointmentId: slot.appointment.id }}>
+                            <Link
+                              to="/admin/atendimento/$appointmentId"
+                              params={{ appointmentId: slot.appointment.id }}
+                            >
                               <Sparkles className="h-3.5 w-3.5 text-gold" /> Abrir Central
                             </Link>
                           </Button>

@@ -57,7 +57,8 @@ export const listClientsFn = createServerFn({ method: "GET" })
       pageSize: typeof params.pageSize === "number" ? params.pageSize : undefined,
       search: typeof params.search === "string" ? params.search : undefined,
       status: typeof params.status === "string" ? params.status : undefined,
-      includeArchived: typeof params.includeArchived === "boolean" ? params.includeArchived : undefined,
+      includeArchived:
+        typeof params.includeArchived === "boolean" ? params.includeArchived : undefined,
     };
   })
   .handler(async ({ context, data }): Promise<ListClientsResult> => {
@@ -70,7 +71,12 @@ export const listClientsFn = createServerFn({ method: "GET" })
 export const getClientByIdFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown): { id: string } => {
-    if (typeof input !== "object" || input === null || !("id" in input) || typeof (input as { id: unknown }).id !== "string") {
+    if (
+      typeof input !== "object" ||
+      input === null ||
+      !("id" in input) ||
+      typeof (input as { id: unknown }).id !== "string"
+    ) {
       throw new Error("ID do cliente é obrigatório.");
     }
     return { id: (input as { id: string }).id };
@@ -137,7 +143,7 @@ export const createClientFn = createServerFn({ method: "POST" })
     if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
       throw new Error("Data de nascimento válida é obrigatória (AAAA-MM-DD).");
     }
-    if (!phone || normalizeDigits(phone)?.length! < 10) {
+    if (!phone || (normalizeDigits(phone)?.length ?? 0) < 10) {
       throw new Error("Telefone válido com DDD é obrigatório.");
     }
 
@@ -210,7 +216,12 @@ export interface UpdateClientInput {
 export const updateClientFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown): UpdateClientInput => {
-    if (typeof input !== "object" || input === null || !("id" in input) || typeof (input as { id: unknown }).id !== "string") {
+    if (
+      typeof input !== "object" ||
+      input === null ||
+      !("id" in input) ||
+      typeof (input as { id: unknown }).id !== "string"
+    ) {
       throw new Error("ID do cliente é obrigatório para atualização.");
     }
     const i = input as Record<string, unknown>;
@@ -229,7 +240,7 @@ export const updateClientFn = createServerFn({ method: "POST" })
     }
     if (typeof i.phone === "string") {
       const ph = i.phone.trim();
-      if (normalizeDigits(ph)?.length! < 10) throw new Error("Telefone inválido.");
+      if ((normalizeDigits(ph)?.length ?? 0) < 10) throw new Error("Telefone inválido.");
       payload.phone = ph;
     }
     if (i.cpf !== undefined) {
@@ -276,7 +287,12 @@ export const updateClientFn = createServerFn({ method: "POST" })
 export const archiveClientFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown): { id: string } => {
-    if (typeof input !== "object" || input === null || !("id" in input) || typeof (input as { id: unknown }).id !== "string") {
+    if (
+      typeof input !== "object" ||
+      input === null ||
+      !("id" in input) ||
+      typeof (input as { id: unknown }).id !== "string"
+    ) {
       throw new Error("ID do cliente é obrigatório para arquivamento.");
     }
     return { id: (input as { id: string }).id };
@@ -291,7 +307,12 @@ export const archiveClientFn = createServerFn({ method: "POST" })
 export const restoreClientFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown): { id: string } => {
-    if (typeof input !== "object" || input === null || !("id" in input) || typeof (input as { id: unknown }).id !== "string") {
+    if (
+      typeof input !== "object" ||
+      input === null ||
+      !("id" in input) ||
+      typeof (input as { id: unknown }).id !== "string"
+    ) {
       throw new Error("ID do cliente é obrigatório para restauração.");
     }
     return { id: (input as { id: string }).id };

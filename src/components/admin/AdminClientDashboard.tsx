@@ -103,15 +103,16 @@ function ClientStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "registered":
       return (
-        <Badge variant="outline" className="border-sage-deep/30 bg-sage-deep/10 text-sage-deep font-medium">
+        <Badge
+          variant="outline"
+          className="border-sage-deep/30 bg-sage-deep/10 text-sage-deep font-medium"
+        >
           Registrado
         </Badge>
       );
     case "active":
       return (
-        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
-          Ativo
-        </Badge>
+        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium">Ativo</Badge>
       );
     case "inactive":
       return (
@@ -134,22 +135,17 @@ function AnamnesisStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "draft":
       return (
-        <Badge variant="outline" className="border-amber-500/40 bg-amber-50 text-amber-700 text-[10px]">
+        <Badge
+          variant="outline"
+          className="border-amber-500/40 bg-amber-50 text-amber-700 text-[10px]"
+        >
           Rascunho
         </Badge>
       );
     case "completed":
-      return (
-        <Badge className="bg-emerald-600 text-white text-[10px]">
-          Concluída
-        </Badge>
-      );
+      return <Badge className="bg-emerald-600 text-white text-[10px]">Concluída</Badge>;
     case "reviewed":
-      return (
-        <Badge className="bg-indigo-600 text-white text-[10px]">
-          Revisada
-        </Badge>
-      );
+      return <Badge className="bg-indigo-600 text-white text-[10px]">Revisada</Badge>;
     case "superseded":
       return (
         <Badge variant="secondary" className="bg-slate-200 text-slate-700 text-[10px]">
@@ -157,7 +153,11 @@ function AnamnesisStatusBadge({ status }: { status: string }) {
         </Badge>
       );
     default:
-      return <Badge variant="outline" className="text-[10px]">{status}</Badge>;
+      return (
+        <Badge variant="outline" className="text-[10px]">
+          {status}
+        </Badge>
+      );
   }
 }
 
@@ -165,22 +165,17 @@ function SessionStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "scheduled":
       return (
-        <Badge variant="outline" className="border-amber-500/40 bg-amber-50 text-amber-700 text-[10px]">
+        <Badge
+          variant="outline"
+          className="border-amber-500/40 bg-amber-50 text-amber-700 text-[10px]"
+        >
           Agendada
         </Badge>
       );
     case "in_progress":
-      return (
-        <Badge className="bg-sky-600 text-white text-[10px]">
-          Em Atendimento
-        </Badge>
-      );
+      return <Badge className="bg-sky-600 text-white text-[10px]">Em Atendimento</Badge>;
     case "completed":
-      return (
-        <Badge className="bg-emerald-600 text-white text-[10px]">
-          Concluída
-        </Badge>
-      );
+      return <Badge className="bg-emerald-600 text-white text-[10px]">Concluída</Badge>;
     case "cancelled":
       return (
         <Badge variant="destructive" className="bg-red-100 text-red-800 text-[10px] border-red-200">
@@ -194,7 +189,11 @@ function SessionStatusBadge({ status }: { status: string }) {
         </Badge>
       );
     default:
-      return <Badge variant="outline" className="text-[10px]">{status}</Badge>;
+      return (
+        <Badge variant="outline" className="text-[10px]">
+          {status}
+        </Badge>
+      );
   }
 }
 
@@ -397,7 +396,8 @@ export function AdminClientDashboard({
                 {clientRecord?.status && <ClientStatusBadge status={clientRecord.status} />}
               </div>
               <DialogDescription className="text-xs">
-                Visão consolidada com resumo cadastral, métricas clínicas e linha do tempo operacional.
+                Visão consolidada com resumo cadastral, métricas clínicas e linha do tempo
+                operacional.
               </DialogDescription>
             </div>
 
@@ -487,7 +487,9 @@ export function AdminClientDashboard({
                       <MessageCircle className="h-3.5 w-3.5 text-sage-deep" /> WhatsApp
                     </span>
                     <p className="text-foreground font-medium">
-                      {clientRecord?.whatsapp ? formatPhone(clientRecord.whatsapp) : "Não informado"}
+                      {clientRecord?.whatsapp
+                        ? formatPhone(clientRecord.whatsapp)
+                        : "Não informado"}
                     </p>
                   </div>
 
@@ -520,7 +522,9 @@ export function AdminClientDashboard({
 
                   {clientRecord?.notes && (
                     <div className="sm:col-span-2 md:col-span-4 pt-2 border-t border-border/60">
-                      <span className="text-muted-foreground font-medium">Observações Internas:</span>
+                      <span className="text-muted-foreground font-medium">
+                        Observações Internas:
+                      </span>
                       <p className="text-foreground italic mt-0.5 whitespace-pre-wrap">
                         {clientRecord.notes}
                       </p>
@@ -667,9 +671,16 @@ export function AdminClientDashboard({
                   {loadingAnamneses ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-sage-deep" />
                   ) : anamneses.length > 0 ? (
-                    <Badge className="bg-emerald-600 text-white text-[10px]">Sim ({anamneses.length})</Badge>
+                    <Badge className="bg-emerald-600 text-white text-[10px]">
+                      Sim ({anamneses.length})
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50">Não</Badge>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] border-amber-300 text-amber-700 bg-amber-50"
+                    >
+                      Não
+                    </Badge>
                   )}
                 </div>
 
@@ -678,9 +689,16 @@ export function AdminClientDashboard({
                   {loadingSessions ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-sage-deep" />
                   ) : sessions.length > 0 ? (
-                    <Badge className="bg-emerald-600 text-white text-[10px]">Sim ({sessions.length})</Badge>
+                    <Badge className="bg-emerald-600 text-white text-[10px]">
+                      Sim ({sessions.length})
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50">Não</Badge>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] border-amber-300 text-amber-700 bg-amber-50"
+                    >
+                      Não
+                    </Badge>
                   )}
                 </div>
 
@@ -778,7 +796,9 @@ export function AdminClientDashboard({
                           {evt.subtitle && (
                             <p className="text-[11px] text-muted-foreground">{evt.subtitle}</p>
                           )}
-                          <p className="text-[10px] text-muted-foreground font-mono">{evt.dateStr}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            {evt.dateStr}
+                          </p>
                         </div>
                       </div>
                     ))}

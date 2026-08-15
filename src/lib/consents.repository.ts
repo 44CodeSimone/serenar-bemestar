@@ -60,11 +60,7 @@ export async function grantClientConsent(
   client: SupabaseClient<Database>,
   params: CreateConsentParams,
 ): Promise<ClientConsentRecord> {
-  const { data, error } = await client
-    .from("client_consents")
-    .insert(params)
-    .select()
-    .single();
+  const { data, error } = await client.from("client_consents").insert(params).select().single();
 
   if (error) {
     throw error;

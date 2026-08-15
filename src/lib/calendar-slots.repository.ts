@@ -208,9 +208,9 @@ export async function listPublicCalendarSlots(
     throw error;
   }
 
-  return ((data ?? []).filter(
+  return (data ?? []).filter(
     (slot) => slot.slot_date > today || slot.start_time > currentTime,
-  ) as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>);
+  ) as Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>;
 }
 
 /**
@@ -297,7 +297,12 @@ export async function listAdminCalendarSlots(
   }
 
   // 5. Batch query fallback clients for appointments where client_id is NULL (1 batch query)
-  const fallbackClients: Array<{ id: string; full_name: string; phone: string; email: string | null }> = [];
+  const fallbackClients: Array<{
+    id: string;
+    full_name: string;
+    phone: string;
+    email: string | null;
+  }> = [];
   if (cleanPhones.length > 0 || cleanEmails.length > 0) {
     let query = client
       .from("clients")
@@ -340,13 +345,9 @@ export async function listAdminCalendarSlots(
       const e = appointment.email?.trim().toLowerCase() ?? "";
 
       const phoneMatches =
-        p.length >= 8
-          ? fallbackClients.filter((c) => c.phone.replace(/\D/g, "").includes(p))
-          : [];
+        p.length >= 8 ? fallbackClients.filter((c) => c.phone.replace(/\D/g, "").includes(p)) : [];
       const emailMatches =
-        e.length > 3
-          ? fallbackClients.filter((c) => c.email?.trim().toLowerCase() === e)
-          : [];
+        e.length > 3 ? fallbackClients.filter((c) => c.email?.trim().toLowerCase() === e) : [];
 
       let fbMatch: { id: string; full_name: string } | null = null;
 
@@ -460,7 +461,14 @@ export async function updateCalendarSlot(
       : currentSlot.professional_name;
 
   validateSlotDateTime(slotDate, startTime, endTime);
-  await ensureNoSlotConflict(client, slotDate, startTime, endTime, professionalName, calendarSlotId);
+  await ensureNoSlotConflict(
+    client,
+    slotDate,
+    startTime,
+    endTime,
+    professionalName,
+    calendarSlotId,
+  );
 
   const { data, error } = await client
     .from("calendar_slots")

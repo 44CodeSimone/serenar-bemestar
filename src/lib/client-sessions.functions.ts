@@ -19,8 +19,20 @@ function isValidUuid(id?: string | null): boolean {
   return UUID_REGEX.test(id);
 }
 
-const ALLOWED_SESSION_STATUSES = ["scheduled", "in_progress", "completed", "cancelled", "no_show"] as const;
-const ALLOWED_NOTE_TYPES = ["observation", "evolution", "recommendation", "correction", "administrative"] as const;
+const ALLOWED_SESSION_STATUSES = [
+  "scheduled",
+  "in_progress",
+  "completed",
+  "cancelled",
+  "no_show",
+] as const;
+const ALLOWED_NOTE_TYPES = [
+  "observation",
+  "evolution",
+  "recommendation",
+  "correction",
+  "administrative",
+] as const;
 
 /**
  * Server Function: Lista todas as sessões clínicas de um cliente.
@@ -61,39 +73,44 @@ export const getClientSessionFn = createServerFn({ method: "GET" })
  */
 export const createClientSessionFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: {
-    clientId: string;
-    appointmentId?: string | null;
-    serviceId?: string | null;
-    session_started_at?: string;
-    status?: string;
-    duration_minutes?: number | null;
-    client_report?: string | null;
-    professional_summary?: string | null;
-    recommendations?: string | null;
-  }) => {
-    if (!isValidUuid(data.clientId)) {
-      throw new Error("ID de cliente inválido.");
-    }
-    if (data.appointmentId && !isValidUuid(data.appointmentId)) {
-      throw new Error("ID de agendamento inválido.");
-    }
-    if (data.serviceId && !isValidUuid(data.serviceId)) {
-      throw new Error("ID de serviço inválido.");
-    }
-    if (data.duration_minutes !== undefined && data.duration_minutes !== null) {
-      if (typeof data.duration_minutes !== "number" || data.duration_minutes <= 0) {
-        throw new Error("A duração em minutos deve ser um valor numérico positivo.");
+  .validator(
+    (data: {
+      clientId: string;
+      appointmentId?: string | null;
+      serviceId?: string | null;
+      session_started_at?: string;
+      status?: string;
+      duration_minutes?: number | null;
+      client_report?: string | null;
+      professional_summary?: string | null;
+      recommendations?: string | null;
+    }) => {
+      if (!isValidUuid(data.clientId)) {
+        throw new Error("ID de cliente inválido.");
       }
-    }
-    if (data.status && !ALLOWED_SESSION_STATUSES.includes(data.status as typeof ALLOWED_SESSION_STATUSES[number])) {
-      throw new Error("Status de sessão inválido.");
-    }
-    if (data.session_started_at && isNaN(Date.parse(data.session_started_at))) {
-      throw new Error("Data de início da sessão inválida.");
-    }
-    return data;
-  })
+      if (data.appointmentId && !isValidUuid(data.appointmentId)) {
+        throw new Error("ID de agendamento inválido.");
+      }
+      if (data.serviceId && !isValidUuid(data.serviceId)) {
+        throw new Error("ID de serviço inválido.");
+      }
+      if (data.duration_minutes !== undefined && data.duration_minutes !== null) {
+        if (typeof data.duration_minutes !== "number" || data.duration_minutes <= 0) {
+          throw new Error("A duração em minutos deve ser um valor numérico positivo.");
+        }
+      }
+      if (
+        data.status &&
+        !ALLOWED_SESSION_STATUSES.includes(data.status as (typeof ALLOWED_SESSION_STATUSES)[number])
+      ) {
+        throw new Error("Status de sessão inválido.");
+      }
+      if (data.session_started_at && isNaN(Date.parse(data.session_started_at))) {
+        throw new Error("Data de início da sessão inválida.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ context, data }) => {
     // Validar existência do cliente
     const { data: clientObj, error: clientErr } = await context.supabase
@@ -157,43 +174,52 @@ export const createClientSessionFn = createServerFn({ method: "POST" })
  */
 export const updateClientSessionFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: {
-    sessionId: string;
-    session_started_at?: string;
-    session_ended_at?: string | null;
-    duration_minutes?: number | null;
-    status?: string;
-    client_report?: string | null;
-    professional_summary?: string | null;
-    recommendations?: string | null;
-    appointmentId?: string | null;
-    serviceId?: string | null;
-  }) => {
-    if (!isValidUuid(data.sessionId)) {
-      throw new Error("ID de sessão inválido.");
-    }
-    if (data.appointmentId !== undefined && data.appointmentId !== null && !isValidUuid(data.appointmentId)) {
-      throw new Error("ID de agendamento inválido.");
-    }
-    if (data.serviceId !== undefined && data.serviceId !== null && !isValidUuid(data.serviceId)) {
-      throw new Error("ID de serviço inválido.");
-    }
-    if (data.duration_minutes !== undefined && data.duration_minutes !== null) {
-      if (typeof data.duration_minutes !== "number" || data.duration_minutes <= 0) {
-        throw new Error("A duração em minutos deve ser um valor numérico positivo.");
+  .validator(
+    (data: {
+      sessionId: string;
+      session_started_at?: string;
+      session_ended_at?: string | null;
+      duration_minutes?: number | null;
+      status?: string;
+      client_report?: string | null;
+      professional_summary?: string | null;
+      recommendations?: string | null;
+      appointmentId?: string | null;
+      serviceId?: string | null;
+    }) => {
+      if (!isValidUuid(data.sessionId)) {
+        throw new Error("ID de sessão inválido.");
       }
-    }
-    if (data.status && !ALLOWED_SESSION_STATUSES.includes(data.status as typeof ALLOWED_SESSION_STATUSES[number])) {
-      throw new Error("Status de sessão inválido.");
-    }
-    if (data.session_started_at && isNaN(Date.parse(data.session_started_at))) {
-      throw new Error("Data de início da sessão inválida.");
-    }
-    if (data.session_ended_at && isNaN(Date.parse(data.session_ended_at))) {
-      throw new Error("Data de término da sessão inválida.");
-    }
-    return data;
-  })
+      if (
+        data.appointmentId !== undefined &&
+        data.appointmentId !== null &&
+        !isValidUuid(data.appointmentId)
+      ) {
+        throw new Error("ID de agendamento inválido.");
+      }
+      if (data.serviceId !== undefined && data.serviceId !== null && !isValidUuid(data.serviceId)) {
+        throw new Error("ID de serviço inválido.");
+      }
+      if (data.duration_minutes !== undefined && data.duration_minutes !== null) {
+        if (typeof data.duration_minutes !== "number" || data.duration_minutes <= 0) {
+          throw new Error("A duração em minutos deve ser um valor numérico positivo.");
+        }
+      }
+      if (
+        data.status &&
+        !ALLOWED_SESSION_STATUSES.includes(data.status as (typeof ALLOWED_SESSION_STATUSES)[number])
+      ) {
+        throw new Error("Status de sessão inválido.");
+      }
+      if (data.session_started_at && isNaN(Date.parse(data.session_started_at))) {
+        throw new Error("Data de início da sessão inválida.");
+      }
+      if (data.session_ended_at && isNaN(Date.parse(data.session_ended_at))) {
+        throw new Error("Data de término da sessão inválida.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ context, data }) => {
     const currentSession = await getClientSessionById(context.supabase, data.sessionId);
     if (!currentSession) {
@@ -246,7 +272,8 @@ export const updateClientSessionFn = createServerFn({ method: "POST" })
       }
     }
 
-    let endedAt = data.session_ended_at !== undefined ? data.session_ended_at : currentSession.session_ended_at;
+    let endedAt =
+      data.session_ended_at !== undefined ? data.session_ended_at : currentSession.session_ended_at;
     if (targetStatus === "completed" && !endedAt) {
       endedAt = new Date().toISOString();
     }
@@ -262,12 +289,14 @@ export const updateClientSessionFn = createServerFn({ method: "POST" })
 
     const updatePayload: ClientSessionUpdate = {};
 
-    if (data.session_started_at !== undefined) updatePayload.session_started_at = data.session_started_at;
+    if (data.session_started_at !== undefined)
+      updatePayload.session_started_at = data.session_started_at;
     if (endedAt !== undefined) updatePayload.session_ended_at = endedAt;
     if (data.duration_minutes !== undefined) updatePayload.duration_minutes = data.duration_minutes;
     if (data.status !== undefined) updatePayload.status = data.status;
     if (data.client_report !== undefined) updatePayload.client_report = data.client_report;
-    if (data.professional_summary !== undefined) updatePayload.professional_summary = data.professional_summary;
+    if (data.professional_summary !== undefined)
+      updatePayload.professional_summary = data.professional_summary;
     if (data.recommendations !== undefined) updatePayload.recommendations = data.recommendations;
     if (data.appointmentId !== undefined) updatePayload.appointment_id = data.appointmentId;
     if (data.serviceId !== undefined) updatePayload.service_id = data.serviceId;
@@ -299,26 +328,28 @@ export const listSessionNotesFn = createServerFn({ method: "GET" })
  */
 export const createSessionNoteFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: {
-    sessionId: string;
-    note_type: string;
-    content: string;
-    supersedes_note_id?: string | null;
-  }) => {
-    if (!isValidUuid(data.sessionId)) {
-      throw new Error("ID de sessão inválido.");
-    }
-    if (data.supersedes_note_id && !isValidUuid(data.supersedes_note_id)) {
-      throw new Error("ID de nota a ser corrigida inválido.");
-    }
-    if (!data.content || !data.content.trim()) {
-      throw new Error("O conteúdo da nota é obrigatório.");
-    }
-    if (!ALLOWED_NOTE_TYPES.includes(data.note_type as typeof ALLOWED_NOTE_TYPES[number])) {
-      throw new Error("Tipo de nota clínica inválido.");
-    }
-    return data;
-  })
+  .validator(
+    (data: {
+      sessionId: string;
+      note_type: string;
+      content: string;
+      supersedes_note_id?: string | null;
+    }) => {
+      if (!isValidUuid(data.sessionId)) {
+        throw new Error("ID de sessão inválido.");
+      }
+      if (data.supersedes_note_id && !isValidUuid(data.supersedes_note_id)) {
+        throw new Error("ID de nota a ser corrigida inválido.");
+      }
+      if (!data.content || !data.content.trim()) {
+        throw new Error("O conteúdo da nota é obrigatório.");
+      }
+      if (!ALLOWED_NOTE_TYPES.includes(data.note_type as (typeof ALLOWED_NOTE_TYPES)[number])) {
+        throw new Error("Tipo de nota clínica inválido.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ context, data }) => {
     const session = await getClientSessionById(context.supabase, data.sessionId);
     if (!session) {

@@ -116,17 +116,22 @@ export const grantClientConsentFn = createServerFn({ method: "POST" })
       throw new Error("Versão do termo é obrigatória.");
     }
 
-    const collectionChannel = typeof i.collection_channel === "string" ? i.collection_channel.trim() : "";
+    const collectionChannel =
+      typeof i.collection_channel === "string" ? i.collection_channel.trim() : "";
     if (!collectionChannel) {
       throw new Error("Canal de coleta é obrigatório.");
     }
 
-    const guardianId = typeof i.guardian_id === "string" && i.guardian_id.trim() ? i.guardian_id.trim() : null;
+    const guardianId =
+      typeof i.guardian_id === "string" && i.guardian_id.trim() ? i.guardian_id.trim() : null;
     if (guardianId && !isValidUuid(guardianId)) {
       throw new Error("ID do responsável legal deve ser um UUID válido.");
     }
 
-    const evidenceDocId = typeof i.evidence_document_id === "string" && i.evidence_document_id.trim() ? i.evidence_document_id.trim() : null;
+    const evidenceDocId =
+      typeof i.evidence_document_id === "string" && i.evidence_document_id.trim()
+        ? i.evidence_document_id.trim()
+        : null;
     if (evidenceDocId && !isValidUuid(evidenceDocId)) {
       throw new Error("ID do documento de evidência deve ser um UUID válido.");
     }
@@ -190,7 +195,8 @@ export const revokeClientConsentFn = createServerFn({ method: "POST" })
       throw new Error("ID do consentimento é obrigatório e deve ser um UUID válido.");
     }
 
-    const revokedAt = typeof i.revokedAt === "string" && i.revokedAt.trim() ? i.revokedAt.trim() : null;
+    const revokedAt =
+      typeof i.revokedAt === "string" && i.revokedAt.trim() ? i.revokedAt.trim() : null;
 
     return {
       consentId,

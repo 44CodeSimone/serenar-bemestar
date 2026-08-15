@@ -27,7 +27,7 @@ export interface AnamnesisDetailResult {
  * Lista todos os modelos de anamnese ativos disponíveis.
  */
 export async function listActiveTemplates(
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
 ): Promise<AnamnesisTemplateRow[]> {
   const { data, error } = await supabase
     .from("anamnesis_templates")
@@ -48,7 +48,7 @@ export async function listActiveTemplates(
  */
 export async function getTemplateWithQuestions(
   supabase: SupabaseClient<Database>,
-  templateId: string
+  templateId: string,
 ): Promise<{ template: AnamnesisTemplateRow; questions: AnamnesisQuestionRow[] } | null> {
   const { data: template, error: templateError } = await supabase
     .from("anamnesis_templates")
@@ -86,17 +86,19 @@ export async function getTemplateWithQuestions(
  */
 export async function listClientAnamneses(
   supabase: SupabaseClient<Database>,
-  clientId: string
+  clientId: string,
 ): Promise<ClientAnamnesisWithTemplate[]> {
   const { data, error } = await supabase
     .from("client_anamneses")
-    .select(`
+    .select(
+      `
       *,
       template:anamnesis_templates (
         name,
         version
       )
-    `)
+    `,
+    )
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
 
@@ -112,7 +114,7 @@ export async function listClientAnamneses(
  */
 export async function getClientAnamnesisDetail(
   supabase: SupabaseClient<Database>,
-  anamnesisId: string
+  anamnesisId: string,
 ): Promise<AnamnesisDetailResult | null> {
   const { data: anamnesis, error: anamnesisError } = await supabase
     .from("client_anamneses")
@@ -159,7 +161,7 @@ export async function createDraftAnamnesis(
     client_id: string;
     template_id: string;
     filled_by?: string;
-  }
+  },
 ): Promise<ClientAnamnesisRow> {
   const insertData: ClientAnamnesisInsert = {
     client_id: payload.client_id,
@@ -186,7 +188,7 @@ export async function createDraftAnamnesis(
  */
 export async function upsertAnamnesisAnswers(
   supabase: SupabaseClient<Database>,
-  answersToUpsert: AnamnesisAnswerInsert[]
+  answersToUpsert: AnamnesisAnswerInsert[],
 ): Promise<AnamnesisAnswerRow[]> {
   if (answersToUpsert.length === 0) return [];
 
@@ -213,7 +215,7 @@ export async function updateAnamnesisStatus(
     completed_at?: string | null;
     reviewed_by?: string | null;
     reviewed_at?: string | null;
-  }
+  },
 ): Promise<ClientAnamnesisRow> {
   const updateData: Database["public"]["Tables"]["client_anamneses"]["Update"] = {
     status,

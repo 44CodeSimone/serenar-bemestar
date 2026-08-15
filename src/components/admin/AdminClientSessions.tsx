@@ -27,10 +27,7 @@ import {
   createSessionNoteFn,
 } from "@/lib/client-sessions.functions";
 
-import type {
-  ClientSessionWithDetails,
-  SessionNoteRow,
-} from "@/lib/client-sessions.repository";
+import type { ClientSessionWithDetails, SessionNoteRow } from "@/lib/client-sessions.repository";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +86,10 @@ function SessionStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "scheduled":
       return (
-        <Badge variant="outline" className="border-amber-500/40 bg-amber-50 text-amber-700 font-medium">
+        <Badge
+          variant="outline"
+          className="border-amber-500/40 bg-amber-50 text-amber-700 font-medium"
+        >
           Agendada
         </Badge>
       );
@@ -107,7 +107,10 @@ function SessionStatusBadge({ status }: { status: string }) {
       );
     case "cancelled":
       return (
-        <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-200 font-medium border-red-200">
+        <Badge
+          variant="destructive"
+          className="bg-red-100 text-red-800 hover:bg-red-200 font-medium border-red-200"
+        >
           Cancelada
         </Badge>
       );
@@ -126,28 +129,19 @@ function NoteTypeBadge({ type }: { type: string }) {
   switch (type) {
     case "observation":
       return (
-        <Badge variant="outline" className="border-slate-300 bg-slate-50 text-slate-700 text-[10px]">
+        <Badge
+          variant="outline"
+          className="border-slate-300 bg-slate-50 text-slate-700 text-[10px]"
+        >
           Observação
         </Badge>
       );
     case "evolution":
-      return (
-        <Badge className="bg-emerald-600 text-white text-[10px]">
-          Evolução
-        </Badge>
-      );
+      return <Badge className="bg-emerald-600 text-white text-[10px]">Evolução</Badge>;
     case "recommendation":
-      return (
-        <Badge className="bg-indigo-600 text-white text-[10px]">
-          Recomendação
-        </Badge>
-      );
+      return <Badge className="bg-indigo-600 text-white text-[10px]">Recomendação</Badge>;
     case "correction":
-      return (
-        <Badge className="bg-amber-600 text-white text-[10px]">
-          Correção
-        </Badge>
-      );
+      return <Badge className="bg-amber-600 text-white text-[10px]">Correção</Badge>;
     case "administrative":
       return (
         <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-[10px]">
@@ -155,7 +149,11 @@ function NoteTypeBadge({ type }: { type: string }) {
         </Badge>
       );
     default:
-      return <Badge variant="outline" className="text-[10px]">{type}</Badge>;
+      return (
+        <Badge variant="outline" className="text-[10px]">
+          {type}
+        </Badge>
+      );
   }
 }
 
@@ -273,7 +271,7 @@ export function AdminClientSessions({
         setLoadingNotes(false);
       }
     },
-    [fetchSessionNotes]
+    [fetchSessionNotes],
   );
 
   // Carregar detalhes completos de uma sessão
@@ -292,7 +290,7 @@ export function AdminClientSessions({
         setLoadingDetail(false);
       }
     },
-    [fetchSessionDetail, loadNotes]
+    [fetchSessionDetail, loadNotes],
   );
 
   // Abrir modal Nova Sessão
@@ -384,7 +382,9 @@ export function AdminClientSessions({
   const handleSubmitComplete = async () => {
     if (!activeSession) return;
 
-    const dur = completeFormData.duration_minutes ? Number(completeFormData.duration_minutes) : null;
+    const dur = completeFormData.duration_minutes
+      ? Number(completeFormData.duration_minutes)
+      : null;
     const endedAt = completeFormData.session_ended_at
       ? new Date(completeFormData.session_ended_at).toISOString()
       : new Date().toISOString();
@@ -585,7 +585,9 @@ export function AdminClientSessions({
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-sage-deep">Timeline de Atendimentos</h3>
+                    <h3 className="text-sm font-semibold text-sage-deep">
+                      Timeline de Atendimentos
+                    </h3>
                     <span className="text-xs text-muted-foreground">
                       {sessionsList.length} sessão(ões) registrada(s)
                     </span>
@@ -754,7 +756,9 @@ export function AdminClientSessions({
                           <span className="font-semibold text-sage-deep flex items-center gap-1">
                             <MessageSquare className="h-3.5 w-3.5" /> Relato do Cliente
                           </span>
-                          <p className="text-foreground whitespace-pre-wrap">{activeSession.client_report}</p>
+                          <p className="text-foreground whitespace-pre-wrap">
+                            {activeSession.client_report}
+                          </p>
                         </div>
                       )}
 
@@ -763,7 +767,9 @@ export function AdminClientSessions({
                           <span className="font-semibold text-sage-deep flex items-center gap-1">
                             <FileText className="h-3.5 w-3.5" /> Resumo Profissional
                           </span>
-                          <p className="text-foreground whitespace-pre-wrap">{activeSession.professional_summary}</p>
+                          <p className="text-foreground whitespace-pre-wrap">
+                            {activeSession.professional_summary}
+                          </p>
                         </div>
                       )}
 
@@ -772,7 +778,9 @@ export function AdminClientSessions({
                           <span className="font-semibold text-sage-deep flex items-center gap-1">
                             <Activity className="h-3.5 w-3.5" /> Recomendações
                           </span>
-                          <p className="text-foreground whitespace-pre-wrap">{activeSession.recommendations}</p>
+                          <p className="text-foreground whitespace-pre-wrap">
+                            {activeSession.recommendations}
+                          </p>
                         </div>
                       )}
 
@@ -889,7 +897,8 @@ export function AdminClientSessions({
                                 <NoteTypeBadge type={note.note_type} />
                                 {note.supersedes_note_id && (
                                   <span className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
-                                    <CornerDownRight className="h-3 w-3" /> Correção de nota anterior
+                                    <CornerDownRight className="h-3 w-3" /> Correção de nota
+                                    anterior
                                   </span>
                                 )}
                               </div>
@@ -907,7 +916,9 @@ export function AdminClientSessions({
                               </div>
                             </div>
 
-                            <p className="text-foreground whitespace-pre-wrap pt-0.5">{note.content}</p>
+                            <p className="text-foreground whitespace-pre-wrap pt-0.5">
+                              {note.content}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -940,7 +951,9 @@ export function AdminClientSessions({
 
           <div className="space-y-3 py-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Data e Hora de Início *</label>
+              <label className="text-xs font-semibold text-foreground">
+                Data e Hora de Início *
+              </label>
               <Input
                 type="datetime-local"
                 value={newSessionData.session_started_at}
@@ -951,7 +964,9 @@ export function AdminClientSessions({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Duração Estimada (minutos)</label>
+              <label className="text-xs font-semibold text-foreground">
+                Duração Estimada (minutos)
+              </label>
               <Input
                 type="number"
                 placeholder="Ex: 60"
@@ -964,10 +979,18 @@ export function AdminClientSessions({
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsNewModalOpen(false)} disabled={submitting}>
+            <Button
+              variant="outline"
+              onClick={() => setIsNewModalOpen(false)}
+              disabled={submitting}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleCreateSession} disabled={submitting} className="btn-serena text-xs gap-1.5">
+            <Button
+              onClick={handleCreateSession}
+              disabled={submitting}
+              className="btn-serena text-xs gap-1.5"
+            >
               {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Criar Sessão
             </Button>
@@ -983,7 +1006,8 @@ export function AdminClientSessions({
               Concluir Atendimento
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Preencha o resumo e observações finais do atendimento de <strong>{clientName}</strong>.
+              Preencha o resumo e observações finais do atendimento de <strong>{clientName}</strong>
+              .
             </DialogDescription>
           </DialogHeader>
 
@@ -1026,7 +1050,9 @@ export function AdminClientSessions({
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-foreground">Resumo Profissional (Opcional)</label>
+              <label className="font-semibold text-foreground">
+                Resumo Profissional (Opcional)
+              </label>
               <Textarea
                 rows={3}
                 placeholder="Resumo técnico do atendimento e procedimentos realizados..."
@@ -1038,7 +1064,9 @@ export function AdminClientSessions({
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-foreground">Recomendações e Orientações (Opcional)</label>
+              <label className="font-semibold text-foreground">
+                Recomendações e Orientações (Opcional)
+              </label>
               <Textarea
                 rows={3}
                 placeholder="Orientações pós-atendimento e recomendações para o cliente..."
@@ -1195,7 +1223,8 @@ export function AdminClientSessions({
               Cancelar Sessão?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs">
-              Esta ação marcará a sessão clínica como cancelada. O histórico da sessão será preservado.
+              Esta ação marcará a sessão clínica como cancelada. O histórico da sessão será
+              preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

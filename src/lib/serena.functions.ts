@@ -115,7 +115,10 @@ function sanitizePersonalizedContext(input?: unknown): string | undefined {
     }
   }
 
-  if (typeof parsed.preferredTreatmentStyle === "string" && parsed.preferredTreatmentStyle.trim().length > 0) {
+  if (
+    typeof parsed.preferredTreatmentStyle === "string" &&
+    parsed.preferredTreatmentStyle.trim().length > 0
+  ) {
     const clean = sanitizeForPrompt(parsed.preferredTreatmentStyle, 100);
     if (clean) {
       parts.push(`Estilo de Atendimento: ${clean}`);
@@ -129,7 +132,10 @@ function sanitizePersonalizedContext(input?: unknown): string | undefined {
     }
   }
 
-  if (typeof parsed.communicationPreference === "string" && parsed.communicationPreference.trim().length > 0) {
+  if (
+    typeof parsed.communicationPreference === "string" &&
+    parsed.communicationPreference.trim().length > 0
+  ) {
     const clean = sanitizeForPrompt(parsed.communicationPreference, 100);
     if (clean) {
       parts.push(`Preferência de Comunicação: ${clean}`);
@@ -144,37 +150,35 @@ function sanitizePersonalizedContext(input?: unknown): string | undefined {
 }
 
 export const serenaChat = createServerFn({ method: "POST" })
-  .validator(
-    (data: { messages: ChatMessage[]; userContext?: string; clientId?: string }) => {
-      if (!data || typeof data !== "object") throw new Error("payload inválido");
-      if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
-      if (data.messages.length === 0) throw new Error("messages vazio");
-      if (data.messages.length > MAX_MESSAGES) throw new Error("muitas mensagens");
+  .validator((data: { messages: ChatMessage[]; userContext?: string; clientId?: string }) => {
+    if (!data || typeof data !== "object") throw new Error("payload inválido");
+    if (!Array.isArray(data.messages)) throw new Error("messages obrigatório");
+    if (data.messages.length === 0) throw new Error("messages vazio");
+    if (data.messages.length > MAX_MESSAGES) throw new Error("muitas mensagens");
 
-      const cleanMessages: ChatMessage[] = data.messages.map((m) => {
-        if (!m || (m.role !== "user" && m.role !== "assistant")) {
-          throw new Error("role inválido");
-        }
-        if (typeof m.content !== "string") throw new Error("content inválido");
-        return {
-          role: m.role,
-          content: sanitizeForPrompt(m.content, MAX_MESSAGE_CHARS),
-        };
-      });
+    const cleanMessages: ChatMessage[] = data.messages.map((m) => {
+      if (!m || (m.role !== "user" && m.role !== "assistant")) {
+        throw new Error("role inválido");
+      }
+      if (typeof m.content !== "string") throw new Error("content inválido");
+      return {
+        role: m.role,
+        content: sanitizeForPrompt(m.content, MAX_MESSAGE_CHARS),
+      };
+    });
 
-      const userContext =
-        typeof data.userContext === "string" && data.userContext.length > 0
-          ? sanitizeForPrompt(data.userContext, MAX_USER_CONTEXT_CHARS)
-          : undefined;
+    const userContext =
+      typeof data.userContext === "string" && data.userContext.length > 0
+        ? sanitizeForPrompt(data.userContext, MAX_USER_CONTEXT_CHARS)
+        : undefined;
 
-      const clientId =
-        typeof data.clientId === "string" && isValidUuid(data.clientId)
-          ? data.clientId.trim()
-          : undefined;
+    const clientId =
+      typeof data.clientId === "string" && isValidUuid(data.clientId)
+        ? data.clientId.trim()
+        : undefined;
 
-      return { messages: cleanMessages, userContext, clientId };
-    },
-  )
+    return { messages: cleanMessages, userContext, clientId };
+  })
   .handler(async ({ context, data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
@@ -186,7 +190,8 @@ export const serenaChat = createServerFn({ method: "POST" })
       const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
       const supabaseClient =
-        (context as unknown as { supabase?: ReturnType<typeof createClient<Database>> })?.supabase ||
+        (context as unknown as { supabase?: ReturnType<typeof createClient<Database>> })
+          ?.supabase ||
         (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
           ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
           : undefined);

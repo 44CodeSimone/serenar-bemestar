@@ -119,25 +119,32 @@ function ClientStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "registered":
       return (
-        <Badge variant="outline" className="border-sage-deep/30 bg-sage-deep/10 text-sage-deep font-medium">
+        <Badge
+          variant="outline"
+          className="border-sage-deep/30 bg-sage-deep/10 text-sage-deep font-medium"
+        >
           Registrado
         </Badge>
       );
     case "active":
       return (
-        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
-          Ativo
-        </Badge>
+        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium">Ativo</Badge>
       );
     case "inactive":
       return (
-        <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium">
+        <Badge
+          variant="secondary"
+          className="bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium"
+        >
           Inativo
         </Badge>
       );
     case "archived":
       return (
-        <Badge variant="destructive" className="bg-slate-200 text-slate-700 hover:bg-slate-300 font-medium">
+        <Badge
+          variant="destructive"
+          className="bg-slate-200 text-slate-700 hover:bg-slate-300 font-medium"
+        >
           Arquivado
         </Badge>
       );
@@ -564,7 +571,13 @@ export default function AdminClients() {
             <span className="text-xs text-muted-foreground font-medium hidden sm:inline">
               Status:
             </span>
-            <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPage(1); }}>
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => {
+                setStatusFilter(val);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-full sm:w-44 bg-background">
                 <SelectValue placeholder="Filtrar status" />
               </SelectTrigger>
@@ -649,9 +662,7 @@ export default function AdminClients() {
                     <TableCell className="text-xs text-foreground">
                       {formatDateDisplay(client.birth_date)}
                     </TableCell>
-                    <TableCell className="text-xs text-foreground">
-                      {client.city || "-"}
-                    </TableCell>
+                    <TableCell className="text-xs text-foreground">{client.city || "-"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatSourceLabel(client.source)}
                     </TableCell>
@@ -851,7 +862,9 @@ export default function AdminClients() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Nome da Mãe (Opcional)</label>
+              <label className="text-xs font-semibold text-foreground">
+                Nome da Mãe (Opcional)
+              </label>
               <Input
                 placeholder="Nome da mãe"
                 value={formData.mother_name}
@@ -878,7 +891,9 @@ export default function AdminClients() {
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Observações Internas (Opcional)</label>
+              <label className="text-xs font-semibold text-foreground">
+                Observações Internas (Opcional)
+              </label>
               <Textarea
                 placeholder="Preferências, restrições ou anotações cadastrais..."
                 rows={3}
@@ -892,7 +907,11 @@ export default function AdminClients() {
             <Button variant="outline" onClick={() => setIsCreateOpen(false)} disabled={submitting}>
               Cancelar
             </Button>
-            <Button onClick={() => handleSubmitCreate(false)} disabled={submitting} className="btn-serena gap-2">
+            <Button
+              onClick={() => handleSubmitCreate(false)}
+              disabled={submitting}
+              className="btn-serena gap-2"
+            >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               Salvar Cliente
             </Button>
@@ -917,17 +936,28 @@ export default function AdminClients() {
 
           <div className="space-y-2 py-2">
             {suspectedDuplicates.map((dup) => (
-              <div key={dup.id} className="p-3 border border-border rounded-xl bg-cream/30 text-xs space-y-1">
+              <div
+                key={dup.id}
+                className="p-3 border border-border rounded-xl bg-cream/30 text-xs space-y-1"
+              >
                 <p className="font-semibold text-sage-deep">{dup.full_name}</p>
-                <p className="text-muted-foreground">Nascimento: {formatDateDisplay(dup.birth_date)}</p>
-                {dup.cpf && <p className="text-muted-foreground font-mono">CPF: {maskCpfPartial(dup.cpf)}</p>}
+                <p className="text-muted-foreground">
+                  Nascimento: {formatDateDisplay(dup.birth_date)}
+                </p>
+                {dup.cpf && (
+                  <p className="text-muted-foreground font-mono">CPF: {maskCpfPartial(dup.cpf)}</p>
+                )}
                 <p className="text-muted-foreground">Telefone: {formatPhone(dup.phone)}</p>
               </div>
             ))}
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" className="w-full sm:w-auto text-xs" onClick={() => setIsDuplicateConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto text-xs"
+              onClick={() => setIsDuplicateConfirmOpen(false)}
+            >
               Voltar e Revisar
             </Button>
             <Button
@@ -947,9 +977,7 @@ export default function AdminClients() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-sage-deep">Editar Cliente</DialogTitle>
-            <DialogDescription>
-              Atualize as informações cadastrais do cliente.
-            </DialogDescription>
+            <DialogDescription>Atualize as informações cadastrais do cliente.</DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-3">
@@ -1004,7 +1032,9 @@ export default function AdminClients() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Nome da Mãe (Opcional)</label>
+              <label className="text-xs font-semibold text-foreground">
+                Nome da Mãe (Opcional)
+              </label>
               <Input
                 value={formData.mother_name}
                 onChange={(e) => handleInputChange("mother_name", e.target.value)}
@@ -1028,7 +1058,9 @@ export default function AdminClients() {
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Observações Internas (Opcional)</label>
+              <label className="text-xs font-semibold text-foreground">
+                Observações Internas (Opcional)
+              </label>
               <Textarea
                 rows={3}
                 value={formData.notes}
@@ -1072,7 +1104,9 @@ export default function AdminClients() {
                 Você está prestes a arquivar a ficha de <strong>{targetActionClientName}</strong>.
               </p>
               <p>
-                A ficha deixará de constar na listagem padrão de clientes ativos, mas todo o histórico do cliente será totalmente preservado no sistema e poderá ser restaurado a qualquer momento.
+                A ficha deixará de constar na listagem padrão de clientes ativos, mas todo o
+                histórico do cliente será totalmente preservado no sistema e poderá ser restaurado a
+                qualquer momento.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1102,7 +1136,8 @@ export default function AdminClients() {
                 Deseja restaurar a ficha arquivada de <strong>{targetActionClientName}</strong>?
               </p>
               <p>
-                O cliente retornará ao estado ativo como <strong>Registrado</strong> e voltará a figurar nas listagens normais do CRM.
+                O cliente retornará ao estado ativo como <strong>Registrado</strong> e voltará a
+                figurar nas listagens normais do CRM.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>

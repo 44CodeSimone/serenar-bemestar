@@ -72,7 +72,10 @@ function AnamnesisStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "draft":
       return (
-        <Badge variant="outline" className="border-amber-500/40 bg-amber-50 text-amber-700 font-medium">
+        <Badge
+          variant="outline"
+          className="border-amber-500/40 bg-amber-50 text-amber-700 font-medium"
+        >
           Rascunho
         </Badge>
       );
@@ -84,9 +87,7 @@ function AnamnesisStatusBadge({ status }: { status: string }) {
       );
     case "reviewed":
       return (
-        <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
-          Revisada
-        </Badge>
+        <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium">Revisada</Badge>
       );
     case "superseded":
       return (
@@ -205,7 +206,7 @@ export function AdminClientAnamnesis({
         setLoadingDetail(false);
       }
     },
-    [fetchAnamnesisDetail]
+    [fetchAnamnesisDetail],
   );
 
   // Abrir modal de seleção de modelo para Nova Anamnese
@@ -392,15 +393,14 @@ export function AdminClientAnamnesis({
         return (
           <Input
             type="number"
-            value={typeof rawVal === "number" ? rawVal : (rawVal as string | undefined) ?? ""}
+            value={typeof rawVal === "number" ? rawVal : ((rawVal as string | undefined) ?? "")}
             onChange={(e) =>
-              handleAnswerChange(
-                q.id,
-                e.target.value === "" ? null : Number(e.target.value)
-              )
+              handleAnswerChange(q.id, e.target.value === "" ? null : Number(e.target.value))
             }
             disabled={isReadOnly}
-            placeholder={q.field_type === "scale" ? "Informe uma nota/escala" : "Informe o valor numérico"}
+            placeholder={
+              q.field_type === "scale" ? "Informe uma nota/escala" : "Informe o valor numérico"
+            }
             className="bg-background max-w-xs"
           />
         );
@@ -466,7 +466,7 @@ export function AdminClientAnamnesis({
                         } else {
                           handleAnswerChange(
                             q.id,
-                            currentArr.filter((item) => item !== opt)
+                            currentArr.filter((item) => item !== opt),
                           );
                         }
                       }}
@@ -667,16 +667,19 @@ export function AdminClientAnamnesis({
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-muted-foreground border-t border-border/60">
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" /> Criada: {formatDateDisplay(activeDetail.anamnesis.created_at)}
+                          <Clock className="h-3.5 w-3.5" /> Criada:{" "}
+                          {formatDateDisplay(activeDetail.anamnesis.created_at)}
                         </span>
                         {activeDetail.anamnesis.completed_at && (
                           <span className="flex items-center gap-1 text-emerald-700 font-medium">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Concluída: {formatDateDisplay(activeDetail.anamnesis.completed_at)}
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Concluída:{" "}
+                            {formatDateDisplay(activeDetail.anamnesis.completed_at)}
                           </span>
                         )}
                         {activeDetail.anamnesis.reviewed_at && (
                           <span className="flex items-center gap-1 text-indigo-700 font-medium">
-                            <UserCheck className="h-3.5 w-3.5" /> Revisada: {formatDateDisplay(activeDetail.anamnesis.reviewed_at)}
+                            <UserCheck className="h-3.5 w-3.5" /> Revisada:{" "}
+                            {formatDateDisplay(activeDetail.anamnesis.reviewed_at)}
                           </span>
                         )}
                       </div>
@@ -814,9 +817,7 @@ export function AdminClientAnamnesis({
       <Dialog open={isNewModalOpen} onOpenChange={setIsNewModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl text-sage-deep">
-              Nova Anamnese
-            </DialogTitle>
+            <DialogTitle className="font-serif text-xl text-sage-deep">Nova Anamnese</DialogTitle>
             <DialogDescription className="text-xs">
               Selecione o modelo de anamnese ativo para o cliente <strong>{clientName}</strong>.
             </DialogDescription>

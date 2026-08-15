@@ -37,7 +37,7 @@ function isAnswerProvided(answer: unknown): boolean {
  */
 function validateAnswerValueByFieldType(
   question: AnamnesisQuestionRow,
-  answer: unknown
+  answer: unknown,
 ): { isValid: boolean; errorMessage?: string } {
   if (answer === null || answer === undefined) {
     return { isValid: true };
@@ -246,23 +246,22 @@ export const createClientAnamnesisFn = createServerFn({ method: "POST" })
  */
 export const saveAnamnesisAnswersFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: {
-    anamnesisId: string;
-    answers: { questionId: string; answer: unknown }[];
-  }) => {
-    if (!isValidUuid(data.anamnesisId)) {
-      throw new Error("ID de anamnese inválido.");
-    }
-    if (!Array.isArray(data.answers)) {
-      throw new Error("Payload de respostas deve ser um array.");
-    }
-    for (const item of data.answers) {
-      if (!isValidUuid(item.questionId)) {
-        throw new Error("ID de pergunta inválido detectado.");
+  .validator(
+    (data: { anamnesisId: string; answers: { questionId: string; answer: unknown }[] }) => {
+      if (!isValidUuid(data.anamnesisId)) {
+        throw new Error("ID de anamnese inválido.");
       }
-    }
-    return data;
-  })
+      if (!Array.isArray(data.answers)) {
+        throw new Error("Payload de respostas deve ser um array.");
+      }
+      for (const item of data.answers) {
+        if (!isValidUuid(item.questionId)) {
+          throw new Error("ID de pergunta inválido detectado.");
+        }
+      }
+      return data;
+    },
+  )
   .handler(async ({ context, data }) => {
     const detail = await getClientAnamnesisDetail(context.supabase, data.anamnesisId);
     if (!detail) {
@@ -310,15 +309,14 @@ export const saveAnamnesisAnswersFn = createServerFn({ method: "POST" })
  */
 export const completeClientAnamnesisFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: {
-    anamnesisId: string;
-    answers?: { questionId: string; answer: unknown }[];
-  }) => {
-    if (!isValidUuid(data.anamnesisId)) {
-      throw new Error("ID de anamnese inválido.");
-    }
-    return data;
-  })
+  .validator(
+    (data: { anamnesisId: string; answers?: { questionId: string; answer: unknown }[] }) => {
+      if (!isValidUuid(data.anamnesisId)) {
+        throw new Error("ID de anamnese inválido.");
+      }
+      return data;
+    },
+  )
   .handler(async ({ context, data }) => {
     const detail = await getClientAnamnesisDetail(context.supabase, data.anamnesisId);
     if (!detail) {
@@ -392,7 +390,9 @@ export const completeClientAnamnesisFn = createServerFn({ method: "POST" })
     }
 
     if (missingQuestions.length > 0) {
-      throw new Error(`Existem perguntas obrigatórias sem resposta: ${missingQuestions.join(", ")}.`);
+      throw new Error(
+        `Existem perguntas obrigatórias sem resposta: ${missingQuestions.join(", ")}.`,
+      );
     }
 
     return await updateAnamnesisStatus(context.supabase, data.anamnesisId, "completed", {

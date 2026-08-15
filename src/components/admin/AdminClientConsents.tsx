@@ -72,14 +72,46 @@ interface AdminClientConsentsProps {
 
 // Map amigável dos tipos de consentimento LGPD do Serenar CRM
 const CONSENT_TYPES = [
-  { value: "data_processing", label: "Tratamento de Dados Cadastrais", desc: "Coleta e tratamento de dados cadastrais para identificação e atendimento." },
-  { value: "service_authorization", label: "Autorização para Rituais e Atendimentos", desc: "Consentimento para realização das sessões de massoterapia." },
-  { value: "guardian_authorization", label: "Autorização de Responsável Legal", desc: "Autorização fornecida pelo responsável legal de menor de idade." },
-  { value: "document_storage", label: "Guarda e Armazenamento de Documentos", desc: "Guarda segura de exames, fichas e anexos privados." },
-  { value: "ai_memory", label: "Memória de Preferências da IA Serenar", desc: "Autorização para a assistente virtual lembrar preferências do cliente." },
-  { value: "marketing", label: "Comunicações Promocionais e Informativos", desc: "Envio de mensagens promocionais, saudações e novidades." },
-  { value: "image_use", label: "Uso Específico de Imagem / Fotografia", desc: "Uso autorizado de fotos ou vídeos para acompanhamento." },
-  { value: "testimonial_use", label: "Publicação de Depoimentos Autorizados", desc: "Publicação de relatos do cliente no site ou redes sociais." },
+  {
+    value: "data_processing",
+    label: "Tratamento de Dados Cadastrais",
+    desc: "Coleta e tratamento de dados cadastrais para identificação e atendimento.",
+  },
+  {
+    value: "service_authorization",
+    label: "Autorização para Rituais e Atendimentos",
+    desc: "Consentimento para realização das sessões de massoterapia.",
+  },
+  {
+    value: "guardian_authorization",
+    label: "Autorização de Responsável Legal",
+    desc: "Autorização fornecida pelo responsável legal de menor de idade.",
+  },
+  {
+    value: "document_storage",
+    label: "Guarda e Armazenamento de Documentos",
+    desc: "Guarda segura de exames, fichas e anexos privados.",
+  },
+  {
+    value: "ai_memory",
+    label: "Memória de Preferências da IA Serenar",
+    desc: "Autorização para a assistente virtual lembrar preferências do cliente.",
+  },
+  {
+    value: "marketing",
+    label: "Comunicações Promocionais e Informativos",
+    desc: "Envio de mensagens promocionais, saudações e novidades.",
+  },
+  {
+    value: "image_use",
+    label: "Uso Específico de Imagem / Fotografia",
+    desc: "Uso autorizado de fotos ou vídeos para acompanhamento.",
+  },
+  {
+    value: "testimonial_use",
+    label: "Publicação de Depoimentos Autorizados",
+    desc: "Publicação de relatos do cliente no site ou redes sociais.",
+  },
 ] as const;
 
 // Map amigável das bases legais
@@ -250,7 +282,9 @@ export default function AdminClientConsents({
         },
       });
 
-      toast.success("Consentimento revogado com sucesso. O histórico foi preservado (Append-Only).");
+      toast.success(
+        "Consentimento revogado com sucesso. O histórico foi preservado (Append-Only).",
+      );
       setTargetRevokeConsent(null);
       await loadConsents();
     } catch (err) {
@@ -274,7 +308,8 @@ export default function AdminClientConsents({
                     Gestão de Consentimentos LGPD
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Cliente: <strong className="text-foreground font-semibold">{clientName}</strong> — Histórico imutável de termos e autorizações de privacidade.
+                    Cliente: <strong className="text-foreground font-semibold">{clientName}</strong>{" "}
+                    — Histórico imutável de termos e autorizações de privacidade.
                   </DialogDescription>
                 </div>
               </div>
@@ -299,7 +334,10 @@ export default function AdminClientConsents({
                   <span className="flex items-center gap-2">
                     <Plus className="h-4 w-4" /> Registrar Novo Consentimento LGPD
                   </span>
-                  <Badge variant="outline" className="border-sage-deep/30 text-sage-deep text-[11px]">
+                  <Badge
+                    variant="outline"
+                    className="border-sage-deep/30 text-sage-deep text-[11px]"
+                  >
                     Append-Only Ledger
                   </Badge>
                 </CardTitle>
@@ -314,7 +352,9 @@ export default function AdminClientConsents({
                       </label>
                       <Select
                         value={formData.consent_type}
-                        onValueChange={(val) => setFormData((prev) => ({ ...prev, consent_type: val }))}
+                        onValueChange={(val) =>
+                          setFormData((prev) => ({ ...prev, consent_type: val }))
+                        }
                       >
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selecione o tipo" />
@@ -341,7 +381,9 @@ export default function AdminClientConsents({
                       </label>
                       <Select
                         value={formData.granted ? "true" : "false"}
-                        onValueChange={(val) => setFormData((prev) => ({ ...prev, granted: val === "true" }))}
+                        onValueChange={(val) =>
+                          setFormData((prev) => ({ ...prev, granted: val === "true" }))
+                        }
                       >
                         <SelectTrigger className="bg-background">
                           <SelectValue />
@@ -368,7 +410,9 @@ export default function AdminClientConsents({
                       </label>
                       <Select
                         value={formData.legal_basis}
-                        onValueChange={(val) => setFormData((prev) => ({ ...prev, legal_basis: val }))}
+                        onValueChange={(val) =>
+                          setFormData((prev) => ({ ...prev, legal_basis: val }))
+                        }
                       >
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selecione a base legal" />
@@ -390,7 +434,9 @@ export default function AdminClientConsents({
                       </label>
                       <Select
                         value={formData.collection_channel}
-                        onValueChange={(val) => setFormData((prev) => ({ ...prev, collection_channel: val }))}
+                        onValueChange={(val) =>
+                          setFormData((prev) => ({ ...prev, collection_channel: val }))
+                        }
                       >
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selecione o canal" />
@@ -412,7 +458,9 @@ export default function AdminClientConsents({
                       </label>
                       <Input
                         value={formData.term_version}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, term_version: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, term_version: e.target.value }))
+                        }
                         placeholder="Ex: v1.0, v2026-08"
                         className="bg-background text-xs"
                       />
@@ -425,7 +473,9 @@ export default function AdminClientConsents({
                       </label>
                       <Input
                         value={formData.term_hash}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, term_hash: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, term_hash: e.target.value }))
+                        }
                         placeholder="Hash SHA-256 de integridade"
                         className="bg-background text-xs font-mono"
                       />
@@ -458,14 +508,15 @@ export default function AdminClientConsents({
           ) : (
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-sage-deep/30 bg-cream/50 text-sage-deep text-xs font-medium">
-                  {consents.length} {consents.length === 1 ? "registro histórico" : "registros históricos"}
+                <Badge
+                  variant="outline"
+                  className="border-sage-deep/30 bg-cream/50 text-sage-deep text-xs font-medium"
+                >
+                  {consents.length}{" "}
+                  {consents.length === 1 ? "registro histórico" : "registros históricos"}
                 </Badge>
               </div>
-              <Button
-                onClick={() => setIsFormOpen(true)}
-                className="btn-serena gap-1.5 text-xs"
-              >
+              <Button onClick={() => setIsFormOpen(true)} className="btn-serena gap-1.5 text-xs">
                 <Plus className="h-4 w-4" /> Novo Consentimento
               </Button>
             </div>
@@ -478,7 +529,9 @@ export default function AdminClientConsents({
                 <TableHeader className="bg-cream/40">
                   <TableRow>
                     <TableHead className="font-semibold text-sage-deep">Status</TableHead>
-                    <TableHead className="font-semibold text-sage-deep">Tipo de Consentimento</TableHead>
+                    <TableHead className="font-semibold text-sage-deep">
+                      Tipo de Consentimento
+                    </TableHead>
                     <TableHead className="font-semibold text-sage-deep">Base Legal</TableHead>
                     <TableHead className="font-semibold text-sage-deep">Versão / Canal</TableHead>
                     <TableHead className="font-semibold text-sage-deep">Datas</TableHead>
@@ -500,9 +553,12 @@ export default function AdminClientConsents({
                       <TableCell colSpan={6} className="h-36 text-center text-muted-foreground">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Shield className="h-8 w-8 text-muted-foreground/40" />
-                          <p className="font-medium text-sm">Nenhum consentimento LGPD registrado.</p>
+                          <p className="font-medium text-sm">
+                            Nenhum consentimento LGPD registrado.
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            Clique em "Novo Consentimento" para registrar a primeira autorização deste cliente.
+                            Clique em "Novo Consentimento" para registrar a primeira autorização
+                            deste cliente.
                           </p>
                         </div>
                       </TableCell>
@@ -520,11 +576,17 @@ export default function AdminClientConsents({
                                 <CheckCircle2 className="h-3 w-3" /> Ativo
                               </Badge>
                             ) : isRevoked ? (
-                              <Badge variant="destructive" className="bg-rose-100 text-rose-800 hover:bg-rose-200 border-rose-300 font-medium text-[11px] gap-1">
+                              <Badge
+                                variant="destructive"
+                                className="bg-rose-100 text-rose-800 hover:bg-rose-200 border-rose-300 font-medium text-[11px] gap-1"
+                              >
                                 <Ban className="h-3 w-3" /> Revogado
                               </Badge>
                             ) : (
-                              <Badge variant="secondary" className="bg-amber-100 text-amber-800 font-medium text-[11px] gap-1">
+                              <Badge
+                                variant="secondary"
+                                className="bg-amber-100 text-amber-800 font-medium text-[11px] gap-1"
+                              >
                                 <XCircle className="h-3 w-3" /> Recusado
                               </Badge>
                             )}
@@ -544,14 +606,15 @@ export default function AdminClientConsents({
                           </TableCell>
                           <TableCell className="text-xs">
                             <div>
-                              <p className="font-medium text-foreground">
-                                {consent.term_version}
-                              </p>
+                              <p className="font-medium text-foreground">{consent.term_version}</p>
                               <p className="text-[11px] text-muted-foreground">
                                 {getChannelLabel(consent.collection_channel)}
                               </p>
                               {consent.evidence_document_id && (
-                                <Badge variant="outline" className="mt-1 text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50 flex items-center gap-1 w-fit">
+                                <Badge
+                                  variant="outline"
+                                  className="mt-1 text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50 flex items-center gap-1 w-fit"
+                                >
                                   <FileCheck className="h-3 w-3" /> Com Evidência
                                 </Badge>
                               )}
@@ -629,10 +692,12 @@ export default function AdminClientConsents({
               </p>
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-900 text-[11px] space-y-1">
                 <p className="font-semibold flex items-center gap-1">
-                  <ShieldAlert className="h-3.5 w-3.5 text-amber-700" /> Em conformidade com o modelo Append-Only:
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-700" /> Em conformidade com o
+                  modelo Append-Only:
                 </p>
                 <p>
-                  O registro histórico de concessão não será excluído. O sistema apenas gravará a data e hora de revogação (`revoked_at`) de forma imutável.
+                  O registro histórico de concessão não será excluído. O sistema apenas gravará a
+                  data e hora de revogação (`revoked_at`) de forma imutável.
                 </p>
               </div>
             </AlertDialogDescription>

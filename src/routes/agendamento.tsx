@@ -64,9 +64,9 @@ function Agendamento() {
 
   /* ── Load services and calendar slots ──────────────── */
   const [services, setServices] = useState<PublicService[]>([]);
-  const [calendarSlots, setCalendarSlots] = useState<
-    Awaited<ReturnType<typeof fetchPublicSlots>>
-  >([]);
+  const [calendarSlots, setCalendarSlots] = useState<Awaited<ReturnType<typeof fetchPublicSlots>>>(
+    [],
+  );
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
 

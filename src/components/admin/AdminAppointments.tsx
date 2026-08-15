@@ -24,10 +24,7 @@ import {
   updateAppointmentInternalNotesFn,
   convertAppointmentToSessionFn,
 } from "@/lib/appointments.functions";
-import type {
-  AppointmentRecord,
-  AppointmentStatus,
-} from "@/lib/appointments.repository";
+import type { AppointmentRecord, AppointmentStatus } from "@/lib/appointments.repository";
 import { listClientsFn } from "@/lib/clients.functions";
 import type { ClientRecord } from "@/lib/clients.repository";
 import AdminClientSessions from "@/components/admin/AdminClientSessions";
@@ -220,7 +217,9 @@ export default function AdminAppointments() {
     try {
       const [appointments, clientsRes] = await Promise.all([
         fetchAppointments(),
-        fetchClients({ data: { pageSize: 500, includeArchived: false } }).catch(() => ({ data: [] })),
+        fetchClients({ data: { pageSize: 500, includeArchived: false } }).catch(() => ({
+          data: [],
+        })),
       ]);
 
       const drafts = Object.fromEntries(
@@ -414,8 +413,8 @@ export default function AdminAppointments() {
       <div className="mb-6 rounded-2xl border border-border bg-blush/30 p-4 text-sm text-sage-deep">
         <p className="font-medium">O Google Calendar é a agenda oficial da equipe.</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Após confirmar um pedido no Serenar, registre manualmente o compromisso no Google
-          Calendar e converta o agendamento em Sessão Clínica no CRM.
+          Após confirmar um pedido no Serenar, registre manualmente o compromisso no Google Calendar
+          e converta o agendamento em Sessão Clínica no CRM.
         </p>
       </div>
 
@@ -647,16 +646,25 @@ export default function AdminAppointments() {
                 <div className="mt-4 pt-3 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-cream/30 p-3 rounded-xl">
                   <div className="flex items-center gap-2">
                     {crmWorkflowStatus === "no_client" ? (
-                      <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium">
-                        <UserX className="h-3.5 w-3.5 text-amber-600" /> CRM Client Required (Cliente Não Cadastrado)
+                      <Badge
+                        variant="outline"
+                        className="border-amber-400 bg-amber-50 text-amber-900 text-[11px] gap-1 font-medium"
+                      >
+                        <UserX className="h-3.5 w-3.5 text-amber-600" /> CRM Client Required
+                        (Cliente Não Cadastrado)
                       </Badge>
                     ) : crmWorkflowStatus === "session_created" ? (
                       <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] gap-1 font-medium">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Clinical Session Created (Sessão Criada)
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Clinical Session Created (Sessão
+                        Criada)
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium">
-                        <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Ready for Session (Pronto p/ Sessão)
+                      <Badge
+                        variant="outline"
+                        className="border-sky-400 bg-sky-50 text-sky-900 text-[11px] gap-1 font-medium"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-sky-600" /> Ready for Session (Pronto
+                        p/ Sessão)
                       </Badge>
                     )}
                   </div>
@@ -702,7 +710,10 @@ export default function AdminAppointments() {
                         asChild
                         className="text-xs border-sage-deep/30 text-sage-deep hover:bg-sage/10 gap-1.5 h-8 font-medium"
                       >
-                        <Link to="/admin/atendimento/$appointmentId" params={{ appointmentId: appointment.id }}>
+                        <Link
+                          to="/admin/atendimento/$appointmentId"
+                          params={{ appointmentId: appointment.id }}
+                        >
                           <Sparkles className="h-3.5 w-3.5 text-gold" /> Abrir Central
                         </Link>
                       </Button>

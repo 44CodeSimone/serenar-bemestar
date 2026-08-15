@@ -59,7 +59,8 @@ export const getAppointmentByIdFn = createServerFn({ method: "GET" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
@@ -87,7 +88,8 @@ export const changeAppointmentStatusFn = createServerFn({ method: "POST" })
     }
     const params = input as Record<string, unknown>;
 
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
@@ -132,12 +134,14 @@ export const updateAppointmentInternalNotesFn = createServerFn({ method: "POST" 
     }
     const params = input as Record<string, unknown>;
 
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
 
-    const internalNotes = typeof params.internalNotes === "string" ? params.internalNotes.trim() : "";
+    const internalNotes =
+      typeof params.internalNotes === "string" ? params.internalNotes.trim() : "";
     if (internalNotes.length > 2000) {
       throw new Error("As notas internas devem ter no máximo 2000 caracteres.");
     }
@@ -175,7 +179,8 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
     }
     const params = input as Record<string, unknown>;
 
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
@@ -261,7 +266,8 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
 
       // 4. Constrói o payload da sessão clínica
       const validStatuses = ["scheduled", "in_progress", "completed", "cancelled", "no_show"];
-      const finalStatus = data.status && validStatuses.includes(data.status) ? data.status : "completed";
+      const finalStatus =
+        data.status && validStatuses.includes(data.status) ? data.status : "completed";
 
       const sessionPayload: ClientSessionInsert = {
         client_id: crmClient.id,
@@ -275,10 +281,7 @@ export const convertAppointmentToSessionFn = createServerFn({ method: "POST" })
       };
 
       // 5. Cria a sessão clínica no repositório de client_sessions
-      const newSession = await createClientSession(
-        context.supabase,
-        sessionPayload,
-      );
+      const newSession = await createClientSession(context.supabase, sessionPayload);
 
       // 6. Atualiza o status do agendamento para completed via RPC
       try {
@@ -312,7 +315,8 @@ export const resolveAppointmentClientFn = createServerFn({ method: "GET" })
       throw new Error("Payload inválido.");
     }
     const params = input as Record<string, unknown>;
-    const appointmentId = typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
     if (!isValidUuid(appointmentId)) {
       throw new Error("ID do agendamento inválido.");
     }
@@ -321,7 +325,10 @@ export const resolveAppointmentClientFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context, data }): Promise<ClientRecord | null> => {
     try {
-      const appointment = await appointmentsRepo.getAppointmentById(context.supabase, data.appointmentId);
+      const appointment = await appointmentsRepo.getAppointmentById(
+        context.supabase,
+        data.appointmentId,
+      );
       if (!appointment) return null;
 
       if (appointment.client_id) {

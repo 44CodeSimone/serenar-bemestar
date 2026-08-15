@@ -72,19 +72,34 @@ interface AdminClientDocumentsProps {
 }
 
 const DOCUMENT_TYPES = [
-  { value: "identification", label: "Documento de Identificação (RG / CPF)", desc: "Cópia digitalizada do documento de identidade civil." },
-  { value: "consent_evidence", label: "Evidência de Consentimento LGPD", desc: "Termo assinado físico ou digital de consentimento de privacidade." },
-  { value: "clinical_attachment", label: "Anexo de Atendimento / Sessão", desc: "Arquivos vinculados a atendimentos ou evoluções de massoterapia." },
-  { value: "external_exam", label: "Exame Externo / Laudo Médico", desc: "Exames de imagem, relatórios médicos ou atestados trazidos pelo cliente." },
-  { value: "other", label: "Outro Documento Anexo", desc: "Comprovantes residenciais ou documentos gerais do cliente." },
+  {
+    value: "identification",
+    label: "Documento de Identificação (RG / CPF)",
+    desc: "Cópia digitalizada do documento de identidade civil.",
+  },
+  {
+    value: "consent_evidence",
+    label: "Evidência de Consentimento LGPD",
+    desc: "Termo assinado físico ou digital de consentimento de privacidade.",
+  },
+  {
+    value: "clinical_attachment",
+    label: "Anexo de Atendimento / Sessão",
+    desc: "Arquivos vinculados a atendimentos ou evoluções de massoterapia.",
+  },
+  {
+    value: "external_exam",
+    label: "Exame Externo / Laudo Médico",
+    desc: "Exames de imagem, relatórios médicos ou atestados trazidos pelo cliente.",
+  },
+  {
+    value: "other",
+    label: "Outro Documento Anexo",
+    desc: "Comprovantes residenciais ou documentos gerais do cliente.",
+  },
 ] as const;
 
-const ALLOWED_MIMES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+const ALLOWED_MIMES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function formatFileSize(bytes: number): string {
@@ -116,33 +131,49 @@ function getDocumentTypeLabel(type: string): string {
 function getMimeBadge(mime: string) {
   if (mime.includes("pdf")) {
     return (
-      <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-700 font-mono text-[10px]">
+      <Badge
+        variant="outline"
+        className="border-rose-300 bg-rose-50 text-rose-700 font-mono text-[10px]"
+      >
         PDF
       </Badge>
     );
   }
   if (mime.includes("jpeg") || mime.includes("jpg")) {
     return (
-      <Badge variant="outline" className="border-sky-300 bg-sky-50 text-sky-700 font-mono text-[10px]">
+      <Badge
+        variant="outline"
+        className="border-sky-300 bg-sky-50 text-sky-700 font-mono text-[10px]"
+      >
         JPG
       </Badge>
     );
   }
   if (mime.includes("png")) {
     return (
-      <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 font-mono text-[10px]">
+      <Badge
+        variant="outline"
+        className="border-emerald-300 bg-emerald-50 text-emerald-700 font-mono text-[10px]"
+      >
         PNG
       </Badge>
     );
   }
   if (mime.includes("webp")) {
     return (
-      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 font-mono text-[10px]">
+      <Badge
+        variant="outline"
+        className="border-amber-300 bg-amber-50 text-amber-700 font-mono text-[10px]"
+      >
         WEBP
       </Badge>
     );
   }
-  return <Badge variant="outline" className="text-[10px]">{mime}</Badge>;
+  return (
+    <Badge variant="outline" className="text-[10px]">
+      {mime}
+    </Badge>
+  );
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -215,7 +246,9 @@ export default function AdminClientDocuments({
       const file = e.target.files[0];
 
       if (!ALLOWED_MIMES.includes(file.type.toLowerCase())) {
-        toast.error(`Tipo de arquivo não suportado (${file.type}). Formatos aceitos: PDF, JPEG, PNG e WEBP.`);
+        toast.error(
+          `Tipo de arquivo não suportado (${file.type}). Formatos aceitos: PDF, JPEG, PNG e WEBP.`,
+        );
         e.target.value = "";
         setSelectedFile(null);
         return;
@@ -328,7 +361,8 @@ export default function AdminClientDocuments({
                     Documentos e Anexos do Cliente
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Cliente: <strong className="text-foreground font-semibold">{clientName}</strong> — Armazenamento seguro de exames, identidades e termos.
+                    Cliente: <strong className="text-foreground font-semibold">{clientName}</strong>{" "}
+                    — Armazenamento seguro de exames, identidades e termos.
                   </DialogDescription>
                 </div>
               </div>
@@ -363,7 +397,10 @@ export default function AdminClientDocuments({
                   <span className="flex items-center gap-2">
                     <Upload className="h-4 w-4" /> Anexar Novo Documento Privado
                   </span>
-                  <Badge variant="outline" className="border-sage-deep/30 text-sage-deep text-[11px]">
+                  <Badge
+                    variant="outline"
+                    className="border-sage-deep/30 text-sage-deep text-[11px]"
+                  >
                     Bucket Privado 100% Criptografado
                   </Badge>
                 </CardTitle>
@@ -376,10 +413,7 @@ export default function AdminClientDocuments({
                       <label className="text-xs font-semibold text-sage-deep">
                         Categoria do Documento *
                       </label>
-                      <Select
-                        value={documentType}
-                        onValueChange={(val) => setDocumentType(val)}
-                      >
+                      <Select value={documentType} onValueChange={(val) => setDocumentType(val)}>
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selecione a categoria" />
                         </SelectTrigger>
@@ -409,7 +443,8 @@ export default function AdminClientDocuments({
                       />
                       {selectedFile && (
                         <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-                          <FileCheck className="h-3.5 w-3.5" /> Arquivo selecionado: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                          <FileCheck className="h-3.5 w-3.5" /> Arquivo selecionado:{" "}
+                          {selectedFile.name} ({formatFileSize(selectedFile.size)})
                         </p>
                       )}
                     </div>
@@ -444,14 +479,15 @@ export default function AdminClientDocuments({
           ) : (
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-sage-deep/30 bg-cream/50 text-sage-deep text-xs font-medium">
-                  {documents.length} {documents.length === 1 ? "documento anexo" : "documentos anexos"}
+                <Badge
+                  variant="outline"
+                  className="border-sage-deep/30 bg-cream/50 text-sage-deep text-xs font-medium"
+                >
+                  {documents.length}{" "}
+                  {documents.length === 1 ? "documento anexo" : "documentos anexos"}
                 </Badge>
               </div>
-              <Button
-                onClick={() => setIsFormOpen(true)}
-                className="btn-serena gap-1.5 text-xs"
-              >
+              <Button onClick={() => setIsFormOpen(true)} className="btn-serena gap-1.5 text-xs">
                 <Plus className="h-4 w-4" /> Anexar Documento
               </Button>
             </div>
@@ -464,8 +500,12 @@ export default function AdminClientDocuments({
                 <TableHeader className="bg-cream/40">
                   <TableRow>
                     <TableHead className="font-semibold text-sage-deep">Status</TableHead>
-                    <TableHead className="font-semibold text-sage-deep">Nome do Arquivo / Categoria</TableHead>
-                    <TableHead className="font-semibold text-sage-deep">Formato / Tamanho</TableHead>
+                    <TableHead className="font-semibold text-sage-deep">
+                      Nome do Arquivo / Categoria
+                    </TableHead>
+                    <TableHead className="font-semibold text-sage-deep">
+                      Formato / Tamanho
+                    </TableHead>
                     <TableHead className="font-semibold text-sage-deep">Data de Envio</TableHead>
                     <TableHead className="text-right font-semibold text-sage-deep">Ações</TableHead>
                   </TableRow>
@@ -485,9 +525,12 @@ export default function AdminClientDocuments({
                       <TableCell colSpan={5} className="h-36 text-center text-muted-foreground">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <File className="h-8 w-8 text-muted-foreground/40" />
-                          <p className="font-medium text-sm">Nenhum documento cadastrado para este cliente.</p>
+                          <p className="font-medium text-sm">
+                            Nenhum documento cadastrado para este cliente.
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            Clique em "Anexar Documento" para salvar PDFs, fotos de exames ou termos digitais.
+                            Clique em "Anexar Documento" para salvar PDFs, fotos de exames ou termos
+                            digitais.
                           </p>
                         </div>
                       </TableCell>
@@ -500,7 +543,10 @@ export default function AdminClientDocuments({
                         <TableRow key={doc.id} className="hover:bg-cream/20 transition-colors">
                           <TableCell>
                             {isArchived ? (
-                              <Badge variant="destructive" className="bg-slate-200 text-slate-700 hover:bg-slate-300 font-medium text-[11px] gap-1">
+                              <Badge
+                                variant="destructive"
+                                className="bg-slate-200 text-slate-700 hover:bg-slate-300 font-medium text-[11px] gap-1"
+                              >
                                 <Ban className="h-3 w-3" /> Arquivado
                               </Badge>
                             ) : (
@@ -605,14 +651,17 @@ export default function AdminClientDocuments({
             </div>
             <AlertDialogDescription className="text-xs text-foreground space-y-2">
               <p>
-                Deseja arquivar o documento <strong>{targetArchiveDoc?.original_filename}</strong> do cliente <strong>{clientName}</strong>?
+                Deseja arquivar o documento <strong>{targetArchiveDoc?.original_filename}</strong>{" "}
+                do cliente <strong>{clientName}</strong>?
               </p>
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-900 text-[11px] space-y-1">
                 <p className="font-semibold flex items-center gap-1">
-                  <HardDrive className="h-3.5 w-3.5 text-amber-700" /> Preservação de Dados de Saúde:
+                  <HardDrive className="h-3.5 w-3.5 text-amber-700" /> Preservação de Dados de
+                  Saúde:
                 </p>
                 <p>
-                  O arquivo e os metadados <strong>NUNCA serão excluídos</strong>. O documento apenas deixará de figurar nas consultas ativas normais do sistema.
+                  O arquivo e os metadados <strong>NUNCA serão excluídos</strong>. O documento
+                  apenas deixará de figurar nas consultas ativas normais do sistema.
                 </p>
               </div>
             </AlertDialogDescription>
