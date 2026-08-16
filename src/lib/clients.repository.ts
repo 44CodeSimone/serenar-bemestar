@@ -130,11 +130,12 @@ export async function findClientByEmail(
 ): Promise<ClientRecord | null> {
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail) return null;
+  const escapedEmailPattern = cleanEmail.replace(/[\\%_]/g, "\\$&");
 
   let query = client
     .from("clients")
     .select("*")
-    .ilike("email", cleanEmail)
+    .ilike("email", escapedEmailPattern)
     .neq("status", "archived");
 
   if (excludeId) {

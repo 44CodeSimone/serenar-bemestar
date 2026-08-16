@@ -255,6 +255,7 @@ export default function AdminClients() {
   // Formulário e registros selecionados
   const [formData, setFormData] = useState<ClientFormData>(EMPTY_FORM);
   const isFormDirtyRef = useRef(false);
+  const editRequestIdRef = useRef(0);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [targetActionClientId, setTargetActionClientId] = useState<string | null>(null);
@@ -351,6 +352,7 @@ export default function AdminClients() {
 
   // Abrir modal de criação
   const handleOpenCreate = () => {
+    editRequestIdRef.current += 1;
     isFormDirtyRef.current = false;
     setFormData(EMPTY_FORM);
     setSuspectedDuplicates([]);
@@ -423,6 +425,8 @@ export default function AdminClients() {
 
   // Abrir modal de edição com busca de dados completos e remoção de placeholders
   const handleOpenEdit = async (client: ClientRecord) => {
+    const requestId = editRequestIdRef.current + 1;
+    editRequestIdRef.current = requestId;
     isFormDirtyRef.current = false;
     setEditingClientId(client.id);
 
@@ -444,7 +448,7 @@ export default function AdminClients() {
     // Atualiza o formulário com o registro completo mais recente do banco (apenas se o usuário não começou a editar)
     try {
       const latest = await fetchDetail({ data: { id: client.id } });
-      if (latest && !isFormDirtyRef.current) {
+      if (latest && editRequestIdRef.current === requestId && !isFormDirtyRef.current) {
         setFormData({
           full_name: latest.full_name || "",
           birth_date: latest.birth_date || "",
@@ -1030,7 +1034,13 @@ export default function AdminClients() {
       </Dialog>
 
       {/* Modal: Editar Cliente */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          if (!open) editRequestIdRef.current += 1;
+          setIsEditOpen(open);
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-sage-deep">Editar Cliente</DialogTitle>
