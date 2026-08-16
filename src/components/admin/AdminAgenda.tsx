@@ -252,7 +252,20 @@ export default function AdminAgenda() {
     event.preventDefault();
     clearFeedback();
 
-    if (form.endTime <= form.startTime) {
+    // Read the submitted DOM values instead of relying only on React state.
+    // Native date/time controls can display a freshly selected value before a
+    // queued state update has reached this handler (notably in Chromium).
+    const formData = new FormData(event.currentTarget);
+    const submittedForm: SlotForm = {
+      slotDate: String(formData.get("slotDate") ?? ""),
+      startTime: String(formData.get("startTime") ?? ""),
+      endTime: String(formData.get("endTime") ?? ""),
+      professionalName: String(formData.get("professionalName") ?? ""),
+      notes: String(formData.get("notes") ?? ""),
+      published: formData.has("published"),
+    };
+
+    if (submittedForm.endTime <= submittedForm.startTime) {
       setError("O horário final deve ser posterior ao horário inicial.");
       return;
     }
@@ -264,24 +277,24 @@ export default function AdminAgenda() {
         await updateSlot({
           data: {
             calendarSlotId: editingId,
-            slotDate: form.slotDate,
-            startTime: form.startTime,
-            endTime: form.endTime,
-            professionalName: form.professionalName.trim() || null,
-            notes: form.notes.trim() || null,
-            published: form.published,
+            slotDate: submittedForm.slotDate,
+            startTime: submittedForm.startTime,
+            endTime: submittedForm.endTime,
+            professionalName: submittedForm.professionalName.trim() || null,
+            notes: submittedForm.notes.trim() || null,
+            published: submittedForm.published,
           },
         });
         setSuccess("Horário atualizado com sucesso.");
       } else {
         await createSlot({
           data: {
-            slotDate: form.slotDate,
-            startTime: form.startTime,
-            endTime: form.endTime,
-            professionalName: form.professionalName.trim() || null,
-            notes: form.notes.trim() || null,
-            published: form.published,
+            slotDate: submittedForm.slotDate,
+            startTime: submittedForm.startTime,
+            endTime: submittedForm.endTime,
+            professionalName: submittedForm.professionalName.trim() || null,
+            notes: submittedForm.notes.trim() || null,
+            published: submittedForm.published,
           },
         });
         setSuccess("Horário criado com sucesso.");
@@ -505,6 +518,7 @@ export default function AdminAgenda() {
             <span className="font-medium text-sage-deep">Data *</span>
             <input
               type="date"
+              name="slotDate"
               required
               min={editingId ? undefined : minimumDate}
               value={form.slotDate}
@@ -518,6 +532,7 @@ export default function AdminAgenda() {
             <span className="font-medium text-sage-deep">Horário inicial *</span>
             <input
               type="time"
+              name="startTime"
               required
               value={form.startTime}
               onChange={(event) =>
@@ -530,6 +545,7 @@ export default function AdminAgenda() {
             <span className="font-medium text-sage-deep">Horário final *</span>
             <input
               type="time"
+              name="endTime"
               required
               value={form.endTime}
               onChange={(event) =>
@@ -541,6 +557,7 @@ export default function AdminAgenda() {
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-sage-deep">Profissional</span>
             <input
+              name="professionalName"
               maxLength={100}
               value={form.professionalName}
               onChange={(event) =>
@@ -553,6 +570,7 @@ export default function AdminAgenda() {
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-sage-deep">Observações internas</span>
             <input
+              name="notes"
               maxLength={2000}
               value={form.notes}
               onChange={(event) =>
@@ -568,6 +586,7 @@ export default function AdminAgenda() {
           <label className="inline-flex items-center gap-2 text-sm">
             <input
               type="checkbox"
+              name="published"
               checked={form.published}
               onChange={(event) =>
                 setForm((current) => ({ ...current, published: event.target.checked }))

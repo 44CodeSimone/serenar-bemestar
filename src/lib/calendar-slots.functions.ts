@@ -66,14 +66,13 @@ export const listAdminCalendarSlotsFn = createServerFn({ method: "GET" })
  * Server Function (GET): Retorna a listagem pública de horários disponíveis para o site.
  */
 export const listPublicCalendarSlotsFn = createServerFn({ method: "GET" }).handler(
-  async ({
-    context,
-  }): Promise<Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>> => {
+  async (): Promise<
+    Array<Pick<CalendarSlotRow, "id" | "slot_date" | "start_time" | "end_time">>
+  > => {
     try {
-      const ctx = context as unknown as {
-        supabase: Parameters<typeof repo.listPublicCalendarSlots>[0];
-      };
-      return await repo.listPublicCalendarSlots(ctx.supabase);
+      const { createPublicServerClient } =
+        await import("@/integrations/supabase/public-client.server");
+      return await repo.listPublicCalendarSlots(createPublicServerClient());
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
