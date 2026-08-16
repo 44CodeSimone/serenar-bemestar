@@ -1,4 +1,4 @@
-﻿name: Serenar CI
+name: Serenar CI
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
