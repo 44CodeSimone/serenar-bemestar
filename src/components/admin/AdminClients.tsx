@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Users,
@@ -78,7 +78,7 @@ import {
 
 // Helper de formatação de CPF: 000.000.000-00
 function formatCpf(cpf?: string | null): string {
-  if (!cpf) return "Não informado";
+  if (!cpf) return "-";
   const digits = cpf.replace(/\D/g, "");
   if (digits.length !== 11) return cpf;
   return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -254,6 +254,8 @@ export default function AdminClients() {
 
   // Formulário e registros selecionados
   const [formData, setFormData] = useState<ClientFormData>(EMPTY_FORM);
+  const isFormDirtyRef = useRef(false);
+  const editRequestIdRef = useRef(0);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [targetActionClientId, setTargetActionClientId] = useState<string | null>(null);
@@ -318,6 +320,7 @@ export default function AdminClients() {
 
   // Handler de alteração dos inputs de formulário com máscaras
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
+    isFormDirtyRef.current = true;
     let formattedValue = value;
 
     if (field === "cpf") {
@@ -349,6 +352,8 @@ export default function AdminClients() {
 
   // Abrir modal de criação
   const handleOpenCreate = () => {
+    editRequestIdRef.current += 1;
+    isFormDirtyRef.current = false;
     setFormData(EMPTY_FORM);
     setSuspectedDuplicates([]);
     setIsCreateOpen(true);
@@ -418,47 +423,103 @@ export default function AdminClients() {
     }
   };
 
-  // Abrir modal de edição
-  const handleOpenEdit = (client: ClientRecord) => {
+  // Abrir modal de edição com busca de dados completos e remoção de placeholders
+  const handleOpenEdit = async (client: ClientRecord) => {
+    const requestId = editRequestIdRef.current + 1;
+    editRequestIdRef.current = requestId;
+    isFormDirtyRef.current = false;
     setEditingClientId(client.id);
+
+    // Formatação inicial segura (nunca carrega "-" ou placeholders de exibição no estado editável)
     setFormData({
       full_name: client.full_name || "",
       birth_date: client.birth_date || "",
-      phone: formatPhone(client.phone),
-      cpf: formatCpf(client.cpf),
+      phone: client.phone ? formatPhone(client.phone) : "",
+      cpf: client.cpf ? formatCpf(client.cpf) : "",
       mother_name: client.mother_name || "",
-      whatsapp: formatPhone(client.whatsapp),
+      whatsapp: client.whatsapp ? formatPhone(client.whatsapp) : "",
       email: client.email || "",
       city: client.city || "",
       profession: client.profession || "",
       notes: client.notes || "",
     });
     setIsEditOpen(true);
+
+    // Atualiza o formulário com o registro completo mais recente do banco (apenas se o usuário não começou a editar)
+    try {
+      const latest = await fetchDetail({ data: { id: client.id } });
+      if (latest && editRequestIdRef.current === requestId && !isFormDirtyRef.current) {
+        setFormData({
+          full_name: latest.full_name || "",
+          birth_date: latest.birth_date || "",
+          phone: latest.phone ? formatPhone(latest.phone) : "",
+          cpf: latest.cpf ? formatCpf(latest.cpf) : "",
+          mother_name: latest.mother_name || "",
+          whatsapp: latest.whatsapp ? formatPhone(latest.whatsapp) : "",
+          email: latest.email || "",
+          city: latest.city || "",
+          profession: latest.profession || "",
+          notes: latest.notes || "",
+        });
+      }
+    } catch {
+      // Mantém os dados da linha se falhar a busca individual
+    }
   };
 
-  // Submissão da edição
+  // Submissão da edição com validação rigorosa e sanitização dos campos
   const handleSubmitEdit = async () => {
     if (!editingClientId) return;
+
+    const trimmedName = formData.full_name.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      toast.error("Informe o nome completo do cliente (mínimo 2 caracteres).");
+      return;
+    }
+
+    const trimmedBirthDate = formData.birth_date.trim();
+    if (!trimmedBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(trimmedBirthDate)) {
+      toast.error("Informe uma data de nascimento válida (AAAA-MM-DD).");
+      return;
+    }
+
+    const rawPhoneDigits = formData.phone.replace(/\D/g, "");
+    if (!rawPhoneDigits || rawPhoneDigits.length < 10) {
+      toast.error("Informe um telefone de contato válido com DDD (mínimo 10 dígitos).");
+      return;
+    }
+
+    const rawEmail = formData.email.trim();
+    if (rawEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      toast.error("Informe um e-mail com formato válido.");
+      return;
+    }
+
+    const rawCpfDigits = formData.cpf.replace(/\D/g, "");
+    if (rawCpfDigits && rawCpfDigits.length !== 11) {
+      toast.error("O CPF deve conter exatamente 11 dígitos numéricos.");
+      return;
+    }
 
     setSubmitting(true);
     try {
       await executeUpdate({
         data: {
           id: editingClientId,
-          full_name: formData.full_name,
-          birth_date: formData.birth_date,
-          phone: formData.phone,
-          cpf: formData.cpf || null,
-          mother_name: formData.mother_name || null,
-          whatsapp: formData.whatsapp || null,
-          email: formData.email || null,
-          city: formData.city || null,
-          profession: formData.profession || null,
-          notes: formData.notes || null,
+          full_name: trimmedName,
+          birth_date: trimmedBirthDate,
+          phone: formData.phone.trim(),
+          cpf: rawCpfDigits || null,
+          mother_name: formData.mother_name.trim() || null,
+          whatsapp: formData.whatsapp.trim() || null,
+          email: rawEmail || null,
+          city: formData.city.trim() || null,
+          profession: formData.profession.trim() || null,
+          notes: formData.notes.trim() || null,
         },
       });
 
-      toast.success("Dados do cliente atualizados!");
+      toast.success("Dados do cliente atualizados com sucesso!");
       setIsEditOpen(false);
       setEditingClientId(null);
       void loadClients();
@@ -973,7 +1034,13 @@ export default function AdminClients() {
       </Dialog>
 
       {/* Modal: Editar Cliente */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          if (!open) editRequestIdRef.current += 1;
+          setIsEditOpen(open);
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl text-sage-deep">Editar Cliente</DialogTitle>
