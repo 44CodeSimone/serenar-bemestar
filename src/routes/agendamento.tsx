@@ -69,19 +69,17 @@ function Agendamento() {
   );
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
+  const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadServices() {
       try {
-        const [servicesData, slotsData] = await Promise.all([
-          listPublicServices(),
-          fetchPublicSlots(),
-        ]);
+        const servicesData = await listPublicServices();
         if (!cancelled) {
           setServices(servicesData);
-          setCalendarSlots(slotsData);
           setForm((current) => {
             const incomingService = initialServiceSearchRef.current;
             if (!incomingService || current.service !== incomingService) return current;
@@ -97,15 +95,32 @@ function Agendamento() {
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("Failed to load booking data:", err);
-          setServicesError("Não foi possível carregar as informações. Tente recarregar a página.");
+          console.error("Failed to load public services:", err);
+          setServicesError("Não foi possível carregar os serviços. Tente recarregar a página.");
         }
       } finally {
         if (!cancelled) setServicesLoading(false);
       }
     }
 
-    load();
+    async function loadSlots() {
+      try {
+        const slotsData = await fetchPublicSlots();
+        if (!cancelled) {
+          setCalendarSlots(slotsData);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load public calendar slots:", err);
+          setSlotsError("Não foi possível carregar os horários disponíveis agora.");
+        }
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
+      }
+    }
+
+    void loadServices();
+    void loadSlots();
     return () => {
       cancelled = true;
     };
@@ -438,9 +453,19 @@ function Agendamento() {
               </select>
             </Field>
           </div>
+          {slotsLoading && (
+            <p className="text-xs text-muted-foreground">Carregando horários disponíveis…</p>
+          )}
+          {slotsError && (
+            <p role="alert" className="text-xs text-destructive">
+              {slotsError} Você ainda pode falar diretamente com a Serenar pelo WhatsApp.
+            </p>
+          )}
           {availableDates.length === 0 && (
             <p className="text-xs text-muted-foreground italic">
-              Nenhum horário pré-definido disponível no momento.
+              {!slotsLoading && !slotsError
+                ? "Nenhum horário pré-definido disponível no momento."
+                : null}
             </p>
           )}
           <Field label="Alguma observação?">
