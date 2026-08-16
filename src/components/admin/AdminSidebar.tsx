@@ -15,6 +15,7 @@ import {
   CalendarDays,
   Search,
   Quote,
+  ClipboardList,
 } from "lucide-react";
 import { LeafMark } from "@/components/site/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ const ITEMS: { to: string; label: string; icon: typeof LayoutDashboard; exact?: 
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarCheck },
   { to: "/admin/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/admin/clientes", label: "Clientes", icon: Users },
+  { to: "/admin/anamnese", label: "Anamnese", icon: ClipboardList },
   { to: "/admin/leads", label: "Leads", icon: Users },
   { to: "/admin/blog", label: "Blog", icon: Newspaper },
   { to: "/admin/faq", label: "FAQ", icon: MessageSquareHeart },
