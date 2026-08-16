@@ -15,7 +15,7 @@ function ImagePlaceholder({
   height,
   state,
 }: Pick<Props, "className" | "style" | "width" | "height"> & {
-  state: "loading" | "error";
+  state: "loading" | "empty" | "error";
 }) {
   return (
     <div
@@ -33,12 +33,12 @@ function ImagePlaceholder({
 /**
  * Renders a public-site image managed via the Admin CMS.
  * Renders a neutral placeholder while the CMS image is still unknown and
- * falls back to the imported default asset only after absence is confirmed.
+ * keeps a neutral space until a CMS image is available. Imported defaults are
+ * intentionally not rendered so visitors never see a generic image first.
  * Uses lazy loading by default.
  */
 export function ManagedImage({
   slotKey,
-  fallbackSrc,
   alt,
   loading = "lazy",
   className,
@@ -79,8 +79,19 @@ export function ManagedImage({
     );
   }
 
-  const useFallback = !image?.public_url;
-  const src = useFallback ? fallbackSrc : image.public_url;
+  if (!image?.public_url) {
+    return (
+      <ImagePlaceholder
+        className={className}
+        style={style}
+        width={width}
+        height={height}
+        state="empty"
+      />
+    );
+  }
+
+  const src = image.public_url;
   const finalAlt = image?.alt?.trim() || alt;
   return (
     <img
@@ -92,7 +103,7 @@ export function ManagedImage({
       className={className}
       style={style}
       onError={(event) => {
-        if (!useFallback) setConfiguredImageFailed(true);
+        setConfiguredImageFailed(true);
         onError?.(event);
       }}
       {...rest}
