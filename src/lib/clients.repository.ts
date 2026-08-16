@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { sameBrazilianPhone } from "@/lib/phone";
 
 export type ClientRecord = Database["public"]["Tables"]["clients"]["Row"];
 export type CreateClientParams = Database["public"]["Tables"]["clients"]["Insert"];
@@ -117,6 +118,68 @@ export async function findClientByCpf(
   }
 
   return data;
+}
+
+/**
+ * Busca cliente por e-mail (case-insensitive).
+ */
+export async function findClientByEmail(
+  client: SupabaseClient<Database>,
+  email: string,
+  excludeId?: string,
+): Promise<ClientRecord | null> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) return null;
+
+  let query = client
+    .from("clients")
+    .select("*")
+    .ilike("email", cleanEmail)
+    .neq("status", "archived");
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Busca cliente por número de telefone ou WhatsApp usando a normalização segura de telefones brasileiros.
+ */
+export async function findClientByPhone(
+  client: SupabaseClient<Database>,
+  phone: string,
+  excludeId?: string,
+): Promise<ClientRecord | null> {
+  if (!phone || !phone.trim()) return null;
+
+  let query = client.from("clients").select("*").neq("status", "archived");
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { data: candidates, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  if (!candidates || candidates.length === 0) return null;
+
+  const match = candidates.find(
+    (candidate) =>
+      sameBrazilianPhone(candidate.phone, phone) || sameBrazilianPhone(candidate.whatsapp, phone),
+  );
+
+  return match ?? null;
 }
 
 /**

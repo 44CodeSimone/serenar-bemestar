@@ -122,8 +122,12 @@ export interface CreateClientInput {
   notes?: string | null;
 }
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 /**
- * Server Function: Criação de novo cliente com validação e deduplicação de CPF.
+ * Server Function: Criação de novo cliente com validação e deduplicação de CPF/e-mail.
  */
 export const createClientFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -154,6 +158,11 @@ export const createClientFn = createServerFn({ method: "POST" })
       throw new Error("CPF informado é inválido.");
     }
 
+    const rawEmail = typeof i.email === "string" ? i.email.trim() : null;
+    if (rawEmail && !isValidEmail(rawEmail)) {
+      throw new Error("Formato de e-mail inválido.");
+    }
+
     return {
       full_name: fullName,
       birth_date: birthDate,
@@ -161,7 +170,7 @@ export const createClientFn = createServerFn({ method: "POST" })
       cpf: cleanCpf,
       mother_name: typeof i.mother_name === "string" ? i.mother_name.trim() || null : null,
       whatsapp: typeof i.whatsapp === "string" ? i.whatsapp.trim() || null : null,
-      email: typeof i.email === "string" ? i.email.trim() || null : null,
+      email: rawEmail || null,
       city: typeof i.city === "string" ? i.city.trim() || null : null,
       profession: typeof i.profession === "string" ? i.profession.trim() || null : null,
       source: typeof i.source === "string" && i.source.trim() ? i.source.trim() : "admin",
@@ -176,6 +185,31 @@ export const createClientFn = createServerFn({ method: "POST" })
           existingCpf.status === "archived"
             ? "Já existe um cliente arquivado com este CPF. Restaure a ficha em vez de recadastrar."
             : "Já existe um cliente ativo cadastrado com este CPF.",
+        );
+      }
+    }
+
+    if (data.email) {
+      const existingEmail = await repo.findClientByEmail(context.supabase, data.email);
+      if (existingEmail) {
+        throw new Error("Já existe outro cliente cadastrado com este e-mail.");
+      }
+    }
+
+    if (data.phone) {
+      const existingPhone = await repo.findClientByPhone(context.supabase, data.phone);
+      if (existingPhone) {
+        throw new Error(
+          "Já existe outro cliente cadastrado com este telefone. Verifique a lista de cadastros antes de prosseguir.",
+        );
+      }
+    }
+
+    if (data.whatsapp) {
+      const existingWhatsapp = await repo.findClientByPhone(context.supabase, data.whatsapp);
+      if (existingWhatsapp) {
+        throw new Error(
+          "Já existe outro cliente cadastrado com este WhatsApp. Verifique a lista de cadastros antes de prosseguir.",
         );
       }
     }
@@ -230,7 +264,7 @@ export const updateClientFn = createServerFn({ method: "POST" })
 
     if (typeof i.full_name === "string") {
       const fn = i.full_name.trim();
-      if (fn.length < 2) throw new Error("Nome completo inválido.");
+      if (fn.length < 2) throw new Error("Nome completo inválido (mínimo 2 caracteres).");
       payload.full_name = fn;
     }
     if (typeof i.birth_date === "string") {
@@ -255,7 +289,11 @@ export const updateClientFn = createServerFn({ method: "POST" })
       payload.whatsapp = typeof i.whatsapp === "string" ? i.whatsapp.trim() || null : null;
     }
     if (i.email !== undefined) {
-      payload.email = typeof i.email === "string" ? i.email.trim() || null : null;
+      const rawEm = typeof i.email === "string" ? i.email.trim() || null : null;
+      if (rawEm && !isValidEmail(rawEm)) {
+        throw new Error("Formato de e-mail inválido.");
+      }
+      payload.email = rawEm;
     }
     if (i.city !== undefined) {
       payload.city = typeof i.city === "string" ? i.city.trim() || null : null;
@@ -274,6 +312,35 @@ export const updateClientFn = createServerFn({ method: "POST" })
       const existingCpf = await repo.findClientByCpf(context.supabase, data.cpf, data.id);
       if (existingCpf) {
         throw new Error("Já existe outro cliente cadastrado com este CPF.");
+      }
+    }
+
+    if (data.email) {
+      const existingEmail = await repo.findClientByEmail(context.supabase, data.email, data.id);
+      if (existingEmail) {
+        throw new Error("Já existe outro cliente cadastrado com este e-mail.");
+      }
+    }
+
+    if (data.phone) {
+      const existingPhone = await repo.findClientByPhone(context.supabase, data.phone, data.id);
+      if (existingPhone) {
+        throw new Error(
+          "Já existe outro cliente cadastrado com este telefone. Verifique a lista de cadastros antes de prosseguir.",
+        );
+      }
+    }
+
+    if (data.whatsapp) {
+      const existingWhatsapp = await repo.findClientByPhone(
+        context.supabase,
+        data.whatsapp,
+        data.id,
+      );
+      if (existingWhatsapp) {
+        throw new Error(
+          "Já existe outro cliente cadastrado com este WhatsApp. Verifique a lista de cadastros antes de prosseguir.",
+        );
       }
     }
 
