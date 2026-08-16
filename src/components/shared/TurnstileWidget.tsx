@@ -14,8 +14,10 @@ type TurnstileApi = {
       action?: string;
       callback: (token: string) => void;
       "expired-callback": () => void;
-      "error-callback": () => void;
+      "error-callback": (code?: string) => void;
       theme: "light";
+      retry?: "auto" | "never";
+      "refresh-expired"?: "auto" | "manual" | "never";
     },
   ) => string;
   reset: (widgetId?: string) => void;
@@ -181,8 +183,17 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
                 if (!activeRef.current) return;
                 tokenChangeRef.current(null);
                 stateChangeRef.current?.("error");
+                // Evita o loop de novas tentativas quando o domínio não está
+                // autorizado no Cloudflare (erro 110200): remove o widget.
+                if (apiRef.current && widgetIdRef.current) {
+                  apiRef.current.remove(widgetIdRef.current);
+                  widgetIdRef.current = null;
+                }
+                availabilityChangeRef.current?.(false);
               },
               theme: "light",
+              retry: "never",
+              "refresh-expired": "manual",
             });
           } catch {
             availabilityChangeRef.current?.(false);
