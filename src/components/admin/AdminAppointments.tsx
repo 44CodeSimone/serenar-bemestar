@@ -16,6 +16,7 @@ import {
   Activity,
   Eye,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -23,6 +24,7 @@ import {
   changeAppointmentStatusFn,
   updateAppointmentInternalNotesFn,
   convertAppointmentToSessionFn,
+  deleteAppointmentFn,
 } from "@/lib/appointments.functions";
 import type { AppointmentRecord, AppointmentStatus } from "@/lib/appointments.repository";
 import { listClientsFn } from "@/lib/clients.functions";
@@ -31,6 +33,16 @@ import AdminClientSessions from "@/components/admin/AdminClientSessions";
 import { SITE } from "@/lib/site-config";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { normalizeBrazilianPhone, sameBrazilianPhone } from "@/lib/phone";
 
 const GOOGLE_CALENDAR_OPEN_URL =
@@ -144,6 +156,7 @@ export default function AdminAppointments() {
   const changeStatus = useServerFn(changeAppointmentStatusFn);
   const updateNotes = useServerFn(updateAppointmentInternalNotesFn);
   const convertToSession = useServerFn(convertAppointmentToSessionFn);
+  const deleteAppointment = useServerFn(deleteAppointmentFn);
   const fetchClients = useServerFn(listClientsFn);
 
   // Estados
@@ -155,6 +168,8 @@ export default function AdminAppointments() {
   const [search, setSearch] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AppointmentRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
@@ -380,6 +395,36 @@ export default function AdminAppointments() {
       email: appointment.email ?? "",
     });
     window.location.href = `/admin/clientes?${params.toString()}`;
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget || deletingId) {
+      return;
+    }
+
+    const appointment = deleteTarget;
+    setDeletingId(appointment.id);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await deleteAppointment({ data: { appointmentId: appointment.id } });
+      setItems((currentItems) => currentItems.filter((item) => item.id !== appointment.id));
+      setNoteDrafts((currentDrafts) => {
+        const nextDrafts = { ...currentDrafts };
+        delete nextDrafts[appointment.id];
+        noteDraftsRef.current = nextDrafts;
+        return nextDrafts;
+      });
+      setDeleteTarget(null);
+      toast.success("Agendamento excluído com sucesso.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Não foi possível excluir o agendamento.";
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -713,6 +758,24 @@ export default function AdminAppointments() {
                           <Sparkles className="h-3.5 w-3.5 text-gold" /> Abrir Central
                         </Link>
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDeleteTarget(appointment)}
+                        disabled={
+                          processing ||
+                          convertingId === appointment.id ||
+                          deletingId === appointment.id
+                        }
+                        className="h-8 gap-1.5 border-destructive/40 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        {deletingId === appointment.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                        Excluir
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -731,6 +794,45 @@ export default function AdminAppointments() {
           onOpenChange={setIsSessionsOpen}
         />
       )}
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deletingId) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif text-xl text-sage-deep">
+              Excluir agendamento?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-xs">
+              <span className="block">
+                O pedido de <strong>{deleteTarget?.full_name}</strong> será excluído
+                permanentemente.
+              </span>
+              <span className="block">
+                Se o horário ainda estiver reservado, ele voltará a ficar disponível. Uma sessão
+                clínica já criada será preservada, mas deixará de apontar para este pedido.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(deletingId)}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                void handleConfirmDelete();
+              }}
+              disabled={Boolean(deletingId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingId ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+              Excluir permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
         Contato do espaço: {SITE.whatsapp.display}
