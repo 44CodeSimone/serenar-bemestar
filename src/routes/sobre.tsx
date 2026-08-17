@@ -105,33 +105,36 @@ function Sobre() {
         </div>
       </section>
 
-      <section className="bg-blush/50 py-24">
-        <div className="container-narrow grid gap-10 md:grid-cols-2 md:items-center">
-          <ManagedImage
-            slotKey="sobre.ambiente"
-            fallbackSrc={roomImg}
-            alt="Ambiente da sala de atendimento"
-            width={1400}
-            height={1600}
-            className="rounded-[2rem] shadow-elegant"
-          />
-          <div>
+      <section className="bg-blush/50 py-16 sm:py-20 lg:py-24">
+        <div className="container-narrow">
+          <div className="mx-auto max-w-3xl text-center">
             <p className="eyebrow mb-3">O ambiente</p>
-            <h2 className="display-serif text-4xl">
+            <h2 className="display-serif text-4xl md:text-5xl">
               Silêncio, luz suave, aromas <span className="italic text-sage">naturais</span>
             </h2>
-            <p className="mt-6 text-muted-foreground leading-relaxed">
+            <p className="mt-6 leading-relaxed text-muted-foreground">
               Cada detalhe do espaço foi pensado para que os sentidos se acalmem à porta: tecidos
               naturais, plantas vivas, iluminação âmbar, óleos essenciais de qualidade terapêutica.
             </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-2 lg:gap-8">
+            <ManagedImage
+              slotKey="sobre.ambiente"
+              fallbackSrc={roomImg}
+              alt="Ambiente da sala de atendimento"
+              width={1400}
+              height={1050}
+              className="aspect-[4/3] h-full w-full rounded-[1.5rem] object-cover shadow-elegant sm:rounded-[2rem]"
+            />
             <ManagedImage
               slotKey="sobre.ritual"
               fallbackSrc={ritualImg}
               alt=""
               aria-hidden
               width={1400}
-              height={1000}
-              className="mt-8 rounded-2xl shadow-soft"
+              height={1050}
+              className="aspect-[4/3] h-full w-full rounded-[1.5rem] object-cover object-[center_40%] shadow-elegant sm:rounded-[2rem]"
             />
           </div>
         </div>
