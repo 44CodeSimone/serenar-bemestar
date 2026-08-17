@@ -606,7 +606,7 @@ export function AdminClientAnamnesis({
                             size="sm"
                             className="text-xs gap-1 self-end sm:self-center"
                           >
-                            <FileText className="h-3.5 w-3.5" /> Abrir Formulário
+                            <FileText className="h-3.5 w-3.5" /> Abrir Formúlário
                           </Button>
                         </CardContent>
                       </Card>

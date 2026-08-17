@@ -15,7 +15,7 @@ function ImagePlaceholder({
   height,
   state,
 }: Pick<Props, "className" | "style" | "width" | "height"> & {
-  state: "loading" | "empty" | "error";
+  state: "loading" | "error";
 }) {
   return (
     <div
@@ -32,13 +32,13 @@ function ImagePlaceholder({
 
 /**
  * Renders a public-site image managed via the Admin CMS.
- * Renders a neutral placeholder while the CMS image is still unknown and
- * keeps a neutral space until a CMS image is available. Imported defaults are
- * intentionally not rendered so visitors never see a generic image first.
+ * Keeps the imported fallback hidden while the CMS lookup is still pending,
+ * then uses it only when the lookup confirms that the slot is not configured.
  * Uses lazy loading by default.
  */
 export function ManagedImage({
   slotKey,
+  fallbackSrc,
   alt,
   loading = "lazy",
   className,
@@ -49,11 +49,12 @@ export function ManagedImage({
   ...rest
 }: Props) {
   const { image, loading: isLoading, error } = useManagedImage(slotKey);
-  const [configuredImageFailed, setConfiguredImageFailed] = useState(false);
+  const src = image?.public_url ?? fallbackSrc;
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    setConfiguredImageFailed(false);
-  }, [image?.public_url]);
+    setFailedSrc(null);
+  }, [src]);
 
   if (isLoading && !image) {
     return (
@@ -67,7 +68,7 @@ export function ManagedImage({
     );
   }
 
-  if ((error && !image) || configuredImageFailed) {
+  if ((error && !image) || failedSrc === src) {
     return (
       <ImagePlaceholder
         className={className}
@@ -79,19 +80,6 @@ export function ManagedImage({
     );
   }
 
-  if (!image?.public_url) {
-    return (
-      <ImagePlaceholder
-        className={className}
-        style={style}
-        width={width}
-        height={height}
-        state="empty"
-      />
-    );
-  }
-
-  const src = image.public_url;
   const finalAlt = image?.alt?.trim() || alt;
   return (
     <img
@@ -103,7 +91,7 @@ export function ManagedImage({
       className={className}
       style={style}
       onError={(event) => {
-        setConfiguredImageFailed(true);
+        setFailedSrc(src);
         onError?.(event);
       }}
       {...rest}
