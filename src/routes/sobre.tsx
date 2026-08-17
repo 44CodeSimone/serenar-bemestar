@@ -129,6 +129,8 @@ function Sobre() {
               fallbackSrc={ritualImg}
               alt=""
               aria-hidden
+              width={1400}
+              height={1000}
               className="mt-8 rounded-2xl shadow-soft"
             />
           </div>

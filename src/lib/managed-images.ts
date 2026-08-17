@@ -103,43 +103,41 @@ export async function fetchSlotImage(key: string): Promise<ManagedImageRecord | 
   }
 
   const promise = (async () => {
-    try {
-      const { data, error } = await supabase
-        .from("site_images")
-        .select("id, storage_path, alt, tag, caption, created_at")
-        .eq("tag", key)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      const record = data
-        ? ({
-            ...data,
-            public_url: await signedUrl(data.storage_path),
-          } as ManagedImageRecord)
-        : null;
-      setManagedImageCache(key, record);
-      return record;
-    } catch (err) {
-      console.error(`Failed to fetch slot image for key: ${key}`, err);
-      return null;
-    } finally {
-      pendingRequests.delete(key);
-    }
+    const { data, error } = await supabase
+      .from("site_images")
+      .select("id, storage_path, alt, tag, caption, created_at")
+      .eq("tag", key)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+
+    const record = data
+      ? ({
+          ...data,
+          public_url: await signedUrl(data.storage_path),
+        } as ManagedImageRecord)
+      : null;
+    setManagedImageCache(key, record);
+    return record;
   })();
 
   pendingRequests.set(key, promise);
-  return promise;
+  try {
+    return await promise;
+  } finally {
+    pendingRequests.delete(key);
+  }
 }
 
 /**
- * Hook: returns the CMS image for a slot (or null while loading / when absent).
- * Public components should render the fallback until this resolves.
+ * Hook: returns the CMS image for a slot and keeps loading, absence, and failures distinct.
  */
 export function useManagedImage(key: string) {
   const initialCache = getCachedImage(key);
   const [image, setImage] = useState<ManagedImageRecord | null>(initialCache?.record ?? null);
   const [loading, setLoading] = useState(() => !initialCache);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -147,19 +145,31 @@ export function useManagedImage(key: string) {
 
     async function loadImage() {
       const cached = getCachedImage(key);
-      if (!cached) setLoading(true);
-      const img = await fetchSlotImage(key);
-      if (!alive) return;
-      setImage(img);
-      setLoading(false);
+      if (!cached) {
+        setLoading(true);
+        setError(null);
+      }
 
-      const refreshed = getCachedImage(key);
-      if (refreshed) {
-        const delay = Math.max(0, refreshed.refreshAt - Date.now());
-        refreshTimer = setTimeout(() => {
-          imageCache.delete(key);
-          void loadImage();
-        }, delay);
+      try {
+        const img = await fetchSlotImage(key);
+        if (!alive) return;
+        setImage(img);
+        setError(null);
+
+        const refreshed = getCachedImage(key);
+        if (refreshed) {
+          const delay = Math.max(0, refreshed.refreshAt - Date.now());
+          refreshTimer = setTimeout(() => {
+            imageCache.delete(key);
+            void loadImage();
+          }, delay);
+        }
+      } catch (err) {
+        console.error(`Failed to fetch slot image for key: ${key}`, err);
+        if (!alive) return;
+        setError(err instanceof Error ? err : new Error("Falha ao carregar imagem."));
+      } finally {
+        if (alive) setLoading(false);
       }
     }
 
@@ -171,5 +181,5 @@ export function useManagedImage(key: string) {
     };
   }, [key]);
 
-  return { image, loading };
+  return { image, loading, error };
 }

@@ -114,6 +114,7 @@ function Home() {
                 width={1600}
                 height={1280}
                 loading="eager"
+                fetchPriority="high"
                 className="h-[520px] w-full object-cover md:h-[640px]"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sage-deep/20 via-transparent to-transparent" />
