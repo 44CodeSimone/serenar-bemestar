@@ -80,6 +80,29 @@ export async function updateAppointmentInternalNotes(
 }
 
 /**
+ * Exclui um agendamento por meio da RPC administrativa e libera, na mesma
+ * transação, eventual horário que ainda esteja reservado.
+ */
+export async function deleteAppointment(
+  client: SupabaseClient<Database>,
+  appointmentId: string,
+): Promise<string> {
+  const { data, error } = await client.rpc("delete_appointment_admin", {
+    p_appointment_id: appointmentId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("A exclusão não retornou o agendamento removido.");
+  }
+
+  return data;
+}
+
+/**
  * Altera o status de um agendamento utilizando a RPC de banco change_appointment_status.
  */
 export async function changeAppointmentStatus(

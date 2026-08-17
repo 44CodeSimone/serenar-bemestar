@@ -1367,6 +1367,10 @@ export type Database = {
           previous_status: string;
         }[];
       };
+      delete_appointment_admin: {
+        Args: { p_appointment_id: string };
+        Returns: string;
+      };
       create_prebooking: {
         Args: {
           p_calendar_slot_id: string;

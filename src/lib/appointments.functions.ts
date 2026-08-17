@@ -25,6 +25,10 @@ export type UpdateAppointmentInternalNotesInput = {
   internalNotes: string;
 };
 
+export type DeleteAppointmentInput = {
+  appointmentId: string;
+};
+
 export type ConvertAppointmentToSessionInput = {
   appointmentId: string;
   serviceId?: string | null;
@@ -162,6 +166,43 @@ export const updateAppointmentInternalNotesFn = createServerFn({ method: "POST" 
         throw error;
       }
       throw new Error("Erro ao atualizar as notas internas do agendamento.");
+    }
+  });
+
+/**
+ * Server Function: Exclui permanentemente um agendamento.
+ * A RPC valida que o usuário pertence à equipe e libera eventual horário reservado.
+ */
+export const deleteAppointmentFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown): DeleteAppointmentInput => {
+    if (typeof input !== "object" || input === null) {
+      throw new Error("Payload de exclusão inválido.");
+    }
+
+    const params = input as Record<string, unknown>;
+    const appointmentId =
+      typeof params.appointmentId === "string" ? params.appointmentId.trim() : "";
+
+    if (!isValidUuid(appointmentId)) {
+      throw new Error("ID do agendamento inválido.");
+    }
+
+    return { appointmentId };
+  })
+  .handler(async ({ context, data }): Promise<{ deletedId: string }> => {
+    try {
+      const deletedId = await appointmentsRepo.deleteAppointment(
+        context.supabase,
+        data.appointmentId,
+      );
+      return { deletedId };
+    } catch (error) {
+      console.error("[deleteAppointmentFn] Error deleting appointment:", error);
+      if (error instanceof Error && error.message) {
+        throw error;
+      }
+      throw new Error("Erro ao excluir o agendamento.");
     }
   });
 
